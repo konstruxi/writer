@@ -30,13 +30,14 @@
         if (range.startOffset > 0) return;
         var container = range.startContainer.$
         for (; container.parentNode; container = container.parentNode) {
+          if (container.parentNode.firstChild != container)
+            break;
           if (container.parentNode.tagName == 'SECTION') {
-            if (container.parentNode.firstChild == container)
-              if (container.parentNode.classList.contains('forced')) {
-                container.parentNode.classList.remove('forced');
-                fix();
-                return false;
-              }
+            if (container.parentNode.classList.contains('forced')) {
+              container.parentNode.classList.remove('forced');
+              fix();
+              return false;
+            }
           }
         }
         return true;
@@ -94,6 +95,14 @@ isEmptyParagraph = function(child) {
     }
   //}
 }
+
+isInside = function(element, another) {
+  while (element) {
+    if (element == another)
+      return true;
+    element = element.parentNode
+  }
+}
 place = function(parent, previous, child, current, root, selected) {
   if (previous) {
     // start a new line after empty paragraph
@@ -103,7 +112,7 @@ place = function(parent, previous, child, current, root, selected) {
       previous.parentNode.removeChild(previous)
       var removed = previous
 
-    } else if (selected == child && isEmptyParagraph(previous)) {
+    } else if (isInside(selected, child) && isEmptyParagraph(previous)) {
         console.log('force', parent, parent.childNodes.length)
       if (previous.parentNode.firstChild == previous) {
         console.log('replace', child, previous)

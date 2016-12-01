@@ -1,0 +1,190 @@
+<html>
+  <html>
+    <script src="./ckeditor/ckeditor.js"></script>
+    <link rel="stylesheet" href="./ckeditor.css" />
+  </html>
+  <body>
+  <pre id="log" style="position: absolute; left: 0; top: 0">
+
+  </pre>
+  <br>
+  <br>
+  <div id="content" contenteditable>
+    <h1>This editor structures your article into chapters</h1>
+    <p>Each chapter is a set of titles, text and media</p>
+    <p>We try to guess where content should be split into chunks, but users have tight control over that too.</p>
+  </div>
+
+  <script>
+    // Turn off automatic editor creation first.
+    CKEDITOR.disableAutoInline = true;
+    var editor = CKEDITOR.inline('content', {
+      extraPlugins: 'structural',
+      floatSpaceDockedOffsetY: 10
+    });
+
+    editor.on('key', function(e) {
+      if (e.data.keyCode == 8) {
+        var selection = editor.getSelection()
+        var range = selection.getRanges()[ 0 ]
+        if (range.startOffset > 0) return;
+        var container = range.startContainer.$
+        for (; container.parentNode; container = container.parentNode) {
+          if (container.parentNode.tagName == 'SECTION') {
+            if (container.parentNode.firstChild == container)
+              if (container.parentNode.classList.contains('forced')) {
+                container.parentNode.classList.remove('forced');
+                fix();
+                return false;
+              }
+          }
+        }
+        return true;
+      }
+      console.log(e.keyCode, arguments, e.data.keyCode)
+    }, null, null, -10);
+
+
+
+
+split = function(editor, root) {
+  var children = Array.prototype.slice.call(root.childNodes);
+  var selection = editor.getSelection()
+  var bookmark = selection.createBookmarks();
+  var last;
+  var prev;
+  var selected = selection.getStartElement();
+  if (selected) selected = selected.$;
+
+  for (var i = 0; i < children.length; i++) {
+    var child = children[i];
+    if (child.tagName == 'SECTION') {
+      if (child.classList.contains('forced'))
+        last = child;
+      var current = child;
+      var grandchildren = Array.prototype.slice.call(child.childNodes);
+      for (var j = 0; j < grandchildren.length; j++) {
+        last = place(last, prev, grandchildren[j], current, root, selected)
+        if (last === current) {
+          current = undefined;
+        }
+        prev = grandchildren[j];
+      }
+      if (current && !current.classList.contains('forced'))
+        current.parentNode.removeChild(current)
+      continue;
+    }
+    last = place(last, prev, child, null, root)
+    prev = child;
+  }
+  if (selected) {
+    while (selected.parentNode) {
+      if (selected == document.body)
+        editor.getSelection().selectBookmarks(bookmark);
+      selected = selected.parentNode;
+    }
+  }
+}
+
+isEmptyParagraph = function(child) {
+  //if (child.tagName == 'P') {
+    switch (child.textContent) {
+      case '&nbsp;': case ' ': case '': case ' ':
+        return true;
+    }
+  //}
+}
+place = function(parent, previous, child, current, root, selected) {
+  if (previous) {
+    // start a new line after empty paragraph
+    
+    if (parent.classList.contains('forced') && parent.firstChild == previous && isEmptyParagraph(previous)) {
+      
+      previous.parentNode.removeChild(previous)
+      var removed = previous
+
+    } else if (selected == child && isEmptyParagraph(previous)) {
+        console.log('force', parent, parent.childNodes.length)
+      if (previous.parentNode.firstChild == previous) {
+        console.log('replace', child, previous)
+        previous.parentNode.replaceChild(child, previous)
+        return parent;
+      }
+      var section = document.createElement('section');
+      previous.parentNode.removeChild(previous)
+      parent.parentNode.insertBefore(section, parent.nextSibling);
+      section.appendChild(child)
+      section.classList.add('forced')
+        console.log('force', child, previous, ' ~ ', parent.firstChild)
+      return section;
+    }
+    if ((child.tagName == 'H1' && (previous.tagName == 'P' || previous.tagName == 'H1' || previous.tagName == 'H2')) || (child.tagName == 'H2' && (previous.tagName == 'P' || previous.tagName == 'H2'))) {
+      var section = (current || document.createElement('section'));
+      parent.parentNode.insertBefore(section, parent.nextSibling);
+      section.appendChild(child)
+      return section;
+    }
+  }
+  
+  if (!parent) parent = current || document.createElement('section')
+  if (!parent.parentNode)
+    root.appendChild(parent);
+  if (child.parentNode != parent || (previous && previous.parentNode == parent && child.previousSibling != previous)) {
+    parent.insertBefore(child, previous && previous.nextSibling)
+  }
+  if (removed && selected === removed) {
+    var range = editor.createRange();
+    range.moveToElementEditStart( new CKEDITOR.dom.element(child ) );
+    range.select( true );
+  }
+  return parent;  
+
+}
+
+
+
+function fix() {
+  editor.fire( 'lockSnapshot' );
+  split(editor, window.content)
+  editor.fire( 'unlockSnapshot' );
+}
+
+
+CKEDITOR.plugins.add( 'structural', {
+  init: function(editor) {
+    editor.on('change', fix)
+    setTimeout(fix, 10)
+
+    
+
+
+
+
+
+    function addButton(commandName, styles, forms, icon) {
+
+      editor.ui.addButton(commandName, { // add new button and bind our command
+          label: "Add " + commandName,
+          command: commandName,
+          toolbar: 'structural',
+          icon: icon || 'italic'
+      });
+
+      style = new CKEDITOR.style(styles)
+      editor.attachStyleStateChange( style, function( state ) {
+            !editor.readOnly && editor.getCommand( commandName ).setState( state );
+          } );
+
+      editor.addCommand( commandName, new CKEDITOR.styleCommand( style, {
+            contentForms: forms
+          } ) )
+    }
+
+    addButton('heading', { element: 'h1'}, ['h1'], 'h1')
+    addButton('subtitle', { element: 'h2'}, ['h2'], 'h2')
+    addButton('blockquote', { element: 'blockquote'}, ['blockquote'], 'bq')
+  }
+})
+  </script>
+  </body>
+</html>

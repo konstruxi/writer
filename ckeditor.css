@@ -1,0 +1,72 @@
+.cke_button__h1_icon:before {
+  content: 'h1';
+  color: #eee;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+.cke_button__h2_icon:before {
+  content: 'h2';
+  color: #eee;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+.cke_button__bq_icon:before {
+  content: 'bq';
+  color: #eee;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+body {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+
+#content {
+  margin: 2em 0;
+  padding: 1em;
+}
+
+#content section {
+  padding: 1em;
+  background: rgba(0,0,0,0.05);
+}
+
+
+#content section + section {
+  margin-top: 1em;
+}
+
+#content section.forced {
+  border-top: 0.1em solid #ccc;
+  margin-top: -0.1em;
+}
+
+#content section + section.forced {
+  margin-top: 0.9em;
+}
+
+#content h1 {
+  font-size: 2em;
+  margin: 0;
+}
+#content h2 {
+  font-size: 1.5em;
+  margin: 0;
+}
+#content p {
+  margin-top: 0;
+  padding: 0;
+  margin-bottom: 0;
+}
+#content * + p {
+  margin-top: 1.6em;
+}
+
+#content h1 + p {
+  margin-top: 0.8em;
+}
+#content h2 + p {
+  margin-top: 0.8em;
+}

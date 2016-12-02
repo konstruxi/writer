@@ -13,6 +13,20 @@
     <h1>This editor structures your article into chapters</h1>
     <p>Each chapter is a set of titles, text and media</p>
     <p>We try to guess where content should be split into chunks, but users have tight control over that too.</p>
+
+    <p>Задачей данной статьи является систематизация найденной информации по каталогам Use Case’ов и дополнительным ресурсам, а также активный диалог в комментариях. Поделитесь своим опытом, пожалуйста, а я буду обновлять пост полученной информацией.</p>
+
+    <h2>Содержание:</h2>
+
+    <ol>
+    <li>Рейтинг SIEM в 2016 году
+    </li><li>“Родные” магазины Use Case’ов на сайтах производителей SIEM
+    </li><li>Рекомендации по самостоятельному написанию Use Case’ов
+    </li><li>Заказная разработка: карта интеграторов
+    </li><li>Сторонние каталоги Use Case’ов: SOC Prime UCL, форумы вендоров (список обновляется)
+    </li><li>Ссылки на блоги и дополнительные ресурсы информационной безопасности, относящиеся к SIEM
+    </li>
+    </ol>
   </div>
 
   <script>
@@ -73,7 +87,7 @@ split = function(editor, root) {
         }
         prev = grandchildren[j];
       }
-      if (current && !current.classList.contains('forced'))
+      if (current )
         current.parentNode.removeChild(current)
       continue;
     }
@@ -90,11 +104,12 @@ split = function(editor, root) {
     } else {
       while (selected.parentNode) {
         if (selected == document.body)
-          editor.getSelection().selectBookmarks(bookmark);
+          return editor.getSelection().selectBookmarks(bookmark);
         selected = selected.parentNode;
       }
     }
   }
+
 }
 
 isEmptyParagraph = function(child) {
@@ -123,9 +138,11 @@ place = function(parent, previous, child, current, root, selected, context) {
         previous.parentNode.removeChild(previous)
         previous = undefined
       } else if (selected.previousSibling == previous && isEmptyParagraph(selected)) {
-        debugger
-        var inserted = previous
-      } else {
+        if (selected.parentNode.lastChild == child)
+          return previous.parentNode.removeChild(previous)
+        else
+          var inserted = previous
+      } else if (isInside(selected, child)){
         var focused = previous;
       }
 

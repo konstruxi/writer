@@ -54,6 +54,4 @@ CKEDITOR.dtd.$block.li = 1;
 CKEDITOR.dtd.section = Object.create(CKEDITOR.dtd.section)
 CKEDITOR.dtd.section.section = undefined;
 
-CKEDITOR.dtd.$blockLimit.section = 1;
-CKEDITOR.dtd.$blockLimit.h1 = 1;
 CKEDITOR.dtd.$removeEmpty.section = 1

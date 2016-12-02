@@ -37,7 +37,7 @@ CKEDITOR.editorConfig = function( config ) {
 	// Dialog windows are also simplified.
 	config.removeDialogTabs = 'link:advanced';
 
-	config.allowedContent = 'h1 h2 h3 blockquote ul li ol b i dl dt dd; a[href,title]; abbr[title]; img[src,alt,title]; section[class,disabled]'
+	config.allowedContent = 'h1 h2 h3 blockquote ul li ol b i code pre; iframe[src]; a[href,title]; abbr[title]; img[src,alt,title]; section[class,disabled]'
 
 	config.shiftEnterMode = CKEDITOR.ENTER_P
 };

@@ -133,20 +133,19 @@ place = function(parent, previous, child, current, root, selected, context) {
     // start a new line after empty paragraph
     
     if (parent.firstChild == previous && isEmptyParagraph(previous)) {
-      if (isInside(selected, previous)) {
+      if (isInside(selected, previous) && child.previousSibling == previous) {
         var removed = previous
         previous.parentNode.removeChild(previous)
         previous = undefined
       } else if (selected.previousSibling == previous && isEmptyParagraph(selected)) {
-        if (selected.parentNode.lastChild == child)
-          return previous.parentNode.removeChild(previous)
-        else
+        if (selected.parentNode.lastChild == child) {
+          previous.parentNode.removeChild(previous)
+          return parent;
+        } else
           var inserted = previous
       } else if (isInside(selected, child)){
         var focused = previous;
       }
-
-    
     }
     if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
       
@@ -159,12 +158,15 @@ place = function(parent, previous, child, current, root, selected, context) {
         if (!context.reselected)
           context.reselected = previous;
       } else {
+        if (isEmptyParagraph(child)) 
+          if (!context.reselected) 
+            context.reselected = child; 
         previous.parentNode.removeChild(previous)
       }
 
       return section;
     }
-    if ((child.tagName == 'H1') || (child.tagName == 'H2' && (previous.tagName != 'H1'))) {
+    if ((child.tagName == 'H1') || (child.tagName == 'H2' && (!previous || previous.tagName != 'H1'))) {
       var section = (current || document.createElement('section'));
       parent.parentNode.insertBefore(section, parent.nextSibling);
       section.appendChild(child);

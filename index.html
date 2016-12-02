@@ -62,7 +62,7 @@
 
     }
 
-    editor.on('click', function(e) {
+    content.addEventListener('click', function(e) {
         setTimeout(onCursorMove, 10);
     })
     editor.on('focus', function(e) {
@@ -294,15 +294,57 @@ CKEDITOR.plugins.add( 'structural', {
             !editor.readOnly && editor.getCommand( commandName ).setState( state );
           } );
 
-      editor.addCommand( commandName, new CKEDITOR.styleCommand( style, {
+      return editor.addCommand( commandName, new CKEDITOR.styleCommand( style, {
             contentForms: forms
           } ) )
+
     }
 
     addButton('heading', { element: 'h1'}, ['h1'], 'h1')
-    addButton('subtitle', { element: 'h2'}, ['h2'], 'h2')
-    addButton('blockquote', { element: 'blockquote'}, ['blockquote'], 'bq')
+    addButton('subtitle', { element: 'h2'}, ['h2'], 'h2', ['numberedlist', 'bulletedlist'])
+
   }
+})
+
+
+
+function disableLists() {
+  if (editor.commands.numberedlist.state == 1)
+    editor.ui.instances.NumberedList.click(editor)
+  if (editor.commands.bulletedlist.state == 1)
+    editor.ui.instances.BulletedList.click(editor)
+}
+function disableQuotes() {
+  if (editor.commands.blockquote.state == 1)
+    editor.ui.instances.Blockquote.click(editor)
+}
+function disableTitles() {
+  if (editor.commands.heading.state == 1)
+    editor.ui.instances.heading.click(editor)
+  if (editor.commands.subtitle.state == 1)
+    editor.ui.instances.subtitle.click(editor)
+}
+editor.on('instanceReady', function() {
+  editor.commands.heading.on('exec', function() {
+    disableLists()
+    disableQuotes()
+  })
+  editor.commands.subtitle.on('exec', function() {
+    disableLists()
+    disableQuotes()
+  })
+  editor.commands.bulletedlist.on('exec', function() {
+    disableTitles()
+    disableQuotes()
+  })
+  editor.commands.numberedlist.on('exec', function() {
+    disableTitles()
+    disableQuotes()
+  })
+  editor.commands.blockquote.on('exec', function() {
+    disableTitles()
+    disableLists()
+  })
 })
   </script>
   </body>

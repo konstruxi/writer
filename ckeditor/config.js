@@ -7,7 +7,7 @@ CKEDITOR.editorConfig = function( config ) {
 	
 	// %REMOVE_START%
 	// The configuration options below are needed when running CKEditor from source files.
-	config.plugins = 'SimpleLink,dialogui,dialog,clipboard,autolink,basicstyles,divarea,enterkey,floatingspace,entities,indent,indentlist,list,magicline,button,toolbar,undo';
+	config.plugins = 'SimpleLink,blockquote,dialogui,dialog,clipboard,autolink,basicstyles,divarea,enterkey,floatingspace,entities,indent,indentlist,list,magicline,button,toolbar,undo';
 	config.skin = 'moono-dark';
 	// %REMOVE_END%
 
@@ -17,19 +17,16 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// The toolbar groups arrangement, optimized for a single toolbar row.
 	config.toolbarGroups = [
-		{ name: 'structural'},
 		{ name: 'document',	   groups: [ 'mode', 'document', 'doctools' ] },
 		{ name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
 		{ name: 'editing',     groups: [ 'find', 'selection', 'spellchecker' ] },
 		{ name: 'forms' },
-		{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
-		{ name: 'paragraph',   groups: [ 'list', 'blocks', 'align', 'bidi' ] },
-		{ name: 'links' },
+		{ name: 'basicstyles', groups: [ 'basicstyles', 'links', 'others', 'cleanup' ] },
+		{ name: 'paragraph',   groups: [ 'structural', 'blocks', 'align', 'bidi','list' ] },
 		{ name: 'insert' },
 		{ name: 'styles' },
 		{ name: 'colors' },
 		{ name: 'tools' },
-		{ name: 'others' },
 		{ name: 'about' }
 	];
 
@@ -40,7 +37,7 @@ CKEDITOR.editorConfig = function( config ) {
 	// Dialog windows are also simplified.
 	config.removeDialogTabs = 'link:advanced';
 
-	config.allowedContent = 'h1 h2 h3 blockquote ul li ol b i; a[href,title]; img[src,alt,title]; section[class,disabled]'
+	config.allowedContent = 'h1 h2 h3 blockquote ul li ol b i; a[href,title]; abbr[title]; img[src,alt,title]; section[class,disabled]'
 
 	config.shiftEnterMode = CKEDITOR.ENTER_P
 };
@@ -53,5 +50,18 @@ CKEDITOR.dtd.$block.li = 1;
 
 CKEDITOR.dtd.section = Object.create(CKEDITOR.dtd.section)
 CKEDITOR.dtd.section.section = undefined;
+
+
+CKEDITOR.dtd.li = Object.create(CKEDITOR.dtd.li)
+CKEDITOR.dtd.li.h1 = undefined;
+CKEDITOR.dtd.li.h2 = undefined;
+CKEDITOR.dtd.li.ul = undefined;
+CKEDITOR.dtd.li.ol = undefined;
+
+CKEDITOR.dtd.blockquote = Object.create(CKEDITOR.dtd.blockquote)
+CKEDITOR.dtd.blockquote.h1 = undefined;
+CKEDITOR.dtd.blockquote.h2 = undefined;
+CKEDITOR.dtd.blockquote.ul = undefined;
+CKEDITOR.dtd.blockquote.ol = undefined;
 
 CKEDITOR.dtd.$removeEmpty.section = 1

@@ -162,17 +162,21 @@ function fix() {
   if (locked) {
     return editor.undoManager.snapshots.pop()
   }
-  editor.fire( 'lockSnapshot');
-  locked = split(editor, window.content)
-  editor.fire( 'unlockSnapshot' );
-  var selection = editor.getSelection()
-  var selected = selection.getStartElement();
-  lastSelected = selected && selected.$;
+  requestAnimationFrame(function() {
 
-  // if splitting triggers change, pop the snapshot
-  locked = true;
-  setTimeout(function() {
-    locked = false
+    console.log('phix')
+    editor.fire( 'lockSnapshot');
+    locked = split(editor, window.content)
+    editor.fire( 'unlockSnapshot' );
+    var selection = editor.getSelection()
+    var selected = selection.getStartElement();
+    lastSelected = selected && selected.$;
+
+    // if splitting triggers change, pop the snapshot
+    locked = true;
+    requestAnimationFrame(function() {
+      locked = false
+    }, 1)
   }, 1)
 }
 

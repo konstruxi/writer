@@ -115,7 +115,7 @@ split = function(editor, root) {
 isEmptyParagraph = function(child) {
   //if (child.tagName == 'P') {
     switch (child.textContent) {
-      case '&nbsp;': case ' ': case '': case ' ':
+      case '&nbsp;': case ' ': case '': case ' ': case " ":
         return true;
     }
   //}
@@ -133,10 +133,12 @@ place = function(parent, previous, child, current, root, selected, context) {
     // start a new line after empty paragraph
     
     if (parent.firstChild == previous && isEmptyParagraph(previous)) {
-      if (isInside(selected, previous) && child.previousSibling == previous) {
-        var removed = previous
-        previous.parentNode.removeChild(previous)
-        previous = undefined
+      if (isInside(selected, previous)) {
+        if (!current) {
+          var removed = previous
+          previous.parentNode.removeChild(previous)
+          previous = undefined
+        }
       } else if (selected.previousSibling == previous && isEmptyParagraph(selected)) {
         if (selected.parentNode.lastChild == child) {
           previous.parentNode.removeChild(previous)

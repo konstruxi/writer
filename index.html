@@ -91,7 +91,7 @@
     })
     editor.on('key', function(e) {
       if ((e.data.keyCode >= 37 && e.data.keyCode <= 40)
-      || e.data.keyCode == 13 || e.data.keyCode == 8)
+      || e.data.keyCode == 13)
         setTimeout(onCursorMove, 10);
     }, null, null, 100)
 
@@ -136,7 +136,6 @@ split = function(editor, root) {
       var range = editor.createRange();
       range.moveToElementEditStart( new CKEDITOR.dom.element(context.reselected ) );
       range.select( true );
-      console.error(context.reselected)
     } else {
       while (selected.parentNode) {
         if (selected == document.body)
@@ -153,7 +152,7 @@ isEmptyParagraph = function(child) {
     var text = child.textContent
     for (var i = 0; i < text.length; i++)
       switch (text.charAt(i)) {
-        case '&nbsp;': case ' ': case '\n': case '\r': case '\t': case "​": case " ":
+        case '&nbsp;': case ' ': case '\n': case '\r': case '\t': case "​": case " ": case " ":
           break;
         default:
           return false;
@@ -173,7 +172,7 @@ place = function(parent, previous, child, current, root, selected, context) {
   if (previous) {
     // start a new line after empty paragraph
     
-    if (parent.firstChild == previous && isEmptyParagraph(previous)) {
+    if (previous.parentNode.firstChild == previous && isEmptyParagraph(previous)) {
       if (isInside(selected, previous)) {
         if (!current) {
           var removed = previous
@@ -187,15 +186,15 @@ place = function(parent, previous, child, current, root, selected, context) {
           previous.parentNode.removeChild(previous)
           if (context.reselected == previous)
             context.reselected = undefined
-          if (isEmptyParagraph(selected))
-            return parent;
-          previous = undefined
-        } else
+          return parent;
+        } else {
           var inserted = previous
+        }
       } else if (isInside(selected, child)){
         var focused = previous;
       }
     }
+
     if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
       
       var section = document.createElement('section');
@@ -222,12 +221,6 @@ place = function(parent, previous, child, current, root, selected, context) {
       if (child && isEmptyParagraph(child) && previous && !isEmptyParagraph(previous))
         context.reselected = child;
 
-      if (current) {
-        current
-      }
-      if (!current) {
-
-      }
       var section = (current || document.createElement('section'));
       if (section.parentNode != parent.parentNode || section.previousSibling != parent)
         parent.parentNode.insertBefore(section, parent.nextSibling);
@@ -258,26 +251,23 @@ place = function(parent, previous, child, current, root, selected, context) {
 }
 
 
-var lastSelected;
 var locked;
 function fix() {
   if (locked) {
     return editor.undoManager.snapshots.pop()
   }
-  //requestAnimationFrame(function() {
+  locked = false;
+  requestAnimationFrame(function() {
     editor.fire( 'lockSnapshot');
     locked = split(editor, window.content)
     editor.fire( 'unlockSnapshot' );
-    var selection = editor.getSelection()
-    var selected = selection.getStartElement();
-    lastSelected = selected && selected.$;
 
     // if splitting triggers change, pop the snapshot
     locked = true;
-    requestAnimationFrame(function() {
+    setTimeout(function() {
       locked = false
-    }, 1)
-  //}, 1)
+    }, 10)
+  })
 }
 
 

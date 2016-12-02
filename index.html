@@ -67,7 +67,7 @@ split = function(editor, root) {
       var current = child;
       var grandchildren = Array.prototype.slice.call(child.childNodes);
       for (var j = 0; j < grandchildren.length; j++) {
-        last = place(last, prev, grandchildren[j], current, root, selected)
+        last = place(last, prev, grandchildren[j], current, root, selected, context)
         if (last === current) {
           current = undefined;
         }
@@ -78,14 +78,21 @@ split = function(editor, root) {
       continue;
     }
 
-    last = place(last, prev, child, null, root)
+    last = place(last, prev, child, null, root, null, context)
     prev = child;
   }
   if (selected) {
-    while (selected.parentNode) {
-      if (selected == document.body)
-        editor.getSelection().selectBookmarks(bookmark);
-      selected = selected.parentNode;
+    if (context.reselected) {
+      var range = editor.createRange();
+      range.moveToElementEditStart( new CKEDITOR.dom.element(context.reselected ) );
+      range.select( true );
+      console.error(context.reselected)
+    } else {
+      while (selected.parentNode) {
+        if (selected == document.body)
+          editor.getSelection().selectBookmarks(bookmark);
+        selected = selected.parentNode;
+      }
     }
   }
 }
@@ -106,33 +113,45 @@ isInside = function(element, another) {
     element = element.parentNode
   }
 }
-place = function(parent, previous, child, current, root, selected) {
+place = function(parent, previous, child, current, root, selected, context) {
   if (previous) {
     // start a new line after empty paragraph
     
-    if (parent.classList.contains('forced') && parent.firstChild == previous && isEmptyParagraph(previous)) {
-      
-      previous.parentNode.removeChild(previous)
-      var removed = previous
-
-    } else if (isInside(selected, child) && isEmptyParagraph(previous)) {
-      if (previous.parentNode.firstChild == previous) {
-        previous.parentNode.replaceChild(child, previous)
-        return parent;
+    if (parent.firstChild == previous && isEmptyParagraph(previous)) {
+      if (isInside(selected, previous)) {
+        var removed = previous
+        previous.parentNode.removeChild(previous)
+        previous = undefined
+      } else if (selected.previousSibling == previous && isEmptyParagraph(selected)) {
+        debugger
+        var inserted = previous
+      } else {
+        var focused = previous;
       }
-      
 
+    
+    }
+    if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
+      
       var section = document.createElement('section');
-      previous.parentNode.removeChild(previous)
       parent.parentNode.insertBefore(section, parent.nextSibling);
       section.appendChild(child)
       section.classList.add('forced')
+
+      if (inserted) {
+        if (!context.reselected)
+          context.reselected = previous;
+      } else {
+        previous.parentNode.removeChild(previous)
+      }
+
       return section;
     }
     if ((child.tagName == 'H1') || (child.tagName == 'H2' && (previous.tagName != 'H1'))) {
       var section = (current || document.createElement('section'));
       parent.parentNode.insertBefore(section, parent.nextSibling);
-      section.appendChild(child)
+      section.appendChild(child);
+
       return section;
     }
   }
@@ -143,10 +162,9 @@ place = function(parent, previous, child, current, root, selected) {
   if (child.parentNode != parent || (previous && previous.parentNode == parent && child.previousSibling != previous)) {
     parent.insertBefore(child, previous && previous.nextSibling)
   }
-  if (removed && selected === removed) {
-    var range = editor.createRange();
-    range.moveToElementEditStart( new CKEDITOR.dom.element(child ) );
-    range.select( true );
+  if (removed ? removed == selected : focused) {
+    if (!context.reselected)
+      context.reselected = focused || child;
   }
   return parent;  
 

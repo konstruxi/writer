@@ -30,7 +30,7 @@ body {
 
 #content section {
   padding: 1em;
-  background: rgba(0,0,0,0.05);
+  background: rgba(0,0,0,0.035);
 }
 
 
@@ -38,13 +38,39 @@ body {
   margin-top: 1em;
 }
 
-#content section.forced {
-  border-top: 0.1em solid #ccc;
-  margin-top: -0.1em;
+section {
+  position: relative;
+}
+section:not(:first-of-type):before {
+  content: '';
+  position: absolute;;
+  display: block;
+  border-top: 2px solid #dfdfdf;
+  top: -9px;
+  left: 50%;
+  width: 20px;
+  margin-left: -10px;
+}
+section:not(:first-of-type):after {
+  content: '';
+  position: absolute;
+  display: block;
+  width: 20px;
+  height: 6px;
+  left: 50%;
+  margin-left: -10px;
+  border: 2px solid #dfdfdf;
+  border-left: none;
+  border-right: 0;
+  outline: 3px solid #fff;
+  top: -13px;
 }
 
-#content section + section.forced {
-  margin-top: 0.9em;
+section.forced:before {
+  border-color: #aaa;
+}
+section.forced:after {
+  border-color: #aaa;
 }
 
 #content h1 {

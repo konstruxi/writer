@@ -32,6 +32,7 @@
         for (; container.parentNode; container = container.parentNode) {
           if (container.parentNode.firstChild != container)
             break;
+          // remove manual section boundary
           if (container.parentNode.tagName == 'SECTION') {
             if (container.parentNode.classList.contains('forced')) {
               container.parentNode.classList.remove('forced');
@@ -42,7 +43,6 @@
         }
         return true;
       }
-      console.log(e.keyCode, arguments, e.data.keyCode)
     }, null, null, -10);
 
 
@@ -56,6 +56,8 @@ split = function(editor, root) {
   var prev;
   var selected = selection.getStartElement();
   if (selected) selected = selected.$;
+
+  context = {}
 
   for (var i = 0; i < children.length; i++) {
     var child = children[i];
@@ -75,6 +77,7 @@ split = function(editor, root) {
         current.parentNode.removeChild(current)
       continue;
     }
+
     last = place(last, prev, child, null, root)
     prev = child;
   }
@@ -113,12 +116,14 @@ place = function(parent, previous, child, current, root, selected) {
       var removed = previous
 
     } else if (isInside(selected, child) && isEmptyParagraph(previous)) {
-        console.log('force', parent, parent.childNodes.length)
+        console.log('last selected', lastSelected)
       if (previous.parentNode.firstChild == previous) {
         console.log('replace', child, previous)
         previous.parentNode.replaceChild(child, previous)
         return parent;
       }
+      
+
       var section = document.createElement('section');
       previous.parentNode.removeChild(previous)
       parent.parentNode.insertBefore(section, parent.nextSibling);
@@ -151,11 +156,24 @@ place = function(parent, previous, child, current, root, selected) {
 }
 
 
-
+var lastSelected;
+var locked;
 function fix() {
-  editor.fire( 'lockSnapshot' );
-  split(editor, window.content)
+  if (locked) {
+    return editor.undoManager.snapshots.pop()
+  }
+  editor.fire( 'lockSnapshot');
+  locked = split(editor, window.content)
   editor.fire( 'unlockSnapshot' );
+  var selection = editor.getSelection()
+  var selected = selection.getStartElement();
+  lastSelected = selected && selected.$;
+
+  // if splitting triggers change, pop the snapshot
+  locked = true;
+  setTimeout(function() {
+    locked = false
+  }, 1)
 }
 
 

@@ -1013,8 +1013,6 @@
 
 							isHandled = 1;
 						} else if ( range.collapsed ) {
-								debugger
-							
 							// Handle the following special cases: (#6217)
 							// 1. Del/Backspace key before/after table;
 							// 2. Backspace Key after start of table.

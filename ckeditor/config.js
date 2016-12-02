@@ -37,7 +37,7 @@ CKEDITOR.editorConfig = function( config ) {
 	// Dialog windows are also simplified.
 	config.removeDialogTabs = 'link:advanced';
 
-	config.allowedContent = 'h1 h2 h3 blockquote ul li ol b i; a[href,title]; abbr[title]; img[src,alt,title]; section[class,disabled]'
+	config.allowedContent = 'h1 h2 h3 blockquote ul li ol b i dl dt dd; a[href,title]; abbr[title]; img[src,alt,title]; section[class,disabled]'
 
 	config.shiftEnterMode = CKEDITOR.ENTER_P
 };
@@ -52,11 +52,6 @@ CKEDITOR.dtd.section = Object.create(CKEDITOR.dtd.section)
 CKEDITOR.dtd.section.section = undefined;
 
 
-CKEDITOR.dtd.li = Object.create(CKEDITOR.dtd.li)
-CKEDITOR.dtd.li.h1 = undefined;
-CKEDITOR.dtd.li.h2 = undefined;
-CKEDITOR.dtd.li.ul = undefined;
-CKEDITOR.dtd.li.ol = undefined;
 
 CKEDITOR.dtd.blockquote = Object.create(CKEDITOR.dtd.blockquote)
 CKEDITOR.dtd.blockquote.h1 = undefined;

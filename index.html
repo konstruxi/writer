@@ -59,7 +59,7 @@
       }
     }, null, null, -10);
 
-    function onCursorMove() {
+    function onCursorMove(force) {
 
       var selection = editor.getSelection();
       var selected = selection.getStartElement();
@@ -68,21 +68,30 @@
       for (var i = 0; i < children.length; i++) {
         if (children[i].tagName == 'SECTION') {
           if (isEmptyParagraph(children[i]))
-            if (!selected || !isInside(selected, children[i])) {
-              var bookmark = selection.createBookmarks();
+            if (!selected || force || !isInside(selected, children[i])) {
+              if (!force) var bookmark = selection.createBookmarks();
               content.removeChild(children[i])
-              editor.getSelection().selectBookmarks(bookmark);
+              if (!force) editor.getSelection().selectBookmarks(bookmark);
             }
         }
       }
 
     }
 
-    editor.on('click', onCursorMove)
-    editor.on('focus', onCursorMove)
-    editor.on('blur', onCursorMove)
+    editor.on('click', function(e) {
+        setTimeout(onCursorMove, 10);
+    })
+    editor.on('focus', function(e) {
+        setTimeout(onCursorMove, 10);
+    })
+    editor.on('blur', function(e) {
+        setTimeout(function() {
+          onCursorMove(true)
+        }, 10);
+    })
     editor.on('key', function(e) {
-      if (e.data.keyCode >= 37 && e.data.keyCode <= 40)
+      if ((e.data.keyCode >= 37 && e.data.keyCode <= 40)
+      || e.data.keyCode == 13 || e.data.keyCode == 8)
         setTimeout(onCursorMove, 10);
     }, null, null, 100)
 
@@ -144,7 +153,7 @@ isEmptyParagraph = function(child) {
     var text = child.textContent
     for (var i = 0; i < text.length; i++)
       switch (text.charAt(i)) {
-        case '&nbsp;': case ' ': case '\n': case '\r': case '\t': case "​":
+        case '&nbsp;': case ' ': case '\n': case '\r': case '\t': case "​": case " ":
           break;
         default:
           return false;

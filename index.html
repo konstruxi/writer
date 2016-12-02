@@ -59,6 +59,33 @@
       }
     }, null, null, -10);
 
+    function onCursorMove() {
+
+      var selection = editor.getSelection();
+      var selected = selection.getStartElement();
+      if (selected) selected = selected.$;
+      var children = Array.prototype.slice.call(content.childNodes);
+      for (var i = 0; i < children.length; i++) {
+        if (children[i].tagName == 'SECTION') {
+          if (isEmptyParagraph(children[i]))
+            if (!selected || !isInside(selected, children[i])) {
+              var bookmark = selection.createBookmarks();
+              content.removeChild(children[i])
+              editor.getSelection().selectBookmarks(bookmark);
+            }
+        }
+      }
+
+    }
+
+    editor.on('click', onCursorMove)
+    editor.on('focus', onCursorMove)
+    editor.on('blur', onCursorMove)
+    editor.on('key', function(e) {
+      if (e.data.keyCode >= 37 && e.data.keyCode <= 40)
+        setTimeout(onCursorMove, 10);
+    }, null, null, 100)
+
 
 
 
@@ -114,11 +141,16 @@ split = function(editor, root) {
 
 isEmptyParagraph = function(child) {
   //if (child.tagName == 'P') {
-    switch (child.textContent) {
-      case '&nbsp;': case ' ': case '': case ' ': case " ":
-        return true;
-    }
+    var text = child.textContent
+    for (var i = 0; i < text.length; i++)
+      switch (text.charAt(i)) {
+        case '&nbsp;': case ' ': case '\n': case '\r': case '\t': case "​":
+          break;
+        default:
+          return false;
+      }
   //}
+  return true;
 }
 
 isInside = function(element, another) {
@@ -136,13 +168,19 @@ place = function(parent, previous, child, current, root, selected, context) {
       if (isInside(selected, previous)) {
         if (!current) {
           var removed = previous
+          if (context.reselected == previous)
+            context.reselected = undefined
           previous.parentNode.removeChild(previous)
           previous = undefined
         }
       } else if (selected.previousSibling == previous && isEmptyParagraph(selected)) {
         if (selected.parentNode.lastChild == child) {
           previous.parentNode.removeChild(previous)
-          return parent;
+          if (context.reselected == previous)
+            context.reselected = undefined
+          if (isEmptyParagraph(selected))
+            return parent;
+          previous = undefined
         } else
           var inserted = previous
       } else if (isInside(selected, child)){
@@ -161,17 +199,36 @@ place = function(parent, previous, child, current, root, selected, context) {
           context.reselected = previous;
       } else {
         if (isEmptyParagraph(child)) 
-          if (!context.reselected) 
+          if (!context.reselected || context.reselected == previous) 
             context.reselected = child; 
+
         previous.parentNode.removeChild(previous)
       }
 
       return section;
     }
     if ((child.tagName == 'H1') || (child.tagName == 'H2' && (!previous || previous.tagName != 'H1'))) {
+      // if header is in the beginning of chapter,
+      // shift focus to previous section
+      if (child && isEmptyParagraph(child) && previous && !isEmptyParagraph(previous))
+        context.reselected = child;
+
+      if (current) {
+        current
+      }
+      if (!current) {
+
+      }
       var section = (current || document.createElement('section'));
-      parent.parentNode.insertBefore(section, parent.nextSibling);
-      section.appendChild(child);
+      if (section.parentNode != parent.parentNode || section.previousSibling != parent)
+        parent.parentNode.insertBefore(section, parent.nextSibling);
+      if (current) {
+        if (current.firstChild != child)
+          section.insertBefore(child, section.firstChild)
+      } else if (section.previousSibling != previous) {
+        section.appendChild(child); 
+      }
+
 
       return section;
     }
@@ -218,7 +275,7 @@ function fix() {
 CKEDITOR.plugins.add( 'structural', {
   init: function(editor) {
     editor.on('change', fix)
-    setTimeout(fix, 10)
+    requestAnimationFrame(fix, 10)
 
     
 

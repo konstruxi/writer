@@ -30,6 +30,7 @@ body {
 
 #content section {
   padding: 1em;
+  min-height: 1em;
   background: rgba(0,0,0,0.035);
 }
 

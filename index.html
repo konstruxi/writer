@@ -221,8 +221,9 @@ place = function(parent, previous, child, current, root, selected, context) {
         context.reselected = child;
 
       var section = (current || document.createElement('section'));
-      if (section.parentNode != parent.parentNode || section.previousSibling != parent)
-        parent.parentNode.insertBefore(section, parent.nextSibling);
+      if (parent.parentNode) 
+        if (section.parentNode != parent.parentNode || section.previousSibling != parent)
+          parent.parentNode.insertBefore(section, parent.nextSibling);
       if (current) {
         if (current.firstChild != child)
           section.insertBefore(child, section.firstChild)
@@ -363,10 +364,17 @@ document.addEventListener('mouseup', function(e) {
         window.dragged[i].classList.remove('moved')
       }
 
-      window.dragging.parentNode.insertBefore(section, window.dragging)
       if (window.dragstart - e.pageY > 0) {
-        window.dragging.classList.remove('forced')
-        section.classList.add('forced');
+          window.dragging.classList.remove('forced')
+          section.classList.add('forced');
+        window.dragging.parentNode.insertBefore(section, window.dragging)
+      } else {
+
+        if (!window.dragging.classList.contains('forced')) {
+          window.dragging.classList.add('forced')
+          console.log(777)
+        }
+        window.dragging.parentNode.insertBefore(section, window.dragging)
       }
       
 

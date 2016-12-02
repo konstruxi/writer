@@ -171,49 +171,50 @@ isInside = function(element, another) {
 place = function(parent, previous, child, current, root, selected, context) {
   if (previous) {
     // start a new line after empty paragraph
-    
-    if (previous.parentNode.firstChild == previous && isEmptyParagraph(previous)) {
-      if (isInside(selected, previous)) {
-        if (!current) {
-          var removed = previous
-          if (context.reselected == previous)
-            context.reselected = undefined
-          previous.parentNode.removeChild(previous)
-          previous = undefined
+    if (selected) {
+      if (previous.parentNode.firstChild == previous && isEmptyParagraph(previous)) {
+        if (isInside(selected, previous)) {
+          if (!current) {
+            var removed = previous
+            if (context.reselected == previous)
+              context.reselected = undefined
+            previous.parentNode.removeChild(previous)
+            previous = undefined
+          }
+        } else if (selected.previousSibling == previous && isEmptyParagraph(selected)) {
+          if (selected.parentNode.lastChild == child) {
+            previous.parentNode.removeChild(previous)
+            if (context.reselected == previous)
+              context.reselected = undefined
+            return parent;
+          } else {
+            var inserted = previous
+          }
+        } else if (isInside(selected, child)){
+          var focused = previous;
         }
-      } else if (selected.previousSibling == previous && isEmptyParagraph(selected)) {
-        if (selected.parentNode.lastChild == child) {
-          previous.parentNode.removeChild(previous)
-          if (context.reselected == previous)
-            context.reselected = undefined
-          return parent;
+      }
+
+      if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
+        
+        var section = document.createElement('section');
+        parent.parentNode.insertBefore(section, parent.nextSibling);
+        section.appendChild(child)
+        section.classList.add('forced')
+
+        if (inserted) {
+          if (!context.reselected)
+            context.reselected = previous;
         } else {
-          var inserted = previous
+          if (isEmptyParagraph(child)) 
+            if (!context.reselected || context.reselected == previous) 
+              context.reselected = child; 
+
+          previous.parentNode.removeChild(previous)
         }
-      } else if (isInside(selected, child)){
-        var focused = previous;
+
+        return section;
       }
-    }
-
-    if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
-      
-      var section = document.createElement('section');
-      parent.parentNode.insertBefore(section, parent.nextSibling);
-      section.appendChild(child)
-      section.classList.add('forced')
-
-      if (inserted) {
-        if (!context.reselected)
-          context.reselected = previous;
-      } else {
-        if (isEmptyParagraph(child)) 
-          if (!context.reselected || context.reselected == previous) 
-            context.reselected = child; 
-
-        previous.parentNode.removeChild(previous)
-      }
-
-      return section;
     }
     if ((child.tagName == 'H1') || (child.tagName == 'H2' && (!previous || previous.tagName != 'H1'))) {
       // if header is in the beginning of chapter,

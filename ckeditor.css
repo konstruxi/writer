@@ -19,6 +19,10 @@
 
 body {
   max-width: 800px;
+}
+
+body,html {
+  padding: 0;
   margin: 0 auto;
 }
 
@@ -41,6 +45,9 @@ body {
 section {
   position: relative;
 }
+#content[contenteditable] section > * {
+  cursor: pointer;
+}
 section:not(:first-of-type):before {
   content: '';
   position: absolute;;
@@ -50,6 +57,7 @@ section:not(:first-of-type):before {
   left: 50%;
   width: 20px;
   margin-left: -10px;
+  cursor: move;
 }
 section:not(:first-of-type):after {
   content: '';
@@ -64,6 +72,7 @@ section:not(:first-of-type):after {
   border-right: 0;
   outline: 3px solid #fff;
   top: -13px;
+  cursor: move;
 }
 
 section.forced:before {
@@ -95,4 +104,14 @@ section.forced:after {
 }
 #content h2 + p {
   margin-top: 0.8em;
+}
+
+#content .moved {
+  opacity: 0.5;
+}
+#dragzone {
+  position: absolute;
+  border-top: 5px dashed rgba(20,20,70,0.5);
+  cursor: pointer;
+  top: -50px;
 }

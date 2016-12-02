@@ -195,7 +195,8 @@ place = function(parent, previous, child, current, root, selected, context) {
       if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
         
         var section = document.createElement('section');
-        parent.parentNode.insertBefore(section, parent.nextSibling);
+        if (parent.parentNode)
+          parent.parentNode.insertBefore(section, parent.nextSibling);
         section.appendChild(child)
         section.classList.add('forced')
 
@@ -307,6 +308,102 @@ CKEDITOR.plugins.add( 'structural', {
 })
 
 
+window.dragging = null;
+window.dragstart = null;
+window.dragged = null
+window.dragzone = document.createElement('div')
+window.dragzone.id = 'dragzone'
+document.addEventListener('mousedown', function(e) {
+  var target = e.target;
+  if (target.tagName == 'SECTION') {
+    var top = 0;
+    var left = 0;
+    for (; target; target = target.offsetParent) {
+      left += target.offsetLeft;
+      top += target.offsetTop;
+    }
+    // dragging
+    if (top > e.pageY) {
+      editor.fire('saveSnapshot')
+      window.dragging = e.target;
+      window.dragtop = top;
+      window.dragstart = e.pageY;
+      window.dragzone.style.width = window.dragging.offsetWidth;
+      window.dragzone.style.left = left + 'px'
+      window.dragzone.style.height = 10 + 'px';
+      window.dragzone.style.top = e.pageY - 5 + 'px'
+      document.body.appendChild(window.dragzone)
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
+})
+document.addEventListener('mousemove', function(e) {
+  if (window.dragging) {
+    var y = window.dragstart - e.pageY;
+    window.dragzone.style.top = window.dragstart - y - 5 + 'px'
+
+    var elements = getElementsAffectedByDrag(e);
+    for (var i = 0; i < elements.length; i++)
+      elements[i].classList.add('moved')
+    if (window.dragged)
+      for (var i = 0; i < window.dragged.length; i++)
+        if (elements.indexOf(window.dragged[i]) == -1)
+          window.dragged[i].classList.remove('moved')
+    window.dragged = elements;
+  }
+})
+document.addEventListener('mouseup', function(e) {
+  if (window.dragging) {
+    if (window.dragged) {
+      var section = document.createElement('section')
+
+      for (var i = 0; i < window.dragged.length; i++) {
+        section.appendChild(window.dragged[i])
+        window.dragged[i].classList.remove('moved')
+      }
+
+      window.dragging.parentNode.insertBefore(section, window.dragging)
+      if (window.dragstart - e.pageY > 0) {
+        window.dragging.classList.remove('forced')
+        section.classList.add('forced');
+      }
+      
+
+    }
+    if (window.dragged) {
+      fix()
+      editor.fire('saveSnapshot')
+    }
+    window.dragging = undefined;
+    window.dragged = undefined
+    window.dragzone.style.height = '';
+    window.dragzone.style.top = '';
+
+  }
+})
+
+function getElementsAffectedByDrag(e) {
+  var y = window.dragstart - e.pageY;
+  if (y > 0) {
+    var previous = window.dragging.previousSibling;
+    var top = window.dragtop - (window.dragging.offsetTop - previous.offsetTop)
+    var height = previous.offsetHeight
+    var result = []
+    for (var i = 0, children = previous.childNodes, child; child = children[i++];)
+      if (child.offsetTop + child.offsetHeight / 2 > height - y)
+        result.push(child)
+  } else {
+    var next = window.dragging
+    var top = window.dragtop + (next.offsetTop - window.dragging.offsetTop)
+    var height = next.offsetHeight
+    var result = []
+    for (var i = 0, children = next.childNodes, child; child = children[i++];)
+      if (child.offsetTop + child.offsetHeight / 2 < - y)
+        result.push(child)
+  }
+  return result
+}
 
 function disableLists() {
   if (editor.commands.numberedlist.state == 1)

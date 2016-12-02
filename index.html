@@ -264,7 +264,7 @@ function fix() {
   if (locked) {
     return editor.undoManager.snapshots.pop()
   }
-  requestAnimationFrame(function() {
+  //requestAnimationFrame(function() {
     editor.fire( 'lockSnapshot');
     locked = split(editor, window.content)
     editor.fire( 'unlockSnapshot' );
@@ -277,7 +277,7 @@ function fix() {
     requestAnimationFrame(function() {
       locked = false
     }, 1)
-  }, 1)
+  //}, 1)
 }
 
 

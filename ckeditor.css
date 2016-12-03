@@ -34,7 +34,7 @@ body,html {
 
 #content section {
   padding: 1em;
-  background: rgba(0,0,0,0.035);
+  background: #fafafa;
 }
 
 
@@ -138,19 +138,38 @@ section > a + * {
   height: auto;
 }
 
+#content {
+  position: relative;
+}
+
+#content * {
+  box-sizing: border-box;
+}
+
+
+#content * {
+  transition: 0.5s transform, 0.7s opacity;
+  -webkit-transition: 0.5s -webkit-transform, 0.7s opacity;
+  opacity: 1;
+}
 
 
 
+blockquote:before {
+  content: '“';
+  float: left;
+  font-size: 3em;
+  margin-left: -0.5em;
+  width: 0.5em;
+  line-height: 0.7em;
+}
 
 
-
-
-
-
-
-
-
-
+section[pattern="one-quote"] {
+  max-width: 500px;
+  margin: 0 auto;
+  font-size: 1.5em;
+}
 
 
 section[pattern="two-images"][index="0"] {

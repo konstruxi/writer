@@ -97,11 +97,11 @@ section.forced:after {
   margin-bottom: 0;
 }
 #content * + p {
-  margin-top: 1.6em;
+  margin-top: 1rem;
 }
 
-#content * + h1, #content * + h2, #content * + h3 {
-  margin-top: 1em;
+#content * + h1, #content * + h2, #content * + h3, #content * + blockquote {
+  margin-top: 1rem;
 }
 
 #content h1 + * {

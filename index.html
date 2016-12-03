@@ -397,7 +397,6 @@ function fix(mutation, observer) {
   for (var i = 0; i < window.content.children.length; i++)
     analyze(window.content.children[i])
   group(window.content)
-  editor.fire( 'unlockSnapshot' );
 
   
 
@@ -424,20 +423,25 @@ function fix(mutation, observer) {
     }
 
   requestAnimationFrame(function() {
-
+    
+    editor.fire( 'lockSnapshot');
     for (var i = 0; i < all.length; i++) 
       all[i].style.transition = 
       all[i].style.webkitTransform = ''
+    editor.fire( 'unlockSnapshot' )
     requestAnimationFrame(function() {
 
+      editor.fire( 'lockSnapshot');
       for (var i = 0; i < all.length; i++) {
         all[i].style.transform = 
         all[i].style.webkitTransform =
         all[i].style.opacity = '';
       }
+      editor.fire( 'unlockSnapshot' )
 
     })
   })
+  editor.fire( 'unlockSnapshot' );
 
 
 

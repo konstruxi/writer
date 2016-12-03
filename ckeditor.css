@@ -152,7 +152,7 @@ section > a + * {
 
 #content * {
   transition: 0.5s transform, 0.7s opacity;
-  -webkit-transition: 0.5s -webkit-transform, 0.7s opacity;
+  -webkit-transition: 0.5s -webkit-transform, 0.7s opacity ;
   opacity: 1;
 }
 

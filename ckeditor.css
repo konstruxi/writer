@@ -105,13 +105,22 @@ section.forced:after {
 }
 
 #content h1 + * {
-  margin-top: 0.8em;
+  margin-top: 0.8rem;
 }
 #content h2 + * {
-  margin-top: 0.8em;
+  margin-top: 0.8rem;
 }
 #content h3 + * {
-  margin-top: 0.8em;
+  margin-top: 0.8rem;
+}
+#content img + * {
+  margin-top: 0.8rem;
+}
+section > a {
+  display: block;
+}
+section > a + * {
+  margin-top: 0.8rem;
 }
 
 #content .moved {
@@ -127,4 +136,36 @@ section.forced:after {
 #content img {
   max-width: 100%;
   height: auto;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+section[pattern="two-images"][index="0"] {
+  width: 48%;
+  float: left;
+  box-sizing: border-box;
+  margin-bottom: 1.5em;
+}
+
+section[pattern="two-images"][index="1"] {
+  width: 48%;
+  float: right;
+  box-sizing: border-box;
+  margin-bottom: 1.5em;
+}
+section[index="0"], section:not([index]) {
+  clear: both;
 }

@@ -47,9 +47,11 @@ CKEDITOR.config.width = 'auto';
 CKEDITOR.dtd.$block.p = 1; 
 CKEDITOR.dtd.$block.h1 = 1; 
 CKEDITOR.dtd.$block.li = 1; 
+CKEDITOR.dtd.$block.img = 1; 
 
 CKEDITOR.dtd.section = Object.create(CKEDITOR.dtd.section)
 CKEDITOR.dtd.section.section = undefined;
+
 
 
 

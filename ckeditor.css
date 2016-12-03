@@ -45,9 +45,6 @@ body,html {
 section {
   position: relative;
 }
-#content[contenteditable] section > * {
-  cursor: pointer;
-}
 section:not(:first-of-type):before {
   content: '';
   position: absolute;;
@@ -90,6 +87,10 @@ section.forced:after {
   font-size: 1.5em;
   margin: 0;
 }
+#content h3 {
+  font-size: 1.25em;
+  margin: 0;
+}
 #content p {
   margin-top: 0;
   padding: 0;
@@ -99,10 +100,17 @@ section.forced:after {
   margin-top: 1.6em;
 }
 
-#content h1 + p {
+#content * + h1, #content * + h2, #content * + h3 {
+  margin-top: 1em;
+}
+
+#content h1 + * {
   margin-top: 0.8em;
 }
-#content h2 + p {
+#content h2 + * {
+  margin-top: 0.8em;
+}
+#content h3 + * {
   margin-top: 0.8em;
 }
 
@@ -114,4 +122,9 @@ section.forced:after {
   border-top: 5px dashed rgba(20,20,70,0.5);
   cursor: pointer;
   top: -50px;
+}
+
+#content img {
+  max-width: 100%;
+  height: auto;
 }

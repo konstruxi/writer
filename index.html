@@ -34,7 +34,7 @@
           if (container.parentNode.tagName == 'SECTION') {
             if (container.parentNode.classList.contains('forced')) {
               container.parentNode.classList.remove('forced');
-              fix();
+              //fix();
               return false;
             }
           }
@@ -62,9 +62,9 @@
 
     }
 
-    content.addEventListener('click', function(e) {
-        setTimeout(onCursorMove, 10);
-    })
+    //content.addEventListener('click', function(e) {
+    //    setTimeout(onCursorMove, 10);
+    //})
     editor.on('focus', function(e) {
         setTimeout(onCursorMove, 10);
     })
@@ -90,11 +90,12 @@
 split = function(editor, root) {
   var children = Array.prototype.slice.call(root.childNodes);
   var selection = editor.getSelection()
-  var bookmark = selection.createBookmarks();
+  var bookmark = window.dragbookmark || selection.createBookmarks();
   var last;
   var prev;
   var selected = selection.getStartElement();
   if (selected) selected = selected.$;
+
 
   context = {}
 
@@ -120,28 +121,25 @@ split = function(editor, root) {
     last = place(last, prev, child, null, root, null, context)
     prev = child;
   }
+  var range = editor.createRange();
   if (selected) {
     if (context.reselected) {
       try {
-
-        var range = editor.createRange();
         range.moveToElementEditStart( new CKEDITOR.dom.element(context.reselected ) );
         range.select( true );
         return;
       } catch(e) {
-        var range = editor.createRange();
-        range.moveToElementEditStart( editor.element );
-        range.select( true );
       }
     } else {
-      while (selected.parentNode) {
-        if (selected == document.body)
+      var bm = bookmark[0].startNode.$;
+      while (bm.parentNode) {
+        if (bm == document.body)
           return editor.getSelection().selectBookmarks(bookmark);
-        selected = selected.parentNode;
+        bm = bm.parentNode;
       }
     }
-  }
 
+  }
 }
 
 isEmptyParagraph = function(child) {
@@ -155,7 +153,7 @@ isEmptyParagraph = function(child) {
           return false;
       }
   //}
-  return true;
+  return child.nodeType != 1 || !child.querySelector('img, video, iframe');
 }
 
 isInside = function(element, another) {
@@ -246,37 +244,62 @@ place = function(parent, previous, child, current, root, selected, context) {
     if (!context.reselected)
       context.reselected = focused || child;
   }
+  if (window.d) alert('place')
   return parent;  
 
 }
 
-
 var locked;
-function fix() {
+function fix(reason) {
   if (locked) {
     return editor.undoManager.snapshots.pop()
   }
   locked = false;
-  requestAnimationFrame(function() {
-    editor.fire( 'lockSnapshot');
-    locked = split(editor, window.content)
-    editor.fire( 'unlockSnapshot' );
+  editor.fire( 'lockSnapshot');
+  locked = split(editor, window.content)
+  editor.fire( 'unlockSnapshot' );
 
-    // if splitting triggers change, pop the snapshot
-    locked = true;
-    setTimeout(function() {
-      locked = false
-    }, 10)
-  })
+  // if splitting triggers change, pop the snapshot
+  locked = true;
+  setTimeout(function() {
+    locked = false
+  }, 10)
 }
+
 
 
 CKEDITOR.plugins.add( 'structural', {
   init: function(editor) {
-    editor.on('change', fix)
-    requestAnimationFrame(fix, 10)
-
     
+    var observer = new MutationObserver( function(mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var m = mutations[i];
+        if (m.type === 'childList') {
+          for (var j = 0; j < m.removedNodes.length; j++)
+            if (m.removedNodes[j].nodeType == 1 &&
+                m.removedNodes[j].tagName != 'SPAN')
+              return fix(mutations[i]);
+          for (var j = 0; j < m.addedNodes.length; j++)
+            if (m.addedNodes[j].nodeType == 1 &&
+                m.addedNodes[j].tagName != 'SPAN')
+              return fix(mutations[i]);
+        } else {
+          if (m.target != editor.element.$
+              && ((m.attributeName == 'class'
+                && ((m.oldValue && m.oldValue.indexOf('forced') > -1)
+                  || (m.target.className.indexOf('forced') > -1))))) {
+            return fix(mutations[i])
+          }
+        }
+      }
+    } );
+    observer.observe( editor.element.$ , {
+      attributes: true,
+      childList: true,
+      subtree: true,
+      attributeOldValue: true,
+      attributeFilter: ['class']
+    });
 
 
 
@@ -314,7 +337,7 @@ window.dragstart = null;
 window.dragged = null
 window.dragzone = document.createElement('div')
 window.dragzone.id = 'dragzone'
-document.addEventListener('mousedown', function(e) {
+document.addEventListener('ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown', function(e) {
   var target = e.target;
   if (target.tagName == 'SECTION') {
     var top = 0;
@@ -326,6 +349,7 @@ document.addEventListener('mousedown', function(e) {
     // dragging
     if (top > e.pageY) {
       editor.fire('saveSnapshot')
+      window.dragbookmark = editor.getSelection().createBookmarks();
       window.dragging = e.target;
       window.dragtop = top;
       window.dragstart = e.pageY;
@@ -338,11 +362,21 @@ document.addEventListener('mousedown', function(e) {
       e.stopPropagation()
     }
   }
-})
-document.addEventListener('mousemove', function(e) {
+}, true)
+document.addEventListener('ontouchstart' in document.documentElement ? 'touchmove' : 'mousemove', function(e) {
   if (window.dragging) {
     var y = window.dragstart - e.pageY;
-    window.dragzone.style.top = window.dragstart - y - 5 + 'px'
+    if (window.dragstart - e.pageY > 0) {
+      window.dragzone.style.top = Math.max(
+        window.dragging.previousSibling ? window.dragstart - 7 - window.dragging.previousSibling.offsetHeight : 0,
+        window.dragstart - y - 5
+      ) + 'px'
+    } else {
+      window.dragzone.style.top = Math.min(
+        window.dragstart + window.dragging.offsetHeight,
+        window.dragstart - y - 5
+      ) + 'px'
+    }
 
     var elements = getElementsAffectedByDrag(e);
     for (var i = 0; i < elements.length; i++)
@@ -352,60 +386,77 @@ document.addEventListener('mousemove', function(e) {
         if (elements.indexOf(window.dragged[i]) == -1)
           window.dragged[i].classList.remove('moved')
     window.dragged = elements;
+    e.preventDefault()
+    e.stopPropagation()
   }
 })
-document.addEventListener('mouseup', function(e) {
+document.addEventListener('ontouchstart' in document.documentElement ? 'touchend' : 'mouseup', function(e) {
   if (window.dragging) {
     if (window.dragged) {
-      var section = document.createElement('section')
+      var dragging = window.dragging;
+      var dragged = window.dragged;
+      var dragstart = window.dragstart
+      //requestAnimationFrame(function() {
+        var section = document.createElement('section')
 
-      for (var i = 0; i < window.dragged.length; i++) {
-        section.appendChild(window.dragged[i])
-        window.dragged[i].classList.remove('moved')
-      }
-
-      if (window.dragstart - e.pageY > 0) {
-          window.dragging.classList.remove('forced')
-          section.classList.add('forced');
-        window.dragging.parentNode.insertBefore(section, window.dragging)
-      } else {
-
-        if (!window.dragging.classList.contains('forced')) {
-          window.dragging.classList.add('forced')
-          console.log(777)
+        for (var i = 0; i < dragged.length; i++) {
+          section.appendChild(dragged[i])
+          dragged[i].classList.remove('moved')
         }
-        window.dragging.parentNode.insertBefore(section, window.dragging)
-      }
-      
+
+        if (dragstart - e.pageY > 0) {
+          dragging.classList.remove('forced')
+          section.classList.add('forced');
+          if (dragged.length)
+            dragging.parentNode.insertBefore(section, dragging)
+        } else {
+          if (!dragging.classList.contains('forced'))
+            dragging.classList.add('forced')
+          if (dragged.length)
+            dragging.parentNode.insertBefore(section, dragging)
+        }
+        editor.fire('saveSnapshot')
+
+        //fix()
+      //})
 
     }
-    if (window.dragged) {
-      fix()
-      editor.fire('saveSnapshot')
-    }
-    window.dragging = undefined;
-    window.dragged = undefined
+
+
+    window.justdragged = dragging;
+    setTimeout(function() {
+      window.justdragged = undefined;
+      window.dragbookmark = undefined;
+    }, 50)
+
     window.dragzone.style.height = '';
     window.dragzone.style.top = '';
+        
+    window.dragging = undefined;
+    window.dragged = undefined
+    e.preventDefault()
+    e.stopPropagation()
+
 
   }
-})
+}, false)
 
 function getElementsAffectedByDrag(e) {
   var y = window.dragstart - e.pageY;
+  var result = []
   if (y > 0) {
     var previous = window.dragging.previousSibling;
-    var top = window.dragtop - (window.dragging.offsetTop - previous.offsetTop)
-    var height = previous.offsetHeight
-    var result = []
-    for (var i = 0, children = previous.childNodes, child; child = children[i++];)
-      if (child.offsetTop + child.offsetHeight / 2 > height - y)
-        result.push(child)
+    if (previous) {
+      var top = window.dragtop - (window.dragging.offsetTop - previous.offsetTop)
+      var height = previous.offsetHeight
+      for (var i = 0, children = previous.childNodes, child; child = children[i++];)
+        if (child.offsetTop + child.offsetHeight / 2 > height - y)
+          result.push(child)
+    }
   } else {
     var next = window.dragging
     var top = window.dragtop + (next.offsetTop - window.dragging.offsetTop)
     var height = next.offsetHeight
-    var result = []
     for (var i = 0, children = next.childNodes, child; child = children[i++];)
       if (child.offsetTop + child.offsetHeight / 2 < - y)
         result.push(child)

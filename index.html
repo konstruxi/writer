@@ -245,7 +245,6 @@ function group(content) {
       for (var j = 0; j < pattern.length; j++)
         if (!match(sections[i + j], pattern[j]))
           break;
-      debugger
       if (j == pattern.length) {
         for (var k = 0; k < pattern.length; k++) {
           sections[i + k].setAttribute('index', k)
@@ -627,12 +626,16 @@ document.addEventListener('ontouchstart' in document.documentElement ? 'touchend
             dragged[i].classList.remove('moved')
           }
           var children = Array.prototype.slice.call(dragging.children)
+          if (children.length === dragged.length)
+            var target = dragging.previousSibling;
+          else
+            var target = section
           for (var i = 0; i < children.length; i++) {
-            if (dragged.indexOf(children[i]) == -1)
-              section.appendChild(children[i])
+            if (dragged.indexOf(children[i]) == -1 || target != section)
+              target.appendChild(children[i])
           }
           dragging.classList.add('forced')
-          section.classList.add('forced');
+          target.classList.add('forced');
           dragging.parentNode.insertBefore(section, dragging.nextSibling)
         }
         editor.fire('saveSnapshot')

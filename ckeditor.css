@@ -151,8 +151,8 @@ section > a + * {
 
 
 #content * {
-  transition: 0.5s transform, 0.7s opacity;
-  -webkit-transition: ease-out 0.5s -webkit-transform, 0.7s opacity ;
+  transition: 0.3s transform, 0.7s opacity, 0.3s width, 0.3s height;
+  -webkit-transition: 0.3s -webkit-transform, 0.7s opacity, .3s width, .3s height;
   opacity: 1;
 }
 

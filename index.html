@@ -118,6 +118,10 @@ split = function(editor, root) {
   var prev;
   var selected = selection.getStartElement();
   if (selected) selected = selected.$;
+  for (var p = selected; p; p = p.parentNode) {
+    if (p.tagName == 'SECTION')
+      var result = p;
+  }
 
 
   context = {}
@@ -165,6 +169,8 @@ split = function(editor, root) {
     if (bookmark[0].startNode.$.parentNode)
       bookmark[0].startNode.$.parentNode.removeChild(bookmark[0].startNode.$)
   }
+
+  return result;
 }
 
 analyze = function(node) {
@@ -373,7 +379,8 @@ function snapshotStyles() {
   var elements = Array.prototype.slice.call(content.getElementsByTagName('*'));
   var dimensions = []
   for (var i = 0; i < elements.length; i++) {
-    var box = {top: 0, left: 0, height: elements[i].offsetHeight, width: elements[i].offsetWidth}
+    var box = {top: 0, left: 0, 
+      height: elements[i].offsetHeight, width: elements[i].offsetWidth}
     for (var parent = elements[i]; parent && (parent != content); parent = parent.offsetParent) {
       box.top += parent.offsetTop;
       box.left += parent.offsetLeft;
@@ -394,34 +401,56 @@ function fix(mutation, observer) {
 
 
   editor.fire( 'lockSnapshot');
-  split(editor, window.content)
+  var section = split(editor, window.content)
   for (var i = 0; i < window.content.children.length; i++)
     analyze(window.content.children[i])
   group(window.content)
 
   
+  if (section) {
+    var box = dimensions[elements.indexOf(section)];
+    if (box) {
+      box.height = section.offsetHeight
+    }
+  }  
 
   var all = Array.prototype.slice.call(content.getElementsByTagName('*'));
   var current = []
 
   for (var i = 0; i < all.length; i++) {
     var box = {top: 0, left: 0, height: all[i].offsetHeight, width: all[i].offsetWidth}
-    if (all[i].offsetParent)
-    for (var parent = all[i]; parent && (parent != content); parent = parent.offsetParent) {
-      box.top += parent.offsetTop;
-      box.left += parent.offsetLeft;
+
+    if (all[i].offsetParent) {
+      for (var parent = all[i]; parent && (parent != content); parent = parent.offsetParent) {
+        box.top += parent.offsetTop;
+        box.left += parent.offsetLeft;
+      }
     }
     current.push(box);
   }
 
 
-  for (var i = 0; i < content.children.length; i++)
-    shift(content.children[i], current, all, dimensions, elements, content)
+  for (var i = 0; i < all.length; i++) {
+    all[i].style.transition = 
+    all[i].style.webkitTransition = 'none'
+  }
 
-    for (var i = 0; i < all.length; i++) {
-      all[i].style.transition = 
-      all[i].style.webkitTransition = 'none'
-    }
+  var parentX = 0;
+  var parentY = 0;
+  for (var i = 0; i < content.children.length; i++) {
+    parentY += shift(content.children[i], current, all, dimensions, elements, content, parentX, parentY)
+  }
+
+  for (var i = 0; i < elements.length; i++) {
+    var box = current[all.indexOf(elements[i])];
+    if (!box) continue
+    if (dimensions[i].height != box.height)
+      elements[i].style.height = dimensions[i].height + 'px'
+    if (dimensions[i].width != box.width)
+      elements[i].style.width = dimensions[i].width + 'px'
+  }
+  editor.fire( 'unlockSnapshot' );
+
 
   requestAnimationFrame(function() {
 
@@ -430,6 +459,8 @@ function fix(mutation, observer) {
       all[i].style.transition = 
       all[i].style.webkitTransform = ''
     editor.fire( 'unlockSnapshot' )
+
+
     requestAnimationFrame(function() {
 
       editor.fire( 'lockSnapshot');
@@ -437,12 +468,30 @@ function fix(mutation, observer) {
         all[i].style.transform = 
         all[i].style.webkitTransform =
         all[i].style.opacity = '';
+        var box =  dimensions[elements.indexOf(all[i])];
+        if (box) {
+          if (all[i].style.height == box.height + 'px')
+            all[i].style.height = current[i].height + ''
+          if (all[i].style.width == box.width + 'px')
+            all[i].style.width = current[i].width + 'px'
+        }
       }
       editor.fire( 'unlockSnapshot' )
 
+      clearTimeout(window.resetstyles)
+      window.resetstyles = setTimeout(function() {
+        editor.fire( 'lockSnapshot');
+          var all = Array.prototype.slice.call(content.getElementsByTagName('*'));
+          for (var i = 0; i < all.length; i++) {
+            all[i].style.height = ''
+            all[i].style.width = ''
+          }
+        editor.fire( 'unlockSnapshot' )
+
+      }, 400)
     })
+
   })
-  editor.fire( 'unlockSnapshot' );
 
 
 
@@ -469,7 +518,8 @@ function shift(element, to, all, from, elements, root, parentX, parentY) {
   for (var i = 0; i < element.children.length; i++)
     shift(element.children[i], to, all, from, elements, root, parentX, parentY)
 
-  if (f && t && (shiftX || shiftY)) {
+  if (f && t && (shiftX || shiftY) 
+  && (Math.abs(t.left - f.left) + Math.abs(t.top - f.top) > 5)) {
     element.style.transform = 
     element.style.webkitTransform = 'translateX(' + - shiftX + 'px) translateY(' + - shiftY + 'px)'
   }
@@ -477,6 +527,14 @@ function shift(element, to, all, from, elements, root, parentX, parentY) {
     //element.style.opacity = 0.65;
     element.classList.remove('new')
   }
+  if (element.tagName == 'SECTION') {
+    if (t && f) {
+      return t.height - f.height
+    } else {
+
+    }
+  }
+  return 0;
 }
 
 

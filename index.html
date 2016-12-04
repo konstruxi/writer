@@ -110,6 +110,7 @@
 
 
 
+// returns newly selected section
 split = function(editor, root) {
   var children = Array.prototype.slice.call(root.childNodes);
   var selection = editor.getSelection()
@@ -118,6 +119,7 @@ split = function(editor, root) {
   var prev;
   var selected = selection.getStartElement();
   if (selected) selected = selected.$;
+
   for (var p = selected; p; p = p.parentNode) {
     if (p.tagName == 'SECTION')
       var result = p;
@@ -193,7 +195,8 @@ analyze = function(node) {
     var child = node.children[i];
     switch (child.tagName) {
       case 'H1': case 'H2':
-        tags.push('has-title')
+        if (child.textContent.length)
+          tags.push('has-title')
         titles += child.textContent.length;
         break;
 
@@ -204,7 +207,7 @@ analyze = function(node) {
       case 'P': case 'A':
         if (child.getElementsByTagName('img')[0]) {
           tags.push('has-image')
-        } else {
+        } else if (child.textContent.length) {
           texts += child.textContent.length;
           tags.push('has-text')
         }
@@ -322,6 +325,7 @@ place = function(parent, previous, child, current, root, selected, context) {
             return parent;
           } else {
             var inserted = previous
+            window.dontanimate = true;
           }
         } else if (isInside(selected, child)){
           var focused = previous;
@@ -435,6 +439,16 @@ function fix(mutation, observer) {
     all[i].style.webkitTransition = 'none'
       all[i].style.height = ''
       all[i].style.width = ''
+  }
+
+  if (window.dontanimate) {
+    requestAnimationFrame(function() {
+      for (var i = 0; i < all.length; i++) {
+        all[i].style.transition = 
+        all[i].style.webkitTransition = ''
+      }
+    })
+    return window.dontanimate = false;
   }
 
   for (var i = 0; i < all.length; i++) {

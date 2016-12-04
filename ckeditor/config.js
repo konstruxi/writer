@@ -40,6 +40,8 @@ CKEDITOR.editorConfig = function( config ) {
 	config.allowedContent = 'h1 h2 h3 blockquote ul li ol b i code pre; iframe[src]; a[href,title]; abbr[title]; img[src,alt,title]; section(forced);'
 
 	config.shiftEnterMode = CKEDITOR.ENTER_P
+
+	config.undoStackSize = 150;
 };
 
 CKEDITOR.config.height = 150;

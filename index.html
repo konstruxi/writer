@@ -139,8 +139,9 @@ split = function(editor, root) {
         }
         prev = grandchildren[j];
       }
-      if (current)
+      if (current) {
         current.parentNode.removeChild(current)
+      }
       continue;
     }
 
@@ -697,7 +698,7 @@ document.addEventListener('ontouchstart' in document.documentElement ? 'touchend
             section.appendChild(dragged[i])
             dragged[i].classList.remove('moved')
           }
-          window.justdropped = section
+          window.justdropped = section.previousSibling
         } else {
 
           for (var i = 0; i < dragged.length; i++) {

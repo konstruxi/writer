@@ -457,9 +457,11 @@ function fix(mutation, observer) {
     var box = current[all.indexOf(elements[i])];
     if (!box) continue
     if (dimensions[i].height != box.height)
-      elements[i].style.height = dimensions[i].height + 'px'
+      if (!elements[i].style.height)
+        elements[i].style.height = dimensions[i].height + 'px'
     if (dimensions[i].width != box.width)
-      elements[i].style.width = dimensions[i].width + 'px'
+      if (!elements[i].style.width)
+        elements[i].style.width = dimensions[i].width + 'px'
   }
   editor.fire( 'unlockSnapshot' );
 

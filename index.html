@@ -401,7 +401,7 @@ function fix(mutation, observer) {
 
 
   editor.fire( 'lockSnapshot');
-  var section = split(editor, window.content)
+  var section = split(editor, window.content) || window.justdropped
   for (var i = 0; i < window.content.children.length; i++)
     analyze(window.content.children[i])
   group(window.content)
@@ -417,6 +417,14 @@ function fix(mutation, observer) {
   var all = Array.prototype.slice.call(content.getElementsByTagName('*'));
   var current = []
 
+
+  for (var i = 0; i < all.length; i++) {
+    all[i].style.transition = 
+    all[i].style.webkitTransition = 'none'
+      all[i].style.height = ''
+      all[i].style.width = ''
+  }
+
   for (var i = 0; i < all.length; i++) {
     var box = {top: 0, left: 0, height: all[i].offsetHeight, width: all[i].offsetWidth}
 
@@ -427,12 +435,6 @@ function fix(mutation, observer) {
       }
     }
     current.push(box);
-  }
-
-
-  for (var i = 0; i < all.length; i++) {
-    all[i].style.transition = 
-    all[i].style.webkitTransition = 'none'
   }
 
   var parentX = 0;
@@ -611,6 +613,7 @@ window.dragzone.id = 'dragzone'
 document.addEventListener('ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown', function(e) {
   var target = e.target;
   if (target.tagName == 'SECTION') {
+    editor.focus()
     var top = 0;
     var left = 0;
 
@@ -685,16 +688,20 @@ document.addEventListener('ontouchstart' in document.documentElement ? 'touchend
             section.appendChild(dragged[i])
             dragged[i].classList.remove('moved')
           }
+          window.justdropped = section
         } else {
 
           for (var i = 0; i < dragged.length; i++) {
             dragged[i].classList.remove('moved')
           }
           var children = Array.prototype.slice.call(dragging.children)
-          if (children.length === dragged.length)
+          if (children.length === dragged.length) {
             var target = dragging.previousSibling;
-          else
+          }
+          else {
+            window.justdropped = dragging
             var target = section
+          }
           for (var i = 0; i < children.length; i++) {
             if (dragged.indexOf(children[i]) == -1 || target != section)
               target.appendChild(children[i])
@@ -714,6 +721,7 @@ document.addEventListener('ontouchstart' in document.documentElement ? 'touchend
     window.justdragged = dragging;
     setTimeout(function() {
       window.justdragged = undefined;
+      window.justdropped = undefined;
       window.dragbookmark = undefined;
     }, 50)
 

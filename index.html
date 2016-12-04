@@ -170,6 +170,15 @@ split = function(editor, root) {
       bookmark[0].startNode.$.parentNode.removeChild(bookmark[0].startNode.$)
   }
 
+
+  var selection = editor.getSelection()
+  var selected = selection.getStartElement();
+  if (selected) selected = selected.$;
+  while (selected) {
+    if (selected === result)
+      return;
+    selected = selected.parentNode
+  }
   return result;
 }
 

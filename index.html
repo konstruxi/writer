@@ -151,7 +151,6 @@ split = function(editor, root) {
       try {
         range.moveToElementEditStart( new CKEDITOR.dom.element(context.reselected ) );
         range.select( true );
-        return;
       } catch(e) {
       }
     } else {
@@ -162,7 +161,9 @@ split = function(editor, root) {
         bm = bm.parentNode;
       }
     }
-
+  
+    if (bookmark[0].startNode.$.parentNode)
+      bookmark[0].startNode.$.parentNode.removeChild(bookmark[0].startNode.$)
   }
 }
 
@@ -423,7 +424,7 @@ function fix(mutation, observer) {
     }
 
   requestAnimationFrame(function() {
-    
+
     editor.fire( 'lockSnapshot');
     for (var i = 0; i < all.length; i++) 
       all[i].style.transition = 
@@ -709,22 +710,27 @@ function disableTitles() {
 }
 editor.on('instanceReady', function() {
   editor.commands.heading.on('exec', function() {
+    window.stylesnapshot = snapshotStyles();
     disableLists()
     disableQuotes()
   })
   editor.commands.subtitle.on('exec', function() {
+    window.stylesnapshot = snapshotStyles();
     disableLists()
     disableQuotes()
   })
   editor.commands.bulletedlist.on('exec', function() {
+    window.stylesnapshot = snapshotStyles();
     disableTitles()
     disableQuotes()
   })
   editor.commands.numberedlist.on('exec', function() {
+    window.stylesnapshot = snapshotStyles();
     disableTitles()
     disableQuotes()
   })
   editor.commands.blockquote.on('exec', function() {
+    window.stylesnapshot = snapshotStyles();
     disableTitles()
     disableLists()
   })

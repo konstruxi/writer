@@ -152,10 +152,13 @@ section > a + * {
 
 #content * {
   transition: 0.5s transform, 0.7s opacity;
-  -webkit-transition: 0.5s -webkit-transform, 0.7s opacity ;
+  -webkit-transition: ease-out 0.5s -webkit-transform, 0.7s opacity ;
   opacity: 1;
 }
 
+#content {
+  overflow: hidden;
+}
 
 
 blockquote:before {

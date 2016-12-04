@@ -65,47 +65,52 @@
     }, null, null, -10);
 
     function onCursorMove(force) {
+      clearTimeout(window.clearcursor)
+      window.clearcursor = setTimeout(function() {
 
       var selection = editor.getSelection();
       var selected = selection.getStartElement();
       if (selected) selected = selected.$;
-      var children = Array.prototype.slice.call(content.childNodes);
+      var children = Array.prototype.slice.call(content.children);
+      var snapshot = false;
       for (var i = 0; i < children.length; i++) {
-        if (children[i].tagName == 'SECTION') {
-          if (isEmptyParagraph(children[i]))
-            if (!selected || force || !isInside(selected, children[i])) {
-              window.stylesnapshot = window.snapshotStyles()
-              if (!force) var bookmark = selection.createBookmarks();
-              content.removeChild(children[i])
-              if (!force) editor.getSelection().selectBookmarks(bookmark);
-              fix()
+        if (!selected || force || !isInside(selected, children[i])) {
+          if (isEmptyParagraph(children[i])) {
+            if (!snapshot) 
+              snapshot = window.stylesnapshot = window.snapshotStyles()
+            if (!force) var bookmark = selection.createBookmarks();
+            children[i].parentNode.removeChild(children[i])
+            if (!force) editor.getSelection().selectBookmarks(bookmark);
+          } else {
+            var els = Array.prototype.slice.call(children[i].getElementsByTagName('*'));
+            for (var j = 0; j < els.length; j++) {
+              if (isEmptyParagraph(els[j])) {
+
+                if (!snapshot) 
+                  snapshot = window.stylesnapshot = window.snapshotStyles()
+                
+                els[j].parentNode.removeChild(els[j])
+              }
             }
+          }
         }
       }
+      if (snapshot)
+        fix()
+      }, 200)
 
     }
+    editor.on( 'selectionChange', function( evt ) {
+      if ( editor.readOnly )
+        return;
 
-    content.addEventListener('click', function(e) {
-        setTimeout(onCursorMove, 10);
-    })
-    editor.on('focus', function(e) {
-        setTimeout(onCursorMove, 10);
-    })
-    editor.on('blur', function(e) {
-        setTimeout(function() {
-          onCursorMove(true)
-        }, 10);
-    })
+      onCursorMove()
+    } );
     editor.on('paste', function(e) {
         setTimeout(function() {
           onCursorMove(true)
         }, 50);
     })
-    editor.on('key', function(e) {
-      if ((e.data.keyCode >= 37 && e.data.keyCode <= 40)
-      || e.data.keyCode == 13)
-        setTimeout(onCursorMove, 10);
-    }, null, null, 100)
 
 
 
@@ -284,6 +289,8 @@ function group(content) {
 }
 
 isEmptyParagraph = function(child) {
+  if (child.tagName == 'IMG')
+    return false;
   //if (child.tagName == 'P') {
     var text = child.textContent
     for (var i = 0; i < text.length; i++)

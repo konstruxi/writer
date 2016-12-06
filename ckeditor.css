@@ -10,6 +10,12 @@
   font-weight: bold;
   font-size: 1.2em;
 }
+.cke_button__h3_icon:before {
+  content: 'h3';
+  color: #eee;
+  font-weight: bold;
+  font-size: 1.2em;
+}
 .cke_button__bq_icon:before {
   content: 'bq';
   color: #eee;
@@ -151,14 +157,15 @@ section > a + * {
 
 
 #content * {
-  transition: 0.3s transform, 0.7s opacity, 0.3s width, 0.3s height;
-  -webkit-transition: 0.3s -webkit-transform, 0.7s opacity, .3s width, .3s height;
+  transition: 0.3s transform, 0.4s opacity, 0.3s width, 0.3s height;
+  -webkit-transition: linear 0.25s -webkit-transform, 0.4s opacity, .3s width, linear .3s height;
   opacity: 1;
 }
 
 #content {
   overflow: hidden;
 }
+
 
 
 blockquote:before {
@@ -174,6 +181,9 @@ blockquote {
   padding: 0;
 }
 
+#content section.new {
+  opacity: 1;
+} 
 
 section[pattern="one-quote"] {
   max-width: 500px;

@@ -65,6 +65,7 @@
     }, null, null, -10);
 
     function onCursorMove(force) {
+      if (window.dontanimate) return;
       clearTimeout(window.clearcursor)
       window.clearcursor = setTimeout(function() {
 
@@ -88,21 +89,31 @@
 
                 if (!snapshot) 
                   snapshot = window.stylesnapshot = window.snapshotStyles()
-                
+
                 els[j].parentNode.removeChild(els[j])
               }
             }
           }
         }
       }
+      if (selected && selected.tagName == 'SECTION') {
+        var prev = selected.lastElementChild;
+        var range = editor.createRange();
+        range.moveToElementEditEnd( new CKEDITOR.dom.element(prev ) );
+        range.select( true );
+      }
       if (snapshot)
         fix()
-      }, 200)
+      }, 50)
 
     }
     editor.on( 'selectionChange', function( evt ) {
       if ( editor.readOnly )
         return;
+
+      onCursorMove()
+    } );
+    editor.on( 'blur', function( evt ) {
 
       onCursorMove()
     } );
@@ -161,21 +172,21 @@ split = function(editor, root) {
   if (selected) {
     if (context.reselected) {
       try {
+        var bm = context.reselected;
         range.moveToElementEditStart( new CKEDITOR.dom.element(context.reselected ) );
         range.select( true );
       } catch(e) {
       }
     } else {
       var bm = bookmark[0].startNode.$;
-      while (bm.parentNode) {
-        if (bm == document.body) {
+      for (; bm.parentNode; bm = bm.parentNode) {
+        if (bm == content) {
           editor.getSelection().selectBookmarks(bookmark);
           break;
         }
-        bm = bm.parentNode;
       }
     }
-  
+    
     if (bookmark[0].startNode.$.parentNode)
       bookmark[0].startNode.$.parentNode.removeChild(bookmark[0].startNode.$)
   }
@@ -289,7 +300,7 @@ function group(content) {
 }
 
 isEmptyParagraph = function(child) {
-  if (child.tagName == 'IMG')
+  if (child.tagName == 'IMG' || child.tagName == 'BR')
     return false;
   //if (child.tagName == 'P') {
     var text = child.textContent
@@ -337,6 +348,9 @@ place = function(parent, previous, child, current, root, selected, context) {
         } else if (isInside(selected, child)){
           var focused = previous;
         }
+      // prepending a header into a section, which will split
+      } else if (current && previous.parentNode != current && current.firstElementChild == child && child.nextElementSibling && needsSplitterBetween(child, child.nextElementSibling)) {
+        window.dontanimate = true;
       }
 
       if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
@@ -361,7 +375,7 @@ place = function(parent, previous, child, current, root, selected, context) {
         return section;
       }
     }
-    if ((child.tagName == 'H1') || (child.tagName == 'H2' && (!previous || previous.tagName != 'H1'))) {
+    if (needsSplitterBetween(previous, child)) {
       // if header is in the beginning of chapter,
       // shift focus to previous section
       if (child && isEmptyParagraph(child) && previous && !isEmptyParagraph(previous))
@@ -397,9 +411,20 @@ place = function(parent, previous, child, current, root, selected, context) {
 
 }
 
-function snapshotStyles() {
+function needsSplitterBetween(left, right) {
+  return (right.tagName == 'H1') || (right.tagName == 'H2' && (!left || left.tagName != 'H1'))
+}
 
+function snapshotStyles(context, reset) {
   var elements = Array.prototype.slice.call(content.getElementsByTagName('*'));
+  if (reset)
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].style.transition = 
+      elements[i].style.webkitTransition = 'none'
+      elements[i].style.height = ''
+      elements[i].style.width = ''
+      elements[i].style.position = ''
+    }
   var dimensions = []
   for (var i = 0; i < elements.length; i++) {
     var box = {top: 0, left: 0, 
@@ -416,11 +441,7 @@ function snapshotStyles() {
 
 function fix(mutation, observer) {
   var snapshot = window.stylesnapshot || snapshotStyles();
-
   window.stylesnapshot = undefined;
-
-  elements = snapshot[0];
-  dimensions = snapshot[1];
 
 
   editor.fire( 'lockSnapshot');
@@ -430,6 +451,20 @@ function fix(mutation, observer) {
   group(window.content)
 
   
+
+  animate(snapshot, section);
+
+  if (observer)
+    observer.takeRecords()
+
+  editor.fire( 'unlockSnapshot' );
+}
+
+  
+function animate(snapshot, section, callback) {
+
+  elements = snapshot[0];
+  dimensions = snapshot[1];
   if (section) {
     var box = dimensions[elements.indexOf(section)];
     if (box) {
@@ -437,19 +472,10 @@ function fix(mutation, observer) {
     }
   }  
 
-  var all = Array.prototype.slice.call(content.getElementsByTagName('*'));
-  var current = []
-
-
-  for (var i = 0; i < all.length; i++) {
-    all[i].style.transition = 
-    all[i].style.webkitTransition = 'none'
-      all[i].style.height = ''
-      all[i].style.width = ''
-  }
 
   if (window.dontanimate) {
     requestAnimationFrame(function() {
+      var all = document.getElementsByTagName('*');
       for (var i = 0; i < all.length; i++) {
         all[i].style.transition = 
         all[i].style.webkitTransition = ''
@@ -458,17 +484,10 @@ function fix(mutation, observer) {
     return window.dontanimate = false;
   }
 
-  for (var i = 0; i < all.length; i++) {
-    var box = {top: 0, left: 0, height: all[i].offsetHeight, width: all[i].offsetWidth}
 
-    if (all[i].offsetParent) {
-      for (var parent = all[i]; parent && (parent != content); parent = parent.offsetParent) {
-        box.top += parent.offsetTop;
-        box.left += parent.offsetLeft;
-      }
-    }
-    current.push(box);
-  }
+  var update = snapshotStyles(editor, true);
+  var all = update[0]
+  var current = update[1];
 
   var parentX = 0;
   var parentY = 0;
@@ -486,7 +505,6 @@ function fix(mutation, observer) {
       if (!elements[i].style.width)
         elements[i].style.width = dimensions[i].width + 'px'
   }
-  editor.fire( 'unlockSnapshot' );
 
 
   requestAnimationFrame(function() {
@@ -505,17 +523,19 @@ function fix(mutation, observer) {
         all[i].style.transform = 
         all[i].style.webkitTransform =
         all[i].style.opacity = '';
+        if (all[i].tagName == 'SECTION')
+          all[i].classList.remove('new')
         var box =  dimensions[elements.indexOf(all[i])];
         if (box) {
-          if (all[i].style.height == box.height + 'px')
-            all[i].style.height = current[i].height + ''
+          if (all[i].style.height)
+            all[i].style.height = current[i].height + 'px'
           if (all[i].style.width == box.width + 'px')
             all[i].style.width = current[i].width + 'px'
         }
       }
       editor.fire( 'unlockSnapshot' )
 
-      clearTimeout(window.resetstyles)
+  clearTimeout(window.resetstyles)
       window.resetstyles = setTimeout(function() {
         editor.fire( 'lockSnapshot');
           var all = Array.prototype.slice.call(content.getElementsByTagName('*'));
@@ -524,17 +544,11 @@ function fix(mutation, observer) {
             all[i].style.width = ''
           }
         editor.fire( 'unlockSnapshot' )
-
-      }, 400)
+      }, 300)
     })
-
   })
+};
 
-
-
-  if (observer)
-    observer.takeRecords()
-}
 
 function shift(element, to, all, from, elements, root, parentX, parentY) {
   var f = from[elements.indexOf(element)]
@@ -560,15 +574,12 @@ function shift(element, to, all, from, elements, root, parentX, parentY) {
     element.style.transform = 
     element.style.webkitTransform = 'translateX(' + - shiftX + 'px) translateY(' + - shiftY + 'px)'
   }
-  if (!f || element.classList.contains('new')) {console.error(element)
-    //element.style.opacity = 0.65;
-    element.classList.remove('new')
-  }
   if (element.tagName == 'SECTION') {
     if (t && f) {
       return t.height - f.height
     } else {
-
+      element.classList.add('new')
+      return 0
     }
   }
   return 0;
@@ -596,7 +607,7 @@ CKEDITOR.plugins.add( 'structural', {
               && ((m.attributeName == 'class'
                 && ((m.oldValue 
                   && (m.oldValue.indexOf('forced') > -1) != (m.target.className.indexOf('forced') > -1)))))) {
-            return fix(mutations[i], observer)
+            return fix(mutations[i], observer);
           }
         }
       }
@@ -633,8 +644,9 @@ CKEDITOR.plugins.add( 'structural', {
 
     }
 
-    addButton('heading', { element: 'h1'}, ['h1'], 'h1')
-    addButton('subtitle', { element: 'h2'}, ['h2'], 'h2', ['numberedlist', 'bulletedlist'])
+    addButton('title', { element: 'h1'}, ['h1'], 'h1')
+    addButton('subtitle', { element: 'h2'}, ['h2'], 'h2')
+    addButton('heading', { element: 'h3'}, ['h3'], 'h3')
 
   }
 })
@@ -723,7 +735,6 @@ document.addEventListener('ontouchstart' in document.documentElement ? 'touchend
             section.appendChild(dragged[i])
             dragged[i].classList.remove('moved')
           }
-          debugger
           window.justdropped = section.previousSibling
         } else {
 

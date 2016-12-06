@@ -1,15 +1,16 @@
 <html>
-  <html>
+  <head>
     <script src="./ckeditor/ckeditor.js"></script>
     <link rel="stylesheet" href="./ckeditor.css" />
-  </html>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+  </head>
   <body>
   <pre id="log" style="position: absolute; left: 0; top: 0">
 
   </pre>
   <br>
   <br>
-  <div id="content" contenteditable>
+  <div id="content" contenteditable autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" >
 <section class="forced">
 <h1>CSS Zen Garden</h1><h2>The Beauty of&nbsp;CSS&nbsp;Design</h2><p>A demonstration of what can be accomplished through&nbsp;CSS-based design. Select any style sheet from the list to load it into this page.</p><p>Download the example&nbsp;<a title="This page's source HTML code, not to be modified." href="http://www.csszengarden.com/examples/index">html file</a>&nbsp;and&nbsp;<a title="This page's sample CSS, the file you may modify." href="http://www.csszengarden.com/examples/style.css">css file</a></p><h2>The Road to Enlightenment</h2><p>Littering a dark and dreary road lay the past relics of browser-specific tags, incompatible&nbsp;DOMs, broken&nbsp;CSS&nbsp;support, and abandoned browsers.</p><p>We must clear the mind of the past. Web enlightenment has been achieved thanks to the tireless efforts of folk like the&nbsp;W3C,&nbsp;WaSP, and the major browser creators.</p><p>The CSS Zen Garden invites you to relax and meditate on the important lessons of the masters. Begin to see with clarity. Learn to use the time-honored techniques in new and invigorating fashion. Become one with the web.</p></section>
 <section class="forced">
@@ -156,7 +157,6 @@ split = function(editor, root) {
       var result = p;
   }
 
-
   context = {}
   for (var i = 0; i < children.length; i++) {
     var child = children[i];
@@ -260,10 +260,11 @@ analyze = function(node) {
   else if (titles > 100)
     tags.push('has-long-title');
 
-  for (var i = 0; i < node.classList.length; i++) {
-    if (node.classList[i].indexOf('has-') == 0) {
-      if (tags.indexOf(node.classList[i]) == -1)
-        node.classList.remove(node.classList[i])
+  var list = Array.prototype.slice.call(node.classList)
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].indexOf('has-') == 0) {
+      if (tags.indexOf(list[i]) == -1)
+        node.classList.remove(list[i])
     }
   }
   for (var i = 0; i < tags.length; i++)
@@ -439,6 +440,7 @@ function snapshotStyles(context, reset) {
       elements[i].style.width = ''
       elements[i].style.top = ''
       elements[i].style.left = ''
+      elements[i].style.fontSize = ''
       elements[i].classList.remove('moving')
     }
   var dimensions = []
@@ -452,7 +454,15 @@ function snapshotStyles(context, reset) {
     dimensions.push(box)
   }
 
-  return [elements, dimensions];
+  var selection = editor.getSelection()
+  var selected = selection.getStartElement();
+  if (selected) selected = selected.$;
+  if (selected) {
+    var fontSize = window.getComputedStyle(selected)['font-size'];
+  }
+    
+
+  return [elements, dimensions, selected, fontSize];
 }
 
 function fix(mutation, observer) {
@@ -481,43 +491,43 @@ function animate(snapshot, section, callback) {
 
   elements = snapshot[0];
   dimensions = snapshot[1];
-  //if (section) {
-  //  var box = dimensions[elements.indexOf(section)];
-  //  if (box) {
-  //    box.height = section.offsetHeight
-  //  }
-  //}  
-
-  //if (window.dontanimate) {
-  //  return window.dontanimate = false;
-  //}
-
 
   var update = snapshotStyles(editor, true);
   var all = update[0]
   var current = update[1];
 
-
-
+  console.log(snapshot[2], snapshot[3], update[2], update[3])
+  if (snapshot[2] && update[2]) {
+    if (elements.indexOf(update[2]) == -1 && all.indexOf(snapshot[2]) == -1) {
+      var morphing = true;
+      update[2].style.fontSize = snapshot[3];
+      elements.push(update[2])
+      dimensions.push(dimensions[elements.indexOf(snapshot[2])])
+      console.log(123, dimensions[elements.indexOf(snapshot[2])], snapshot[2], update[2])
+    }
+  }
   var repositioned = false;
   for (var i = 0; i < content.children.length; i++) {
     repositioned = shift(content.children[i], current, all, dimensions, elements, content, 0, 0, repositioned)
   }
   if (!repositioned) return;
 
-    cancelAnimationFrame(window.animating);
-    window.animating = requestAnimationFrame(function() {
-    for (var i = 0; i < all.length; i++) {
-      all[i].style.transition = '';
-    }
-      window.animating = null;
-
+  cancelAnimationFrame(window.animating);
+  window.animating = requestAnimationFrame(function() {
       editor.fire( 'lockSnapshot');
+      for (var i = 0; i < all.length; i++) {
+        all[i].style.transition = '';
+      }
+
       var repositioned = false;
       for (var i = 0; i < content.children.length; i++) {
         repositioned = shift(content.children[i], current, all, [], [], content, 0, 0, repositioned)
       }
 
+      if (morphing) {
+        update[2].style.transition = ''
+        update[2].style.fontSize = update[3];
+      }
       editor.fire( 'unlockSnapshot' )
 
       clearTimeout(window.resetstyles)
@@ -529,6 +539,7 @@ function animate(snapshot, section, callback) {
             all[i].style.width = ''
             all[i].style.left = ''
             all[i].style.top = ''
+            all[i].style.fontSize = ''
             all[i].style.transition = 'none';
             all[i].classList.remove('moving')
           }
@@ -539,32 +550,42 @@ function animate(snapshot, section, callback) {
 };
 
 
-function shift(element, to, all, from, elements, root, parentX, parentY, repositioned, diffX, diffY) {
+function shift(element, to, all, from, elements, root, parentX, parentY, repositioned, diffX, diffY, p) {
   var f = from[elements.indexOf(element)]
   var t = to[all.indexOf(element)]
   if (!t) return;
 
-  var shiftX = 0;
-  var shiftY = 0;
+  if (f) {
+    diffX = (diffX || 0) + t.left - f.left;
+    diffY = (diffY || 0) + t.top - f.top;
+    var shiftX = f.left - (parentX || 0);
+    var shiftY = f.top - (parentY || 0);
+    var posX = shiftX;
+    var posY = shiftY;
 
-  if (t && f) {
-    diffX = (diffX || 0) + (repositioned || 1) - 1 + t.left - f.left;
-    diffY = (diffY || 0) + (repositioned || 1) - 1 + t.top - f.top;
   } else {
     diffX = 0;
-    diffY = 0;
+    diffY = 0
+    var shiftX = t.left - (p ? p.left : (parentX || 0)) ;
+    var shiftY = t.top - (p ? p.top : (parentY || 0));
+    var posX = t.left;
+    var posY = t.top;
   }
-  var shiftX = (f && f.left || t.left) - (parentX || 0);
-  var shiftY = (f && f.top || t.top) - (parentY || 0);
 
-  if (element.parentNode.tagName == 'SECTION' || element.parentNode === content) {
+  var repos = false;
+  for (var i = 0; i < element.children.length; i++) {
+    repos = shift(element.children[i], to, all, from, elements, root, posX, posY, repos, - diffX, - diffY, t)
+  }
+  if (element.parentNode.tagName == 'SECTION' || 
+    element.parentNode === content || 
+    element.parentNode.tagName == 'OL' ||
+    element.parentNode.tagName == 'UL' ||
+    element.parentNode.tagName == 'BLOCKQUOTE') {
     if (elements.length 
-        ?  (!f || (Math.abs(diffX) + Math.abs(diffY) > 5) 
+        ?  (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5)
             || (f && (Math.abs(f.height - t.height) + Math.abs(f.width - t.width)) > 5))
-        : element.classList.contains('moving')) {
-      if (!f || f.parent != t.parent)
-        repositioned = (repositioned || 1) + t.height;
-      else if (!repositioned)
+        : !f || element.classList.contains('moving')) {
+      if (!repositioned)
         repositioned = 1;
       element.classList.add('moving')
       element.style.left = shiftX + 'px'
@@ -574,19 +595,13 @@ function shift(element, to, all, from, elements, root, parentX, parentY, reposit
     }
   }
 
-  var repos = false;
-  for (var i = 0; i < element.children.length; i++) {
-    repos = shift(element.children[i], to, all, from, elements, root, shiftX, shiftY, repos, - diffX, - diffY)
-  }
-  return repositioned;
+  return repositioned || !!repos;
 }
 
 
 
 CKEDITOR.plugins.add( 'structural', {
   init: function(editor) {
-    editor.focus()
-    
     var observer = new MutationObserver( function(mutations) {
       for (var i = 0; i < mutations.length; i++) {
         var m = mutations[i];
@@ -645,6 +660,11 @@ CKEDITOR.plugins.add( 'structural', {
     addButton('subtitle', { element: 'h2'}, ['h2'], 'h2')
     addButton('heading', { element: 'h3'}, ['h3'], 'h3')
 
+    setTimeout(function() {
+
+      editor.focus()
+    
+    }, 200)
   }
 })
 
@@ -819,6 +839,8 @@ function disableTitles() {
     editor.ui.instances.heading.click(editor)
   if (editor.commands.subtitle.state == 1)
     editor.ui.instances.subtitle.click(editor)
+  if (editor.commands.title.state == 1)
+    editor.ui.instances.title.click(editor)
 }
 editor.on('instanceReady', function() {
   editor.commands.heading.on('exec', function() {
@@ -827,6 +849,11 @@ editor.on('instanceReady', function() {
     disableQuotes()
   })
   editor.commands.subtitle.on('exec', function() {
+    window.stylesnapshot = snapshotStyles();
+    disableLists()
+    disableQuotes()
+  })
+  editor.commands.title.on('exec', function() {
     window.stylesnapshot = snapshotStyles();
     disableLists()
     disableQuotes()

@@ -39,9 +39,26 @@
       floatSpaceDockedOffsetY: 10
     });
 
+    var content = document.getElementById('content')
+
     editor.on('key', function(e) {
-      if (e.data.keyCode == 13)
-        window.stylesnapshot = snapshotStyles();
+      if (e.data.keyCode == 13) {
+
+        if (!window.stylesnapshot)
+          window.stylesnapshot = snapshotStyles();
+        var selection = editor.getSelection()
+        var range = selection.getRanges()[ 0 ]
+        var container = range.startContainer.$
+        if (isEmptyParagraph(container))
+        for (; container.parentNode; container = container.parentNode) {
+          if (container.parentNode.firstElementChild != container)
+            break;
+          if (container.parentNode.lastElementChild != container)
+            break;
+          return false;
+        }
+
+      }
       if (e.data.keyCode == 8) {
         window.stylesnapshot = snapshotStyles();
         var selection = editor.getSelection()
@@ -102,9 +119,7 @@
         range.moveToElementEditEnd( new CKEDITOR.dom.element(prev ) );
         range.select( true );
       }
-      if (snapshot)
-        fix()
-      }, 50)
+      }, 100)
 
     }
     editor.on( 'selectionChange', function( evt ) {
@@ -115,7 +130,7 @@
     } );
     editor.on( 'blur', function( evt ) {
 
-      onCursorMove()
+      onCursorMove(true)
     } );
     editor.on('paste', function(e) {
         setTimeout(function() {
@@ -343,15 +358,15 @@ place = function(parent, previous, child, current, root, selected, context) {
             return parent;
           } else {
             var inserted = previous
-            window.dontanimate = true;
+            //window.dontanimate = true;
           }
         } else if (isInside(selected, child)){
           var focused = previous;
         }
       // prepending a header into a section, which will split
-      } else if (current && previous.parentNode != current && current.firstElementChild == child && child.nextElementSibling && needsSplitterBetween(child, child.nextElementSibling)) {
-        window.dontanimate = true;
-      }
+      }/* else if (current && previous.parentNode != current && current.firstElementChild == child && child.nextElementSibling && needsSplitterBetween(child, child.nextElementSibling)) {
+        //window.dontanimate = true;
+      }*/
 
       if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
         
@@ -419,16 +434,17 @@ function snapshotStyles(context, reset) {
   var elements = Array.prototype.slice.call(content.getElementsByTagName('*'));
   if (reset)
     for (var i = 0; i < elements.length; i++) {
-      elements[i].style.transition = 
-      elements[i].style.webkitTransition = 'none'
+      elements[i].style.transition = 'none'
       elements[i].style.height = ''
       elements[i].style.width = ''
-      elements[i].style.position = ''
+      elements[i].style.top = ''
+      elements[i].style.left = ''
+      elements[i].classList.remove('moving')
     }
   var dimensions = []
   for (var i = 0; i < elements.length; i++) {
     var box = {top: 0, left: 0, 
-      height: elements[i].offsetHeight, width: elements[i].offsetWidth}
+      height: elements[i].offsetHeight, width: elements[i].offsetWidth, parent: elements[i].parentNode}
     for (var parent = elements[i]; parent && (parent != content); parent = parent.offsetParent) {
       box.top += parent.offsetTop;
       box.left += parent.offsetLeft;
@@ -465,130 +481,111 @@ function animate(snapshot, section, callback) {
 
   elements = snapshot[0];
   dimensions = snapshot[1];
-  if (section) {
-    var box = dimensions[elements.indexOf(section)];
-    if (box) {
-      box.height = section.offsetHeight
-    }
-  }  
+  //if (section) {
+  //  var box = dimensions[elements.indexOf(section)];
+  //  if (box) {
+  //    box.height = section.offsetHeight
+  //  }
+  //}  
 
-
-  if (window.dontanimate) {
-    requestAnimationFrame(function() {
-      var all = document.getElementsByTagName('*');
-      for (var i = 0; i < all.length; i++) {
-        all[i].style.transition = 
-        all[i].style.webkitTransition = ''
-      }
-    })
-    return window.dontanimate = false;
-  }
+  //if (window.dontanimate) {
+  //  return window.dontanimate = false;
+  //}
 
 
   var update = snapshotStyles(editor, true);
   var all = update[0]
   var current = update[1];
 
-  var parentX = 0;
-  var parentY = 0;
+
+
+  var repositioned = false;
   for (var i = 0; i < content.children.length; i++) {
-    parentY += shift(content.children[i], current, all, dimensions, elements, content, parentX, parentY)
+    repositioned = shift(content.children[i], current, all, dimensions, elements, content, 0, 0, repositioned)
   }
+  if (!repositioned) return;
 
-  for (var i = 0; i < elements.length; i++) {
-    var box = current[all.indexOf(elements[i])];
-    if (!box) continue
-    if (dimensions[i].height != box.height)
-      if (!elements[i].style.height)
-        elements[i].style.height = dimensions[i].height + 'px'
-    if (dimensions[i].width != box.width)
-      if (!elements[i].style.width)
-        elements[i].style.width = dimensions[i].width + 'px'
-  }
-
-
-  requestAnimationFrame(function() {
-
-    editor.fire( 'lockSnapshot');
-    for (var i = 0; i < all.length; i++) 
-      all[i].style.transition = 
-      all[i].style.webkitTransform = ''
-    editor.fire( 'unlockSnapshot' )
-
-
-    requestAnimationFrame(function() {
+    cancelAnimationFrame(window.animating);
+    window.animating = requestAnimationFrame(function() {
+    for (var i = 0; i < all.length; i++) {
+      all[i].style.transition = '';
+    }
+      window.animating = null;
 
       editor.fire( 'lockSnapshot');
-      for (var i = 0; i < all.length; i++) {
-        all[i].style.transform = 
-        all[i].style.webkitTransform =
-        all[i].style.opacity = '';
-        if (all[i].tagName == 'SECTION')
-          all[i].classList.remove('new')
-        var box =  dimensions[elements.indexOf(all[i])];
-        if (box) {
-          if (all[i].style.height)
-            all[i].style.height = current[i].height + 'px'
-          if (all[i].style.width == box.width + 'px')
-            all[i].style.width = current[i].width + 'px'
-        }
+      var repositioned = false;
+      for (var i = 0; i < content.children.length; i++) {
+        repositioned = shift(content.children[i], current, all, [], [], content, 0, 0, repositioned)
       }
+
       editor.fire( 'unlockSnapshot' )
 
-  clearTimeout(window.resetstyles)
+      clearTimeout(window.resetstyles)
       window.resetstyles = setTimeout(function() {
         editor.fire( 'lockSnapshot');
           var all = Array.prototype.slice.call(content.getElementsByTagName('*'));
           for (var i = 0; i < all.length; i++) {
             all[i].style.height = ''
             all[i].style.width = ''
+            all[i].style.left = ''
+            all[i].style.top = ''
+            all[i].style.transition = 'none';
+            all[i].classList.remove('moving')
           }
         editor.fire( 'unlockSnapshot' )
       }, 300)
     })
-  })
+
 };
 
 
-function shift(element, to, all, from, elements, root, parentX, parentY) {
+function shift(element, to, all, from, elements, root, parentX, parentY, repositioned, diffX, diffY) {
   var f = from[elements.indexOf(element)]
   var t = to[all.indexOf(element)]
   if (!t) return;
 
   var shiftX = 0;
   var shiftY = 0;
-  if (f && t) {
-    shiftX += t.left - (parentX || 0) - f.left
-    shiftY += t.top - (parentY || 0) - f.top;
-    parentX = t.left - f.left;
-    parentY = t.top - f.top;
-  } else {
-    //shiftX += t.left;
-    //shiftY += t.top;
-  }
-  for (var i = 0; i < element.children.length; i++)
-    shift(element.children[i], to, all, from, elements, root, parentX, parentY)
 
-  if (f && t && (shiftX || shiftY) 
-  && (Math.abs(t.left - f.left) + Math.abs(t.top - f.top) > 5)) {
-    element.style.transform = 
-    element.style.webkitTransform = 'translateX(' + - shiftX + 'px) translateY(' + - shiftY + 'px)'
+  if (t && f) {
+    diffX = (diffX || 0) + (repositioned || 1) - 1 + t.left - f.left;
+    diffY = (diffY || 0) + (repositioned || 1) - 1 + t.top - f.top;
+  } else {
+    diffX = 0;
+    diffY = 0;
   }
-  if (element.tagName == 'SECTION') {
-    if (t && f) {
-      return t.height - f.height
-    } else {
-      element.classList.add('new')
-      return 0
+  var shiftX = (f && f.left || t.left) - (parentX || 0);
+  var shiftY = (f && f.top || t.top) - (parentY || 0);
+
+  if (element.parentNode.tagName == 'SECTION' || element.parentNode === content) {
+    if (elements.length 
+        ?  (!f || (Math.abs(diffX) + Math.abs(diffY) > 5) 
+            || (f && (Math.abs(f.height - t.height) + Math.abs(f.width - t.width)) > 5))
+        : element.classList.contains('moving')) {
+      if (!f || f.parent != t.parent)
+        repositioned = (repositioned || 1) + t.height;
+      else if (!repositioned)
+        repositioned = 1;
+      element.classList.add('moving')
+      element.style.left = shiftX + 'px'
+      element.style.top = Math.floor(shiftY) + 'px'
+      element.style.height = (f && f.height || t.height) + 'px'
+      element.style.width = (f && f.width || t.width) + 'px'
     }
   }
-  return 0;
+
+  var repos = false;
+  for (var i = 0; i < element.children.length; i++) {
+    repos = shift(element.children[i], to, all, from, elements, root, shiftX, shiftY, repos, - diffX, - diffY)
+  }
+  return repositioned;
 }
 
 
 
 CKEDITOR.plugins.add( 'structural', {
   init: function(editor) {
+    editor.focus()
     
     var observer = new MutationObserver( function(mutations) {
       for (var i = 0; i < mutations.length; i++) {
@@ -660,7 +657,7 @@ window.dragzone.id = 'dragzone'
 document.addEventListener('ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown', function(e) {
   var target = e.target;
   if (target.tagName == 'SECTION') {
-    editor.focus()
+    
     var top = 0;
     var left = 0;
 

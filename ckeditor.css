@@ -157,15 +157,21 @@ section > a + * {
 
 
 #content * {
-  transition: 0.3s transform, 0.4s opacity, 0.3s width, 0.3s height;
-  -webkit-transition: linear 0.25s -webkit-transform, 0.4s opacity, .3s width, linear .3s height;
+  transition: 0.3s left, 0.3s top, 0.2s opacity, 0.3s width, 0.3s height;
   opacity: 1;
 }
 
 #content {
-  overflow: hidden;
+  outline: none;
+  zoverflow: hidden;
 }
 
+
+#content .moving {
+  position: absolute  !important;
+  margin-top: 0 !important;
+  margin-left: 0 !important;
+}
 
 
 blockquote:before {
@@ -181,9 +187,6 @@ blockquote {
   padding: 0;
 }
 
-#content section.new {
-  opacity: 1;
-} 
 
 section[pattern="one-quote"] {
   max-width: 500px;
@@ -193,14 +196,14 @@ section[pattern="one-quote"] {
 
 
 section[pattern="two-images"][index="0"] {
-  width: 48%;
+  max-width: 48%;
   float: left;
   box-sizing: border-box;
   margin-bottom: 1.5em;
 }
 
 section[pattern="two-images"][index="1"] {
-  width: 48%;
+  max-width: 48%;
   float: right;
   box-sizing: border-box;
   margin-bottom: 1.5em;

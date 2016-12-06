@@ -455,14 +455,20 @@ function snapshotStyles(context, reset) {
   }
 
   var selection = editor.getSelection()
-  var selected = selection.getStartElement();
-  if (selected) selected = selected.$;
-  if (selected) {
-    var fontSize = window.getComputedStyle(selected)['font-size'];
+  var range = selection.getRanges()[0];
+  if (range) {
+    var iterator = selection.getRanges()[0].createIterator();
+    var selection = []
+    for (var element; element = iterator.getNextParagraph();) {
+      var selected = element.$;
+      if (selected) {
+        var fontSize = window.getComputedStyle(selected)['font-size'];
+        selection.push(selected, fontSize)
+      }
+    }
   }
     
-
-  return [elements, dimensions, selected, fontSize];
+  return [elements, dimensions, selection];
 }
 
 function fix(mutation, observer) {
@@ -496,21 +502,27 @@ function animate(snapshot, section, callback) {
   var all = update[0]
   var current = update[1];
 
-  console.log(snapshot[2], snapshot[3], update[2], update[3])
   if (snapshot[2] && update[2]) {
-    if (elements.indexOf(update[2]) == -1 && all.indexOf(snapshot[2]) == -1) {
-      var morphing = true;
-      update[2].style.fontSize = snapshot[3];
-      elements.push(update[2])
-      dimensions.push(dimensions[elements.indexOf(snapshot[2])])
-      console.log(123, dimensions[elements.indexOf(snapshot[2])], snapshot[2], update[2])
+    for (var i = 0; i < update[2].length; i += 2) {
+      var before = snapshot[2][i];
+      var beforeSize = snapshot[2][i + 1];
+      var after = update[2][i];
+      var afterSize = update[2][i + 1];
+
+      if (elements.indexOf(after) == -1 && all.indexOf(before) == -1) {
+          console.log(snapshot[2], update[2])
+        var morphing = true;
+        after.style.fontSize = beforeSize;
+        elements.push(after)
+        dimensions.push(dimensions[elements.indexOf(before)])
+      }
     }
+
   }
   var repositioned = false;
   for (var i = 0; i < content.children.length; i++) {
     repositioned = shift(content.children[i], current, all, dimensions, elements, content, 0, 0, repositioned)
   }
-  if (!repositioned) return;
 
   cancelAnimationFrame(window.animating);
   window.animating = requestAnimationFrame(function() {
@@ -519,15 +531,20 @@ function animate(snapshot, section, callback) {
         all[i].style.transition = '';
       }
 
+
+      if (morphing) {
+        console.log('not morphing?')
+        for (var i = 0; i < update[2].length; i += 2) {
+          update[2][i].style.transition = ''
+          update[2][i].style.fontSize = update[2][i + 1];
+        }
+      }
+
       var repositioned = false;
       for (var i = 0; i < content.children.length; i++) {
         repositioned = shift(content.children[i], current, all, [], [], content, 0, 0, repositioned)
       }
-
-      if (morphing) {
-        update[2].style.transition = ''
-        update[2].style.fontSize = update[3];
-      }
+      
       editor.fire( 'unlockSnapshot' )
 
       clearTimeout(window.resetstyles)
@@ -562,12 +579,14 @@ function shift(element, to, all, from, elements, root, parentX, parentY, reposit
     var shiftY = f.top - (parentY || 0);
     var posX = shiftX;
     var posY = shiftY;
+    var posX = f.left;
+    var posY = f.top;
 
   } else {
     diffX = 0;
     diffY = 0
-    var shiftX = t.left - (p ? p.left : (parentX || 0)) ;
-    var shiftY = t.top - (p ? p.top : (parentY || 0));
+    var shiftX = t.left - (p ? p.left : 0) ;
+    var shiftY = t.top - (p ? p.top : 0);
     var posX = t.left;
     var posY = t.top;
   }
@@ -584,7 +603,7 @@ function shift(element, to, all, from, elements, root, parentX, parentY, reposit
     if (elements.length 
         ?  (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5)
             || (f && (Math.abs(f.height - t.height) + Math.abs(f.width - t.width)) > 5))
-        : !f || element.classList.contains('moving')) {
+        : element.classList.contains('moving')) {
       if (!repositioned)
         repositioned = 1;
       element.classList.add('moving')

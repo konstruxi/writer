@@ -1,0 +1,42 @@
+
+.cke_voice_label
+{
+  display: none;
+}
+
+.cke {
+  visibility: visible;;
+}
+
+.cke_button_label[id*="description"] {
+  display: none;
+}
+
+.cke_button {
+  width: 48px;
+  height: 48px;
+  margin-top: -24px;
+  background: #aaa;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.cke_button svg {
+  width: 36px;
+  height: 36px;
+  margin-top: 6px;
+  margin-left: 6px;
+}
+.cke_button svg path {
+  fill: #fff;
+}
+
+.cke_button_icon {
+  display: none;
+}
+
+
+.cke_button[hidden] {
+  display: none;
+}

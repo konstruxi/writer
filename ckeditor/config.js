@@ -7,8 +7,8 @@ CKEDITOR.editorConfig = function( config ) {
 	
 	// %REMOVE_START%
 	// The configuration options below are needed when running CKEditor from source files.
-	config.plugins = 'SimpleLink,blockquote,dialogui,dialog,clipboard,autolink,basicstyles,divarea,enterkey,floatingspace,entities,indent,indentlist,list,magicline,button,toolbar,undo';
-	config.skin = 'moono-dark';
+	config.plugins = 'SimpleLink,sharedspace,blockquote,dialogui,dialog,clipboard,autolink,basicstyles,divarea,enterkey,floatingspace,entities,indent,indentlist,list,button,toolbar,undo' // ,magicline;
+	config.skin = 'none';
 	// %REMOVE_END%
 
 	// Define changes to default configuration here.
@@ -22,7 +22,7 @@ CKEDITOR.editorConfig = function( config ) {
 		{ name: 'editing',     groups: [ 'find', 'selection', 'spellchecker' ] },
 		{ name: 'forms' },
 		{ name: 'basicstyles', groups: [ 'basicstyles', 'links', 'others', 'cleanup' ] },
-		{ name: 'paragraph',   groups: [ 'structural', 'blocks', 'align', 'bidi','list' ] },
+		{ name: 'paragraph',   groups: [ 'structural', 'blocks', 'align', 'bidi','list', 'indent' ] },
 		{ name: 'insert' },
 		{ name: 'styles' },
 		{ name: 'colors' },
@@ -41,6 +41,9 @@ CKEDITOR.editorConfig = function( config ) {
 
 	config.shiftEnterMode = CKEDITOR.ENTER_P
 
+	config.sharedSpaces = {
+	    top: 'formatting',
+	}
 	config.undoStackSize = 150;
 };
 
@@ -50,9 +53,16 @@ CKEDITOR.dtd.$block.p = 1;
 CKEDITOR.dtd.$block.h1 = 1; 
 CKEDITOR.dtd.$block.li = 1; 
 CKEDITOR.dtd.$block.blockquote = 1; 
+CKEDITOR.dtd.$blockLimit.blockquote = 1; 
 
+CKEDITOR.dtd.$intermediate.blockquote = 1; 
 CKEDITOR.dtd.section = Object.create(CKEDITOR.dtd.section)
 CKEDITOR.dtd.section.section = undefined;
+CKEDITOR.dtd.blockquote = Object.create(CKEDITOR.dtd.blockquote)
+CKEDITOR.dtd.blockquote.section = undefined;
+CKEDITOR.dtd.blockquote.h1 = undefined;
+CKEDITOR.dtd.blockquote.h2 = undefined;
+CKEDITOR.dtd.blockquote.h3 = undefined;
 CKEDITOR.dtd.li = Object.create(CKEDITOR.dtd.li)
 CKEDITOR.dtd.li.img = undefined;
 

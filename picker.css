@@ -1,0 +1,165 @@
+ul.picker {
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  z-index: 22;
+  margin-top: -2.2rem;
+  margin-left: -0.75rem;
+  white-space: nowrap;
+  transition: 0.2s opacity;
+  top: -100px;
+}
+
+ul.picker li{
+  display: inline-block;
+  margin: -1px 0 0 0;
+  text-align: center;
+  border-radius: 50%;
+  padding: 0.15rem;
+  cursor: pointer;
+}
+ul.picker li {
+  margin-right: -0.5rem;
+}
+ul.picker li:first-of-type {
+  margin-right: -0.75rem;
+}
+
+body.dragging .picker {
+  pointer-events: none;
+}
+body.dragging .picker li {
+  pointer-events: all;
+}
+
+ul.picker svg path{
+  fill: #aaa;
+  transition: fill 0.4s;
+}
+
+ul.picker svg:hover path {
+  fill: #333;
+}
+
+ul.picker li strong {
+  display: block;
+}
+
+#formatting {
+  transition: top 0.3s, left 0.3s, opacity 0.3s;
+  opacity: 1;
+  display: none;
+}
+#formatting[hidden] {
+  display: block;
+  opacity: 0;
+}
+
+.matrix .wrapper:hover {
+  box-shadow: 0 0 20px #ccc;
+}
+
+ul.picker[hidden] {
+  display: block;
+  opacity: 0;
+}
+
+
+section:hover {
+  outline: 1px solid #ccc;
+}
+
+.content.picking {
+  filter: url('#blur');
+  filter: blur(5px)  grayscale(60%);
+}
+
+.matrix {
+  position: absolute;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  width: 30.8rem;
+  height: 30.8rem;
+  overflow: hidden;
+  z-index: 222;
+  margin-top: -12rem;
+  margin-left: -12rem;
+}
+
+
+.matrix .wrapper {
+  overflow: hidden;
+  border-radius: 25%;
+  width: 10rem;
+  height: 10rem;
+  padding: 1.5rem;
+  border: 1px solid #666;
+  background: #fff;
+  background-clip: padding-box;
+  transition:  0.5s 0.2s  opacity;
+  opacity: 1;
+}
+
+.matrix .wrapper > * {
+  float: none !important;
+}
+.matrix tr:nth-child(1) td:nth-child(1) .wrapper{
+  transition:  0.5s 0.1s  opacity;
+}
+.matrix tr:nth-child(1) td:nth-child(2) .wrapper{
+  transition:  0.5s 0.125s  opacity;
+}
+.matrix tr:nth-child(1) td:nth-child(3) .wrapper{
+  transition:  0.5s 0.15s  opacity;
+}
+.matrix tr:nth-child(2) td:nth-child(1) .wrapper{
+  transition:  0.5s 0.175s  opacity;
+}
+.matrix tr:nth-child(2) td:nth-child(2) .wrapper{
+  transition:  0.5s 0.2s  opacity;
+}
+.matrix tr:nth-child(2) td:nth-child(3) .wrapper{
+  transition:  0.5s 0.225s  opacity;
+}
+.matrix tr:nth-child(3) td:nth-child(1) .wrapper{
+  transition:  0.5s 0.25s  opacity;
+}
+.matrix tr:nth-child(3) td:nth-child(2) .wrapper{
+  transition:  0.5s 0.275s  opacity;
+}
+.matrix tr:nth-child(3) td:nth-child(3) .wrapper{
+  transition:  0.5s 0.3s  opacity;
+}
+
+.matrix .selected .wrapper{
+  border-radius: 25%;
+}
+.content.matrix tr td.selected .wrapper {
+  border: 1px dashed #fff;
+  box-shadow: none;
+  opacity: 1;
+  transition:  0.4s  opacity;
+}
+
+.matrix[hidden] .wrapper {
+  opacity: 0;
+}
+.matrix[hidden] .selected .wrapper {
+  opacity: 0.5;
+}
+
+.matrix[hidden] {
+  display: block;
+  visibility: hidden;
+}
+
+
+.wrapper > section {
+  margin: 0;
+}
+
+body.dragging .picker {
+  opacity: 0;
+}

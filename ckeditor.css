@@ -132,11 +132,15 @@ section > a + * {
 #formatting {
   position: absolute;
   transition: 0.2s opacity;
-  margin-left: -3rem;
+  margin-left: -2rem;
 }
 
 section.focused, section.focused:hover {
   outline: 1px solid #aaa;
+}
+
+section.clone {
+  pointer-events: none;
 }
 
 .content img {

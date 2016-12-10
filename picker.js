@@ -4,11 +4,11 @@ var activeSection;
 
 
 
-function setActiveSection(target) {
+function setActiveSection(target, force) {
   for (; target; target = target.parentNode) {
     if (target.tagName == 'SECTION') {
       if (target == activeSection) {
-        togglePicker();
+        togglePicker(Editor.get(activeSection));
         return false
       }
       break
@@ -20,11 +20,12 @@ function setActiveSection(target) {
     editor.fire('lockSnapshot')
     if (!editor.isSetUp) {
       editor.isSetUp = true;
-      editor.on('blur', togglePicker)
+      editor.on('blur', function() {
+        togglePicker(editor)
+      })
     }
     activeSection = target
-    populateMatrix(activeSection)
-    togglePicker();
+    togglePicker(editor, true);
     editor.fire('unlockSnapshot')
   }
 }
@@ -38,6 +39,7 @@ function populateMatrix(activeSection) {
 
     var clone = activeSection.cloneNode(true);
     clone.classList.remove('focused');
+    clone.classList.add('clone');
     clone.style.width = activeSection.offsetWidth + 'px'
     clone.style.maxWidth = activeSection.offsetWidth + 'px'
 
@@ -53,25 +55,15 @@ formatting.addEventListener('mousemove', function(e) {
   e.stopPropagation()
 })
 
-function togglePicker() {
+function togglePicker(editor, force) {
   if (!activeSection) return;
   clearTimeout(window.unpicking);
   var editor = Editor.get(activeSection)
   if (activeSection.classList.contains('focused') && editor && editor.focusManager.hasFocus) {
     picker.removeAttribute('hidden');
     formatting.removeAttribute('hidden')
-    if (formatting.style.transition) {
-
-      formatting.style.transition = 'none';
-      formatting.style.opacity = 1;
-      requestAnimationFrame(function() {
-        formatting.style.opacity = '';
-        formatting.style.transition = ''
-      })
-    }
-    repositionPicker(activeSection)
+    repositionPicker(editor, activeSection, force)
   } else if (formatting.getAttribute('hidden') == null){
-    formatting.style.transition = '0.3s opacity';
     window.unpicking = setTimeout(function() {
       picker.setAttribute('hidden', 'hidden');
       formatting.setAttribute('hidden', 'hidden')
@@ -89,6 +81,8 @@ document.addEventListener('click', function(e) {
         editor.fire('lockSnapshot')
       if (activeSection.parentNode)
         activeSection.parentNode.classList.add('picking');
+      populateMatrix(activeSection)
+    
       activeSection.classList.add('picking');
       if (editor)
         editor.fire('unlockSnapshot')
@@ -109,20 +103,26 @@ document.addEventListener('click', function(e) {
   }
 })
 
-function repositionPicker() {
-  var target = activeSection;
+function repositionPicker(editor, target, force) {
   if (!target || !target.parentNode) return;
-  var top =  target.offsetTop + target.offsetParent.offsetTop;
-  var left = target.offsetLeft + target.offsetParent.offsetLeft;
-  var right = left + target.offsetWidth - picker.offsetWidth
+  if (editor.animating && editor.styleupdate) {
+    var index = editor.styleupdate[0].indexOf(target);
+    if (index > -1) {
+      var top = editor.styleupdate[1][index].top + editor.offsetTop;
+      var left = editor.styleupdate[1][index].left + editor.offsetLeft;
+    } else {
+      return;
+    }
+  } else {
+    var top =  target.offsetTop + target.offsetParent.offsetTop;
+    var left = target.offsetLeft + target.offsetParent.offsetLeft;
+  }
   matrix.style.top = 
   picker.style.top = top + 'px';
   //matrix.style.width = 
   //picker.style.width = target.offsetWidth + 'px'
   matrix.style.left = left + 'px'
-  picker.style.left = right + 'px'
-
-
+  picker.style.left = left + 'px'
 }
 
 function cancelPicking() {

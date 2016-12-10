@@ -1,14 +1,41 @@
-ul.picker {
-  text-align: center;
-  margin: 0;
-  padding: 0;
+div.picker {
   position: absolute;
   z-index: 22;
-  margin-top: -2.2rem;
-  margin-left: -0.75rem;
+  margin-left: -2.35rem;
+  margin-top: -2.35rem;
   white-space: nowrap;
-  transition: 0.2s opacity;
+  transition: top 0.2s, left 0.2s, opacity 0.3s;
   top: -100px;
+}
+
+ul.picker {
+  margin: 0;
+  padding: 0;
+}
+
+
+.matrix .picker li {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 100;
+}
+
+.matrix .picker li:nth-child(1) {
+  margin-left: -5.9rem;
+  margin-top: -5.9rem;
+}
+.matrix .picker li:nth-child(2) {
+  margin-left: 2.65rem;
+  margin-top: -5.9rem;
+}
+.matrix .picker li:nth-child(3) {
+  margin-left: -5.9rem;
+  margin-top: 2.65rem;
+}
+.matrix .picker li:nth-child(4) {
+  margin-left: 2.65rem;
+  margin-top: 2.65rem;
 }
 
 ul.picker li{
@@ -32,22 +59,28 @@ body.dragging .picker {
 body.dragging .picker li {
   pointer-events: all;
 }
-
-ul.picker svg path{
+.picker svg {
+  cursor: pointer;
+}
+.picker svg path{
   fill: #aaa;
   transition: fill 0.4s;
 }
+ul.picker svg path{
+  fill: #999;
+  transition: fill 0.4s;
+}
 
-ul.picker svg:hover path {
+.picker svg:hover path {
   fill: #333;
 }
 
-ul.picker li strong {
+.picker li strong {
   display: block;
 }
 
 #formatting {
-  transition: top 0.3s, left 0.3s, opacity 0.3s;
+  transition: top 0.2s, left 0.2s, opacity 0.3s;
   opacity: 1;
   display: none;
 }
@@ -91,7 +124,7 @@ section:hover {
 
 .matrix .wrapper {
   overflow: hidden;
-  border-radius: 25%;
+  border-radius: 20%;
   width: 10rem;
   height: 10rem;
   padding: 1.5rem;
@@ -134,10 +167,10 @@ section:hover {
 }
 
 .matrix .selected .wrapper{
-  border-radius: 25%;
+  border-radius: 35%;
 }
 .content.matrix tr td.selected .wrapper {
-  border: 1px dashed #fff;
+  border: 1px solid transparent;
   box-shadow: none;
   opacity: 1;
   transition:  0.4s  opacity;

@@ -67,10 +67,9 @@ function Editor(content) {
 
     onCursorMove(editor)
     requestAnimationFrame(function() {
-      if (!editor.animating) {
-        hideButtons(editor)
-        setActiveSection(editor.getSelection().getRanges()[0].startContainer.$, true)
-      }
+      hideButtons(editor)
+      setActiveSection(editor.getSelection().getRanges()[0].startContainer.$)
+      repositionPicker(editor)
     })
     
   } );
@@ -181,7 +180,9 @@ function Editor(content) {
 
   content.addEventListener('mouseup', function(e) {
     if (!editor.dragging) {
-      hideButtons(editor)
+      requestAnimationFrame(function() {
+        hideButtons(editor)
+      })
     }
   })
   editor.handleEvent = function(e) {
@@ -206,6 +207,13 @@ function Editor(content) {
   }
   content.addEventListener('ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown', editor)
 
+
+  editor.measure = function() {
+    this.offsetHeight = editor.element.$.offsetHeight;
+    this.offsetWidth  = editor.element.$.offsetHeight;
+    this.offsetTop  = editor.element.$.offsetTop;
+    this.offsetLeft  = editor.element.$.offsetLeft;
+  }
   Editor.elements.push(content)
   Editor.editors.push(editor)
   return editor;
@@ -288,6 +296,7 @@ onDrag = function(editor, e) {
   editor.dragged = elements;
   e.preventDefault()
   e.stopPropagation()
+
 }
 
 onDragEnd = function(editor, e) {
@@ -377,6 +386,8 @@ function onCursorMove(editor, force, blur) {
           editor.section = children[i]
           editor.section.classList.add('focused')
           setActiveSection(editor.section, true)
+          hideButtons(editor)
+
           editor.fire('unlockSnapshot');
         }
       }
@@ -722,6 +733,7 @@ function needsSplitterBetween(left, right) {
 }
 
 function snapshotStyles(editor, reset) {
+
   var elements = Array.prototype.slice.call(editor.element.$.getElementsByTagName('*'));
   if (reset) {
     editor.element.$.classList.remove('moving')
@@ -746,6 +758,8 @@ function snapshotStyles(editor, reset) {
     }
     dimensions.push(box)
   }
+  editor.measure();
+  
 
   var selection = editor.getSelection()
   var range = selection.getRanges()[0];
@@ -795,9 +809,6 @@ function animate(editor, snapshot, section, callback) {
   var all = update[0]
   var current = update[1];
 
-  hideButtons(editor)
-  togglePicker()
-  
   if (snapshot[2] && update[2]) {
     for (var i = 0; i < update[2].length; i += 2) {
       var before = snapshot[2][i];
@@ -817,15 +828,19 @@ function animate(editor, snapshot, section, callback) {
     editor.element.$.style.height = snapshot[3] + 'px';
 
   }
+  editor.styleupdate = update;
+  hideButtons(editor, true)
+  togglePicker(editor, true)
+  
   var repositioned = false;
   var content = editor.element.$;
   for (var i = 0; i < content.children.length; i++) {
     repositioned = shift(content.children[i], current, all, dimensions, elements, content, 0, 0, repositioned)
   }
 
+
   cancelAnimationFrame(editor.animating);
   editor.animating = requestAnimationFrame(function() {
-      editor.animating = null;
       editor.fire( 'lockSnapshot');
       editor.element.$.style.transition = '';
       editor.element.$.style.height = update[3] + 'px';
@@ -852,6 +867,7 @@ function animate(editor, snapshot, section, callback) {
       clearTimeout(editor.resetstyles)
       editor.resetstyles = setTimeout(function() {
         editor.animating = null
+        editor.styleupdate = null
         editor.fire( 'lockSnapshot');
         editor.element.$.style.height = '';
         editor.element.$.classList.remove('moving')
@@ -1023,7 +1039,7 @@ function getElementsAffectedByDrag(editor, e) {
   return result
 }
 
-function hideButtons(editor) {
+function hideButtons(editor, force) {
   var selection = editor.getSelection();
   if (!selection) return;
 
@@ -1046,16 +1062,28 @@ function hideButtons(editor) {
     endSection = endSection.parentNode;
 
 
-  var offsetTop = 0;
-  var offsetLeft = 0;
-  for (var el = start; el; el = el.offsetParent)
-    offsetTop += el.offsetTop;
-  offsetTop += start.offsetHeight / 2;
-  for (var el = startSection; el; el = el.offsetParent)
-    offsetLeft += el.offsetLeft;
+  if (editor.animating && editor.styleupdate) {
+    var index = editor.styleupdate[0].indexOf(start);
+    var indexS = editor.styleupdate[0].indexOf(startSection);
+    if (index > -1 && indexS > -1) {
+      var offsetTop = editor.styleupdate[1][index].top + editor.styleupdate[1][index].height / 2 + editor.offsetTop;
+      var offsetLeft = editor.styleupdate[1][indexS].left + editor.offsetLeft;
+    } else {
+      return;
+    }
+  } else {
+
+    var offsetTop = 0;
+    var offsetLeft = 0;
+    for (var el = start; el; el = el.offsetParent)
+      offsetTop += el.offsetTop;
+    offsetTop += start.offsetHeight / 2;
+    for (var el = startSection; el; el = el.offsetParent)
+      offsetLeft += el.offsetLeft;
+  }
 
   formatting.style.top = offsetTop + 'px';
-  formatting.style.left = offsetLeft + 10 + 'px';
+  formatting.style.left = offsetLeft + 'px';
   formatting.style.zIndex = 1111;
   formatting.style.display = 'block';
 

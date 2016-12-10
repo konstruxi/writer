@@ -13,20 +13,25 @@
 }
 
 .cke_button {
-  width: 48px;
-  height: 48px;
-  margin-top: -24px;
+  width: 36px;
+  height: 36px;
+  margin-top: -18px;
   background: #aaa;
   border-radius: 50%;
-  display: inline-block;
-  position: relative;
+  display: block;
+  position: absolute;
+  overflow: hidden;
+}
+
+.cke_button:hover {
+  background-color: #aaa;
 }
 
 .cke_button svg {
-  width: 36px;
-  height: 36px;
-  margin-top: 6px;
-  margin-left: 6px;
+  width: 32px;
+  height: 32px;
+  margin-top: 2px;
+  margin-left: 2px;
 }
 .cke_button svg path {
   fill: #fff;

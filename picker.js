@@ -138,3 +138,25 @@ function cancelPicking() {
   if (editor)
     editor.fire('unlockSnapshot')
 }
+
+
+
+
+
+var style = document.createElement('style')
+document.body.appendChild(style);
+var images = document.getElementsByTagName('img');
+var imageUID = 0;
+for (var i = 0, image; image = images[i++];) {
+  
+  if (!image.getAttribute('uid'))
+    image.setAttribute('uid', ++imageUID)
+  image.onload = function() {
+    var generator = Palette(this)
+    var result = generator('LV+LV')
+    style.textContent += result.toString('.content section.has-palette-' + this.getAttribute('uid'))
+    console.log(style.textContent)
+  }
+  if (image.complete)
+    image.onload()
+}

@@ -206,14 +206,30 @@ section[pattern="two-images"][index="0"] {
   margin-bottom: 1.5rem;
 }
 
+section[pattern="two-images"][index="0"]:after {
+  right: -16px;
+}
 section[pattern="two-images"][index="1"] {
   max-width: 48%;
   float: right;
   box-sizing: border-box;
   margin-bottom: 1.5rem;
 }
+section[pattern="two-images"][index="1"]:after {
+  left: -15px;
+}
 section[index="0"], section:not([index]) {
   clear: both;
 }
 
+
+.content section:after {
+  content: '';
+  z-index: -1;
+  position: absolute;
+  top: -10px;
+  bottom: -10px;
+  left: -1000px;
+  right: -1000px;
+}
 

@@ -68,7 +68,9 @@ function Editor(content) {
     onCursorMove(editor)
     requestAnimationFrame(function() {
       hideButtons(editor)
-      setActiveSection(editor.getSelection().getRanges()[0].startContainer.$)
+      var range = editor.getSelection().getRanges()[0];
+      if (range)
+        setActiveSection(range.startContainer.$)
       repositionPicker(editor)
     })
     
@@ -181,8 +183,21 @@ function Editor(content) {
   content.addEventListener('mouseup', function(e) {
     if (!editor.dragging) {
       requestAnimationFrame(function() {
+        editor.selectionChange( 1 );
         hideButtons(editor)
       })
+    }
+  })
+  content.addEventListener('touchend', function(e) {
+    if (!editor.dragging) {
+      requestAnimationFrame(function() {
+      editor.selectionChange( 1 );
+      })
+      //requestAnimationFrame(function() {
+      //  hideButtons(editor)
+      //  setActiveSection(editor.getSelection().getRanges()[0].startContainer.$)
+      //  repositionPicker(editor)
+      //})
     }
   })
   editor.handleEvent = function(e) {
@@ -376,19 +391,17 @@ function onCursorMove(editor, force, blur) {
     if (selected) selected = selected.$;
     var children = Array.prototype.slice.call(editor.element.$.children);
     var snapshot = false;
+    editor.fire('lockSnapshot');
     for (var i = 0; i < children.length; i++) {
       var inside = isInside(selected, children[i]);
       if (selected && inside) {
         if (editor.section != children[i]) {
-          editor.fire('lockSnapshot');
           if (editor.section)
             editor.section.classList.remove('focused')
           editor.section = children[i]
           editor.section.classList.add('focused')
           setActiveSection(editor.section, true)
           hideButtons(editor)
-
-          editor.fire('unlockSnapshot');
         }
       }
       if (!selected || force || !inside) {
@@ -435,8 +448,11 @@ function onCursorMove(editor, force, blur) {
       //  range.moveToElementEditStart( new CKEDITOR.dom.element(after) )
       //range.select( true );
     } else if (bookmark)
-      editor.getSelection().selectBookmarks(bookmark);
+      try {
+        editor.getSelection().selectBookmarks(bookmark);
+      } catch(e) {}
 
+    editor.fire('unlockSnapshot');
   }, 50)
 
 }
@@ -537,8 +553,9 @@ analyze = function(node) {
         break;
 
       case 'P': case 'A':
-        if (child.getElementsByTagName('img')[0]) {
-          tags.push('has-image')
+        var img = child.getElementsByTagName('img')[0]
+        if (img) {
+          tags.push('has-image', 'has-palette-' + img.getAttribute('uid'))
         } else if (child.textContent.length) {
           texts += child.textContent.length;
           tags.push('has-text')
@@ -546,7 +563,7 @@ analyze = function(node) {
         break;
 
       case 'IMG':
-        tags.push('has-image')
+        tags.push('has-image', 'has-palette-' + child.getAttribute('uid'))
 
 
     }
@@ -729,7 +746,8 @@ place = function(parent, previous, child, current, root, selected, context) {
 }
 
 function needsSplitterBetween(left, right) {
-  return (right.tagName == 'H1') || (right.tagName == 'H2' && (!left || left.tagName != 'H1'))
+  return (right.tagName == 'H1' && (!left || left.tagName != 'IMG' || left.previousElementSibling)) 
+      || (right.tagName == 'H2' && (!left || (left.tagName != 'H1' && (left.tagName != 'IMG' || left.previousElementSibling))))
 }
 
 function snapshotStyles(editor, reset) {
@@ -801,13 +819,20 @@ function fix(editor, mutation, observer) {
 
   
 function animate(editor, snapshot, section, callback) {
-
   elements = snapshot[0];
   dimensions = snapshot[1];
 
   var update = snapshotStyles(editor, true);
   var all = update[0]
   var current = update[1];
+  editor.styleupdate = update;
+
+  // dont restart animation on phones to avoid flickering
+  if (editor.animating && window.innerWidth < 600) {
+    hideButtons(editor, true)
+    togglePicker(editor, true)
+    return
+  }
 
   if (snapshot[2] && update[2]) {
     for (var i = 0; i < update[2].length; i += 2) {
@@ -828,7 +853,6 @@ function animate(editor, snapshot, section, callback) {
     editor.element.$.style.height = snapshot[3] + 'px';
 
   }
-  editor.styleupdate = update;
   hideButtons(editor, true)
   togglePicker(editor, true)
   
@@ -873,12 +897,12 @@ function animate(editor, snapshot, section, callback) {
         editor.element.$.classList.remove('moving')
         var all = Array.prototype.slice.call(content.getElementsByTagName('*'));
         for (var i = 0; i < all.length; i++) {
+          all[i].classList.remove('moving')
           all[i].style.height = ''
           all[i].style.width = ''
           all[i].style.left = ''
           all[i].style.top = ''
           all[i].style.fontSize = ''
-          all[i].classList.remove('moving')
         }
         editor.fire( 'unlockSnapshot' )
       }, 300)

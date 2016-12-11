@@ -191,7 +191,6 @@ blockquote {
   padding: 0;
 }
 
-
 section[pattern="one-quote"] {
   max-width: 500px;
   margin: 0 auto;
@@ -200,9 +199,6 @@ section[pattern="one-quote"] {
 
 
 section[pattern="two-images"][index="0"] {
-  max-width: 48%;
-  float: left;
-  box-sizing: border-box;
   margin-bottom: 1.5rem;
 }
 
@@ -210,9 +206,6 @@ section[pattern="two-images"][index="0"]:after {
   right: -16px;
 }
 section[pattern="two-images"][index="1"] {
-  max-width: 48%;
-  float: right;
-  box-sizing: border-box;
   margin-bottom: 1.5rem;
 }
 section[pattern="two-images"][index="1"]:after {

@@ -155,7 +155,6 @@ for (var i = 0, image; image = images[i++];) {
     var generator = Palette(this)
     var result = generator('LV+LV')
     style.textContent += result.toString('.content section.has-palette-' + this.getAttribute('uid'))
-    console.log(style.textContent)
   }
   if (image.complete)
     image.onload()

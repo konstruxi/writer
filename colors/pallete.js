@@ -205,7 +205,6 @@ Find = function(swatches, order, luma, saturation, result, callback, fallback) {
           collection = collection.sort(function(a, b) {
             return (b.getHsl()[2] * b.population - a.getHsl()[2] * a.population) * luma + (b.getHsl()[1] * b.population - a.getHsl()[1] * a.population) * saturation;
           });
-          console.log(collection, luma, saturation);
           collection = [collection[Math.floor(luma * 4 * 4 + saturation * 4 * 7) % collection.length]];
         }
         break;

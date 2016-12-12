@@ -203,6 +203,9 @@ window.Vibrant = Vibrant = (function() {
 
   Vibrant.prototype.NotYellow = function(hsl) {
     return true;
+    if (hsl[2] < 0.5)
+      return false
+    return hsl[0] < 50 || hsl[0] > 63
   };
 
   Vibrant.prototype.generateVarationColors = function() {

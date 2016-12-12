@@ -19,6 +19,7 @@ function Editor(content) {
     arguments[0].data.html = arguments[0].data.html.replace('>Add clear<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M6.54 10L4 12.55l13.94 13.94L13 38h6l3.14-7.32L33.46 42 36 39.45 7.09 10.55 6.54 10zM12 10v.36L17.64 16h4.79l-1.44 3.35 4.2 4.2L28.43 16H40v-6H12z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Add paragraph<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M6.54 10L4 12.55l13.94 13.94L13 38h6l3.14-7.32L33.46 42 36 39.45 7.09 10.55 6.54 10zM12 10v.36L17.64 16h4.79l-1.44 3.35 4.2 4.2L28.43 16H40v-6H12z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Block Quote<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M12 34h6l4-8V14H10v12h6zm16 0h6l4-8V14H26v12h6z"/></svg>' + '<')
+    arguments[0].data.html = arguments[0].data.html.replace('>Add link<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M7.8 24c0-3.42 2.78-6.2 6.2-6.2h8V14h-8C8.48 14 4 18.48 4 24s4.48 10 10 10h8v-3.8h-8c-3.42 0-6.2-2.78-6.2-6.2zm8.2 2h16v-4H16v4zm18-12h-8v3.8h8c3.42 0 6.2 2.78 6.2 6.2s-2.78 6.2-6.2 6.2h-8V34h8c5.52 0 10-4.48 10-10s-4.48-10-10-10z"/></svg>' + '<')
     
   }, null, null, 20);
 
@@ -59,6 +60,15 @@ function Editor(content) {
       }
       return true;
     }
+    console.log(e.data.keyCode)
+    if (e.data.keyCode >= 37 && e.data.keyCode <= 40) {
+      setTimeout(function() {
+        onCursorMove(editor)
+        requestAnimationFrame(function() {
+          updateToolbar(editor)
+        })
+      }, 50)
+    }
   }, null, null, -10);
 
   editor.on( 'selectionChange', function( evt ) {
@@ -66,13 +76,13 @@ function Editor(content) {
       return;
 
     onCursorMove(editor)
-    requestAnimationFrame(function() {
-      hideButtons(editor)
-      var range = editor.getSelection().getRanges()[0];
-      if (range)
-        setActiveSection(range.startContainer.$)
-      repositionPicker(editor)
-    })
+    updateToolbar(editor)
+    //requestAnimationFrame(function() {
+    //  var range = editor.getSelection().getRanges()[0];
+    //  if (range)
+    //    setActiveSection(range.startContainer.$)
+    //  repositionPicker(editor)
+    //})
     
   } );
   editor.on( 'focus', function(e) {
@@ -85,9 +95,36 @@ function Editor(content) {
     onCursorMove(editor, true, true)
   } );
   editor.on('paste', function(e) {
-      setTimeout(function() {
-        onCursorMove(editor, true)
-      }, 50);
+    onCursorMove(editor, true)
+  })
+  editor.on('beforePaste', function(e) {
+    
+    debugger
+    snapshotStyles(editor)
+    
+    if (e.data.dataTransfer) {
+      var data = e.data.dataTransfer.getData('text/plain');
+      if (data.match(/^\s*(?:https?|mailto):\/\/[^\s]+\s*$/)) {
+        var selection = editor.getSelection();
+        var range = selection.getRanges()[0];
+        if (range) {
+          setLink(editor, data)
+          return false
+        }
+      }
+    }
+  })
+  editor.on('paste', function(e) {
+    //snapshotStyles(editor)
+    var data = e.data.dataValue;
+    if (data && data.match(/^\s*(?:https?|mailto):\/\/[^\s]+\s*$/)) {
+      var selection = editor.getSelection();
+      var range = selection.getRanges()[0];
+      if (range) {
+        setLink(editor, data)
+        return false
+      }
+    }
   })
 
   function replaceContents(editor, options) {
@@ -183,18 +220,19 @@ function Editor(content) {
   content.addEventListener('mouseup', function(e) {
     if (!editor.dragging) {
       requestAnimationFrame(function() {
-        editor.selectionChange( 1 );
-        hideButtons(editor)
+        //editor.selectionChange( 1 );
+        updateToolbar(editor)
       })
     }
   })
-  content.addEventListener('touchend', function(e) {
+  document.addEventListener('selectionchange', function(e) {
     if (!editor.dragging) {
       requestAnimationFrame(function() {
-      editor.selectionChange( 1 );
+        //editor.selectionChange( 1 );
+        updateToolbar(editor)
       })
       //requestAnimationFrame(function() {
-      //  hideButtons(editor)
+      //  updateToolbar(editor)
       //  setActiveSection(editor.getSelection().getRanges()[0].startContainer.$)
       //  repositionPicker(editor)
       //})
@@ -222,6 +260,9 @@ function Editor(content) {
   }
   content.addEventListener('ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown', editor)
 
+  window.addEventListener('scroll', function() {
+    updateToolbar(editor)
+  })
 
   editor.measure = function() {
     this.offsetHeight = editor.element.$.offsetHeight;
@@ -380,11 +421,13 @@ onDragEnd = function(editor, e) {
 
 }
 
-
+// clean up empty content if it's not in currently focused section
 function onCursorMove(editor, force, blur) {
   if (editor.dontanimate) return;
   clearTimeout(editor.clearcursor)
+  cancelAnimationFrame(editor.clearcursor)
   editor.clearcursor = setTimeout(function() {
+    editor.clearcursor = requestAnimationFrame(function() {
 
     var selection = editor.getSelection();
     var selected = selection.getStartElement();
@@ -401,7 +444,7 @@ function onCursorMove(editor, force, blur) {
           editor.section = children[i]
           editor.section.classList.add('focused')
           setActiveSection(editor.section, true)
-          hideButtons(editor)
+          updateToolbar(editor)
         }
       }
       if (!selected || force || !inside) {
@@ -453,6 +496,7 @@ function onCursorMove(editor, force, blur) {
       } catch(e) {}
 
     editor.fire('unlockSnapshot');
+  })
   }, 50)
 
 }
@@ -549,7 +593,13 @@ analyze = function(node) {
         break;
 
       case 'BLOCKQUOTE':
+        texts += child.textContent.length;
         tags.push('has-quote');
+        break;
+
+      case 'UL': case 'OL':
+        texts += child.textContent.length;
+        tags.push('has-list');
         break;
 
       case 'P': case 'A':
@@ -829,7 +879,7 @@ function animate(editor, snapshot, section, callback) {
 
   // dont restart animation on phones to avoid flickering
   if (editor.animating && window.innerWidth < 600) {
-    hideButtons(editor, true)
+    updateToolbar(editor, true)
     togglePicker(editor, true)
     return
   }
@@ -853,7 +903,7 @@ function animate(editor, snapshot, section, callback) {
     editor.element.$.style.height = snapshot[3] + 'px';
 
   }
-  hideButtons(editor, true)
+  updateToolbar(editor, true)
   togglePicker(editor, true)
   
   var repositioned = false;
@@ -1028,6 +1078,9 @@ CKEDITOR.plugins.add( 'structural', {
     addButton('subtitle', 'structural', { element: 'h2'}, ['h2'])
     addButton('heading', 'structural', { element: 'h3'}, ['h3'])
     addButton('paragraph', 'structural', { element: 'p'}, ['p'])
+    addButton('link', 'structural', function(e) {
+      setLink(editor, null)
+    })
     addButton('clear', 'basicstyles', function() {
 
       if (editor.commands.italic.state == 1)
@@ -1039,7 +1092,56 @@ CKEDITOR.plugins.add( 'structural', {
   }
 })
 
+function setLink(editor, url) {
+  editor.fire('saveSnapshot')
+  var selection = editor.getSelection();
+  var selector = selection.getStartElement()
+  var element;
 
+  if(selector) {
+     element = selector.getAscendant( 'a', true );
+  }
+
+  if ( !element || element.getName() != 'a' ) {
+    if (!url) {
+      url = prompt('Enter url:')
+      if (url.indexOf('//') == -1)
+        url = 'http://' + url;
+    }
+    var text = selection.getSelectedText();
+    element = editor.document.createElement( 'a' );
+    var youtube;
+    if (!text && ((youtube = youtube_parser(url)))) {
+      var img = document.createElement('img')
+      img.src = "http://img.youtube.com/vi/" + youtube + "/maxresdefault.jpg"
+      element.$.appendChild(img)
+    } else if (url.match(/\.jpg|\.gif|\.png/)) {
+      var img = document.createElement('img')
+      img.src = url
+      element.$.appendChild(img)
+    } else if (!text) {
+      text = url.split('://')[1];
+    }
+    if (text)
+      element.$.textContent = text
+    element.setAttribute("target","_blank")
+    editor.insertElement(element)
+  } else {
+    if (url == null)
+      url = prompt('Enter url:', element.$.href)
+    if (url.indexOf('//') == -1)
+      url = 'http://' + url;
+  }
+
+  element.setAttribute('href', url)
+  editor.fire('saveSnapshot')
+
+}
+function youtube_parser(url){
+    var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+    var match = url.match(regExp);
+    return (match&&match[7].length==11)? match[7] : false;
+}
 function getElementsAffectedByDrag(editor, e) {
   var y = editor.dragstart - e.pageY;
   var result = []
@@ -1063,9 +1165,13 @@ function getElementsAffectedByDrag(editor, e) {
   return result
 }
 
-function hideButtons(editor, force) {
+function updateToolbar(editor, force) {
   var selection = editor.getSelection();
   if (!selection) return;
+
+  clearTimeout(editor.hidingButtons);
+  editor.hidingButtons = setTimeout(function() {
+  requestAnimationFrame(function() {
 
   var range = selection.getRanges()[0];
   if (!range || !range.startContainer) return;
@@ -1086,29 +1192,49 @@ function hideButtons(editor, force) {
     endSection = endSection.parentNode;
 
 
+  var sectionStyle = window.getComputedStyle(startSection);
+  var sectionAfterStyle = window.getComputedStyle(startSection, ':after');
+
+  // use final keyframe positions when animating
   if (editor.animating && editor.styleupdate) {
     var index = editor.styleupdate[0].indexOf(start);
     var indexS = editor.styleupdate[0].indexOf(startSection);
     if (index > -1 && indexS > -1) {
-      var offsetTop = editor.styleupdate[1][index].top + editor.styleupdate[1][index].height / 2 + editor.offsetTop;
+      var offsetHeight = editor.styleupdate[1][index].height;
+      var sectionOffsetTop = editor.styleupdate[1][indexS].top;
+      var offsetTop = editor.styleupdate[1][index].top + editor.offsetTop;
       var offsetLeft = editor.styleupdate[1][indexS].left + editor.offsetLeft;
     } else {
       return;
     }
+  // place at currently selected element mid-point
   } else {
-
+    var offsetHeight = start.offsetHeight
     var offsetTop = 0;
     var offsetLeft = 0;
+    var sectionOffsetTop = 0;
     for (var el = start; el; el = el.offsetParent)
       offsetTop += el.offsetTop;
-    offsetTop += start.offsetHeight / 2;
-    for (var el = startSection; el; el = el.offsetParent)
+    for (var el = startSection; el; el = el.offsetParent) {
+      sectionOffsetTop += el.offsetTop;
       offsetLeft += el.offsetLeft;
+    }
   }
 
-  formatting.style.top = offsetTop + 'px';
+  formatting.style.top= Math.max( offsetTop,
+                          Math.min( window.scrollY + window.innerHeight - 20,
+                            Math.min( offsetTop + start.offsetHeight,
+                              Math.max(window.scrollY + 20, offsetTop + offsetHeight / 2)))) + 'px';
+
+
+  formattingStyle.textContent = 
+  " #formatting { color: " + sectionAfterStyle['color'] + "; background-color: " + sectionStyle['background-color'] + " }" + 
+  " #formatting .cke_button { background-color: " + sectionStyle['background-color'] + "  }" +
+" #formatting .picker:after { background-color: " + sectionAfterStyle['border-color'] + "  }" + 
+" #formatting .picker:before { background-color: " + sectionAfterStyle['background-color'] + "  }" + 
+" #formatting:before { background-color: " + sectionAfterStyle['outline-color'] + "  }"; 
+
   formatting.style.left = offsetLeft + 'px';
-  formatting.style.zIndex = 1111;
   formatting.style.display = 'block';
 
   var ui = editor.ui.instances
@@ -1126,9 +1252,6 @@ function hideButtons(editor, force) {
     while (section && section.tagName != 'SECTION')
       section = section.parentNode;
     if (!section) return;
-    var H1 = section.getElementsByTagName('h1')[0];
-    var H2 = section.getElementsByTagName('h2')[0];
-    var H3 = section.getElementsByTagName('h3')[0];
 
     if (start.textContent.length < 120 && start == end) {
       if (ui.title._.state == 2 && ui.subtitle._.state == 2 && ui.heading._.state == 2) {
@@ -1154,16 +1277,22 @@ function hideButtons(editor, force) {
   }
 
   if (!button) return;
-  var buttons = formatting.getElementsByClassName('cke_button');
+  var buttons = formatting.querySelectorAll('.cke .cke_button');
   var target = 'cke_button__' + button.toLowerCase()
   for (var i = 0, el; el = buttons[i++];) {
     if (el.classList.contains(target)) {
       el.removeAttribute('hidden')
-    } else {
+    } else if (!el.classList.contains('cke_button__link')) {
       el.setAttribute('hidden', 'hidden')
     }
   }
   //for (editor.ui.instances.title._)
 
   console.log(button)
+  });
+}, 50)
 }
+
+
+
+

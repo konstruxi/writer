@@ -1,16 +1,55 @@
 div.picker {
   position: absolute;
   z-index: 22;
-  margin-left: -2.35rem;
-  margin-top: -2.35rem;
   white-space: nowrap;
   transition: top 0.2s, left 0.2s, opacity 0.3s;
-  top: -100px;
+  top: -2.25rem;
 }
 
-ul.picker {
-  margin: 0;
-  padding: 0;
+#formatting div.picker svg {
+  margin: -1px;
+  height: 38px;
+  width: 38px;
+  opacity: 0.6;
+}
+
+#formatting * {
+  transition: fill 0.3s, background-color 0.3s;
+}
+
+#formatting:before {
+  width: 6px;
+  height: 6px;
+  z-index: 11;
+  top: -24px;
+  left: 6px;
+  border-radius: 50%;
+  content: '';
+  display: block;
+  position: absolute;
+  z-index: 222;
+}
+#formatting div.picker:before {
+  width: 6px;
+  height: 6px;
+  z-index: 11;
+  top: 6px;
+  left: 11px;
+  border-radius: 50%;
+  content: '';
+  display: block;
+  position: absolute;;
+}
+#formatting div.picker:after {
+  width: 6px;
+  height: 6px;
+  z-index: 11;
+  top: 6px;
+  left: 19px;
+  border-radius: 50%;
+  content: '';
+  display: block;
+  position: absolute;;
 }
 
 
@@ -59,36 +98,41 @@ body.dragging .picker {
 body.dragging .picker li {
   pointer-events: all;
 }
-.picker svg {
-  cursor: pointer;
-}
-.picker svg path{
-  fill: #aaa;
-  transition: fill 0.4s;
-}
-ul.picker svg path{
-  fill: #999;
-  transition: fill 0.4s;
-}
 
-.picker svg:hover path {
-  fill: #333;
-}
-
-.picker li strong {
-  display: block;
-}
 
 #formatting {
   transition: top 0.2s, left 0.2s, opacity 0.3s;
   opacity: 1;
+  z-index: 2200;
   display: none;
+}
+#formatting .cke_button {
+  position: absolute;
 }
 #formatting[hidden] {
   display: block;
   opacity: 0;
 }
 
+#formatting .cke_button__link {
+  position: absolute;
+  top: 2.25rem;
+  background: none;
+}
+#formatting .cke_button__link svg {
+  opacity: 0.6;
+}
+#formatting .cke_button__link svg path {
+  fill: currentColor;
+}
+
+#formatting svg {
+  cursor: pointer;
+}
+#formatting svg path {
+  fill: currentColor;
+  transition: fill 0.4s;
+}
 .matrix .wrapper:hover {
   box-shadow: 0 0 20px #ccc;
 }
@@ -191,8 +235,4 @@ section:hover {
 
 .wrapper > section {
   margin: 0;
-}
-
-body.dragging .picker {
-  opacity: 0;
 }

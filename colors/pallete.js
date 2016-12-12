@@ -5,8 +5,10 @@ var Adjust, CSS, Colors, Contrast, Find, Matrix, Options, Palette, Row, Samples,
 
 var Palette = global.Palette = function(img) {
   var generator, matrix, swatches, vibrance;
-  vibrance = new Vibrant(img, 120, 1);
-  swatches = vibrance.swatches();
+  if (!(swatches = Palette.fromString(img.getAttribute('palette')))) {
+    vibrance = new Vibrant(img, 120, 1);
+    swatches = vibrance.swatches();
+  }
   matrix = Matrix(swatches);
   generator = function(name, I, J) {
     var cell, i, j, k, l, len, len1, row;
@@ -25,47 +27,74 @@ var Palette = global.Palette = function(img) {
   generator.debug = function() {
     return Palette.debug(swatches, matrix);
   };
+  generator.toString = function() {
+    var string = ''
+    for (var name in swatches) {
+      var prefix = name.replace(/[a-z]/g, '');
+      var colors = swatches[name];
+      if (string)
+        string += ' '
+      string += prefix
+      for (var i = 0, color; color = colors[i++];) {
+        string += color.getHex()
+       //keep caps
+      }
+
+    }
+    return string;
+  }
   return generator;
 };
 
-Palette.output = function(path) {
-  var img;
-  img = document.createElement('img');
-  img.setAttribute('src', path);
-  return img.onload = function() {
-    var Generator, cell, hr, index, j, k, l, len, len1, list, row, scheme;
-    Generator = Palette(img);
-    hr = document.createElement('hr');
-    hr.style.clear = 'both';
-    document.body.appendChild(hr);
-    scheme = Schemes.dark;
-    list = Generator.debug();
-    img.style.maxWidth = '400px';
-    img.style.float = 'left';
-    img.style.maxHeight = '250px';
-    document.body.appendChild(img);
-    document.body.appendChild(list);
-    hr = document.createElement('hr');
-    hr.style.clear = 'both';
-    hr.style.visibility = 'hidden';
-    document.body.appendChild(hr);
-    for (index = k = 0, len = Space.length; k < len; index = ++k) {
-      row = Space[index];
-      for (j = l = 0, len1 = row.length; l < len1; j = ++l) {
-        cell = row[j];
-        if (j < 7) {
-          try {
-            document.body.appendChild(Palette.example(Generator(cell), j + 1));
-          } catch (undefined) {}
-        }
-      }
+Palette.fromString = function(string) {
+  if (!string) return
+  var swatches = {}
+  string.split(/\s+/).forEach(function(bit) {
+    switch (bit.substring(0, 2).toLowerCase()) {
+      case 'lm':
+        var name = 'LightMuted';
+        break;
+      case 'dm':
+        var name = 'DarkMuted';
+        break;
+      case 'm#':
+        var name = 'Muted';
+        break;
+      case 'lv':
+        var name = 'LightVibrant';
+        break;
+      case 'dv':
+        var name = 'DarkVibrant';
+        break;
+      case 'v#':
+        var name = 'Vibrant';
+        break;
     }
-    hr = document.createElement('hr');
-    hr.style.clear = 'both';
-    hr.style.visibility = 'hidden';
-    return document.body.appendChild(hr);
-  };
-};
+    swatches[name] = []
+    bit.match(/\#([a-f0-9]{3,6})/ig).forEach(function(color, index) {
+      var rgb = hexToRgb(color)
+      if (rgb)
+        swatches[name].push(new Swatch(rgb, 3 - index))
+    })
+  })
+  console.info(swatches, string)
+  return swatches
+}
+
+function hexToRgb(hex) {
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+        return r + r + g + g + b + b;
+    });
+
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? [
+        parseInt(result[1], 16),
+        parseInt(result[2], 16),
+        parseInt(result[3], 16)
+    ] : null;
+}
 
 Adjust = function(colors) {
   var diff, hsl, Palette, property, value;
@@ -109,19 +138,36 @@ Adjust = function(colors) {
 };
 
 Contrast = function(c1, c2) {
-  if (c1[2] > c2[2]) {
-    return (c1[2] + 0.05) / (c2[2] + 0.05);
+  var l1 = Luminance(c1);
+  var l2 = Luminance(c2);
+  if (l1 > l2) {
+    return (l1 + 0.05) / (l2 + 0.05);
   }
-  return (c2[2] + 0.05) / (c1[2] + 0.05);
+  return (l2 + 0.05) / (l1 + 0.05);
 };
 
+Luminance = function(color) {
+  var rgba = color.rgb.slice();
+
+  for(var i=0; i<3; i++) {
+    var rgb = rgba[i];
+
+    rgb /= 255;
+
+    rgb = rgb < .03928 ? rgb / 12.92 : Math.pow((rgb + .055) / 1.055, 2.4);
+
+    rgba[i] = rgb;
+  }
+
+  return .2126 * rgba[0] + .7152 * rgba[1] + 0.0722 * rgba[2];
+};
 YIQ = function(color) {
   return (color.rgb[0] * 299 + color.rgb[1] * 587 + color.rgb[2] * 114) / 1000;
 };
 
 Row = function(name, bg, text) {
   var adjusted, b, contrast, t, yiq;
-  contrast = Contrast(bg.getHsl(), text.getHsl());
+  contrast = Contrast(bg, text);
   t = text.getHsl();
   b = bg.getHsl();
   yiq = YIQ(bg);
@@ -168,9 +214,11 @@ Matrix = function(swatches) {
   return matrix;
 };
 
-Find = function(swatches, order, luma, saturation, result, callback, fallback) {
+Find = function(swatches, order, luma, saturation, result, filter, sorter, fallback, groups) {
   var collection, color, colors, k, l, label, len, len1, other, property, used;
   collection = [];
+  if (groups == null)
+    groups = 1;
   for (k = 0, len = order.length; k < len; k++) {
     label = order[k];
     if (colors = swatches[label]) {
@@ -179,49 +227,46 @@ Find = function(swatches, order, luma, saturation, result, callback, fallback) {
         used = false;
         for (property in result) {
           other = result[property];
-          if (other === color) {
+          if (!other.rgb || property.charAt(property.length - 1) == 'A')
+            continue
+          if (other.rgb[0] === color.rgb[0] && 
+              other.rgb[1] === color.rgb[1] && 
+              other.rgb[2] === color.rgb[2]) {
             used = true;
             break;
           }
         }
-        if (!used) {
+        if (!used && (!filter || filter(color))) {
           collection.push(color);
         }
       }
       if (!collection.length) {
         continue;
       }
-      if (callback) {
-        if (callback.length === 1) {
-          collection = collection.filter(callback);
-          if (collection.length) {
-            return collection;
-          }
-        } else {
-          collection = collection.sort(callback);
-        }
-      } else {
-        if (luma != null) {
-          collection = collection.sort(function(a, b) {
-            return (b.getHsl()[2] * b.population - a.getHsl()[2] * a.population) * luma + (b.getHsl()[1] * b.population - a.getHsl()[1] * a.population) * saturation;
-          });
-          collection = [collection[Math.floor(luma * 4 * 4 + saturation * 4 * 7) % collection.length]];
-        }
-        break;
-      }
+      if (/*groups == null || */--groups == 0) break;
     }
   }
-  if (callback) {
+  if (sorter) {
+    collection = collection.sort(sorter)//.slice(0, 3);
+  } else {
+    if (luma != null) {
+      collection = collection.sort(function(a, b) {
+        return (b.getHsl()[2] * b.population - a.getHsl()[2] * a.population) * luma + (b.getHsl()[1] * b.population - a.getHsl()[1] * a.population) * saturation;
+      });
+      collection = [collection[Math.floor(luma * 4 * 4 + saturation * 4 * 7) % collection.length]];
+    }
+  }
+  if (filter) {
     if (!collection.length && fallback) {
-      return Find(swatches, fallback, result, callback);
+      return Find(swatches, fallback, result, filter);
     }
     return collection[0];
   } else {
-    return collection[Math.floor(Math.random() * collection.length)];
+    return collection[0];
   }
 };
 
-Palette = function(swatches, matrix, luma, saturation, preset) {
+PaletteResult = function(swatches, matrix, luma, saturation, preset) {
   var color, colors, fallback, order, property, result, values;
   result = Object.create(preset);
   for (property in preset) {
@@ -237,12 +282,16 @@ Palette = function(swatches, matrix, luma, saturation, preset) {
     }
     if (property === 'foreground') {
       colors = Find(swatches, order, luma, saturation, result, function(a) {
-        return Contrast(result.background.getHsl(), a.getHsl()) > 1.1;
+        return Contrast(result.background, a) > 1.1;
       }, fallback);
     } else if (property === 'accent') {
-      colors = Find(swatches, order, luma, saturation, result, function(a, b) {
-        return (Contrast(result.background.getHsl(), b.getHsl()) + Contrast(result.foreground.getHsl(), b.getHsl())) / 2 - (Contrast(result.background.getHsl(), a.getHsl()) + Contrast(result.foreground.getHsl(), a.getHsl())) / 2;
-      });
+      colors = Find(swatches, order, luma, saturation, result, function(a) {
+        return Contrast(result.background, a) > 1 &&
+               Contrast(result.foreground, a) > 1.8;
+      }, function(a, b) {
+        return (Contrast(result.background, b) + Contrast(result.foreground, b)) - 
+               (Contrast(result.background, a) + Contrast(result.foreground, a))
+      }, undefined, 2);
     } else if (property === 'background') {
       colors = Find(swatches, order, luma, saturation, result);
     }
@@ -260,7 +309,11 @@ Palette = function(swatches, matrix, luma, saturation, preset) {
   return result;
 };
 
-Space = "DM+DM DM+LM DV+M DV+V DV+LV\nDM+M  M+DM  M+DV M+V  V+M\nM+M   M+LV M+LM V+DM  V+LV\nLM+V  LM+DM LM+M LV+M V+V\nLM+LM LM+LV LV+LM LV+V LV+LV".split(/\n/g).map(function(line) {
+Space = ("DM+DM DM+LM DV+M  DV+V DV+LV\n"+ 
+        "DM+M  M+DM  M+DV  M+V  V+M\n" + 
+        "DM+V   M+LV  M+LM  V+DM V+LV\n"+ 
+        "LM+V  LM+DM LM+M  LV+M V+V\n"+ 
+        "LM+LM LM+LV LV+LM LV+V LV+LV").split(/\n/g).map(function(line) {
   return line.split(/\s+/g);
 });
 
@@ -298,7 +351,7 @@ Schema = function(name, lumas, saturations) {
     });
   }
   return function(swatches, matrix, luma, saturation) {
-    return Palette(swatches, matrix, luma, saturation, options);
+    return PaletteResult(swatches, matrix, luma, saturation, options);
   };
 };
 
@@ -418,9 +471,11 @@ prefix + " img:before {\n" +
 "}\n" +
 prefix + " img:after {\n" +
 "  color: " + this.foreground + ";\n" +
-"}" +
-prefix + " a {\n" +
+"}\n" +
+prefix + " a, " + prefix + ":after {\n" +
 "  color: " + this.accent + ";\n" +
+"  border-color: " + this.accentAA + ";\n" +
+"  outline-color: " + this.foregroundAA + ";\n" +
 "}")
 };
 

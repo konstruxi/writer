@@ -104,6 +104,7 @@ document.addEventListener('click', function(e) {
 })
 
 function repositionPicker(editor, target, force) {
+  return;
   if (!target || !target.parentNode) return;
   if (editor.animating && editor.styleupdate) {
     var index = editor.styleupdate[0].indexOf(target);
@@ -140,22 +141,3 @@ function cancelPicking() {
 }
 
 
-
-
-
-var style = document.createElement('style')
-document.body.appendChild(style);
-var images = document.getElementsByTagName('img');
-var imageUID = 0;
-for (var i = 0, image; image = images[i++];) {
-  
-  if (!image.getAttribute('uid'))
-    image.setAttribute('uid', ++imageUID)
-  image.onload = function() {
-    var generator = Palette(this)
-    var result = generator('LV+LV')
-    style.textContent += result.toString('.content section.has-palette-' + this.getAttribute('uid'))
-  }
-  if (image.complete)
-    image.onload()
-}

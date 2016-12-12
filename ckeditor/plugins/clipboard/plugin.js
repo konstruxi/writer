@@ -1035,6 +1035,7 @@
 		}
 
 		function pasteDataFromClipboard( evt ) {
+			debugger
 			// Default type is 'auto', but can be changed by beforePaste listeners.
 			var eventData = {
 					type: 'auto',
@@ -1058,8 +1059,14 @@
 					firePasteEvents( editor, eventData );
 				}, 0 );
 			} else {
+				// YAROSLAFF FEDIN HACK: DONT CAPTURE CANCELLED PASTES TO AVOID JUMPING IN WEBKIT
+				if (!beforePasteNotCanceled) {
+					editor.fire('lockSnapshot')
+					evt.data.preventDefault();
+				}
 				getClipboardDataByPastebin( evt, function( data ) {
 					// Clean up.
+					editor.fire('unlockSnapshot')
 					eventData.dataValue = data.replace( /<span[^>]+data-cke-bookmark[^<]*?<\/span>/ig, '' );
 
 					// Fire remaining events (without beforePaste)
@@ -2044,9 +2051,10 @@
 		 * @returns {CKEDITOR.plugins.clipboard.dataTransfer} The data transfer object.
 		 */
 		initPasteDataTransfer: function( evt, sourceEditor ) {
+			// YAROSLAFF FEDIN HACK: Allow clipboardData for IOS
 			if ( !this.isCustomCopyCutSupported ) {
 				// Edge does not support custom copy/cut, but it have some useful data in the clipboardData (#13755).
-				return new this.dataTransfer( ( CKEDITOR.env.edge && evt && evt.data.$ && evt.data.$.clipboardData ) || null, sourceEditor );
+				return new this.dataTransfer( ( evt && evt.data.$ && evt.data.$.clipboardData ) || null, sourceEditor );
 			} else if ( evt && evt.data && evt.data.$ ) {
 				var dataTransfer = new this.dataTransfer( evt.data.$.clipboardData, sourceEditor );
 

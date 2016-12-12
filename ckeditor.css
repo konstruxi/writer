@@ -132,7 +132,14 @@ section > a + * {
 #formatting {
   position: absolute;
   transition: 0.2s opacity;
-  margin-left: -2rem;
+  margin-left: -1.25rem;
+  margin-top: -1.15rem;
+}
+
+@media (max-width: 640px) {
+  #formatting {
+    margin-left: -1.25rem;
+  }
 }
 
 section.focused, section.focused:hover {
@@ -218,6 +225,7 @@ section[index="0"], section:not([index]) {
 
 .content section:after {
   content: '';
+  pointer-events: none;
   z-index: -1;
   position: absolute;
   top: -10px;

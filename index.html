@@ -9,13 +9,16 @@
   </head>
   <body>
 
-  <div class="picker">
+  <div class="picker" style="display:none">
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
   </div>
 
 
-
+<style id="formattingStyle"></style>
 <div id="formatting">
+  <div class="picker cke_button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+  </div>
 </div>
 
 <div class="content matrix" hidden>
@@ -80,19 +83,19 @@
 </div>
   <article class="content" contenteditable autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" >
 <section class="forced">
-<img src="./images/arlberg-pass-833326_1280.jpg" />
+<img src="./images/arlberg-pass-833326_1280.jpg" palette="LV#ffc07b#ffcb8f#ffd699 V#bf6100#b25e00#a35400 DV#893f00#713200#662c00 DM#050305" />
 <h1>CSS Zen Garden</h1><h2>The Beauty of&nbsp;CSS&nbsp;Design</h2><p>A demonstration of what can be accomplished through&nbsp;CSS-based design. Select any style sheet from the list to load it into this page.</p><p>Download the example&nbsp;<a title="This page's source HTML code, not to be modified." href="http://www.csszengarden.com/examples/index">html file</a>&nbsp;and&nbsp;<a title="This page's sample CSS, the file you may modify." href="http://www.csszengarden.com/examples/style.css">css file</a></p><h2>The Road to Enlightenment</h2><p>Littering a dark and dreary road lay the past relics of browser-specific tags, incompatible&nbsp;DOMs, broken&nbsp;CSS&nbsp;support, and abandoned browsers.</p><p>We must clear the mind of the past. Web enlightenment has been achieved thanks to the tireless efforts of folk like the&nbsp;W3C,&nbsp;WaSP, and the major browser creators.</p><p>The CSS Zen Garden invites you to relax and meditate on the important lessons of the masters. Begin to see with clarity. Learn to use the time-honored techniques in new and invigorating fashion. Become one with the web.</p></section>
 <section class="forced">
   <p><a href="#">
-    <img src="./images/15288533_10154794398419776_47297430001618487_o.jpg" />
+    <img src="./images/15288533_10154794398419776_47297430001618487_o.jpg" palette="LV#fffdae#fef1ff#fdca5a V#fb7a28#fef64e#e95231 DV#4a0202#260001#6b0406 LM#c3b499#ac9c82#c7c7c7 M#a49169#897468#958670 DM#5f3e3d#403029#635342" />
   </a></p>
-  <p> This is serious text</p>
+  <p> This is <a href="#">serious</a> text</p>
 </section>
 <section class="forced">
   <p><a href="#">
-    <img src="./images/27dfcc17a8cefe56c99277d63be0d815.jpg" />
+    <img src="./images/27dfcc17a8cefe56c99277d63be0d815.jpg" palette="LV#fffff8#edd6ba#f9f5ec V#885c36#9a7045#784d27 DV#080000#502a0f#694c29 LM#cdbaa2#d4c1a9#c4b199 M#a2815a#987754#ae8967 DM#5b4c34#4e363a#63543c" />
   </a></p>
-  <p> This is serious text</p>
+  <p> This is <a href="#">serious</a> text</p>
 </section>
 
 <section><h2>So What is This About?</h2><blockquote><p>There is a continuing need to show the power of&nbsp;CSS. The Zen Garden aims to excite, inspire, and encourage participation. To begin, view some of the existing designs in the list. Clicking on any one will load the style sheet into this very page. The&nbsp;HTMLremains the same, the only thing that has changed is the external&nbsp;CSS&nbsp;file. Yes, really.</p></blockquote>
@@ -108,6 +111,7 @@
   <script src="colors/pallete.js"></script>
 
   <script src="editor.js"></script>
+  <script src="images.js"></script>
   <script src="picker.js"></script>
   <script>
   var editors = document.querySelectorAll('article[contenteditable]');

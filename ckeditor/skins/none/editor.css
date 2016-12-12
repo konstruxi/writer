@@ -15,12 +15,12 @@
 .cke_button {
   width: 36px;
   height: 36px;
-  margin-top: -18px;
-  background: #aaa;
+  background: inherit;
   border-radius: 50%;
   display: block;
   position: absolute;
   overflow: hidden;
+  color: inherit;
 }
 
 .cke_button:hover {
@@ -34,7 +34,7 @@
   margin-left: 2px;
 }
 .cke_button svg path {
-  fill: #fff;
+  fill: currentColor;
 }
 
 .cke_button_icon {

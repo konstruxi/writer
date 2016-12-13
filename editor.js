@@ -189,7 +189,7 @@ function Editor(content) {
     editor.commands.bulletedlist.on('exec', function() {
       editor.stylesnapshot = snapshotStyles(editor);
       replaceContents(editor, {titles: true, quotes: true})
-    }, null, null, 0)
+    }, null, null, 1)
     editor.commands.numberedlist.on('exec', function() {
       editor.stylesnapshot = snapshotStyles(editor);
       replaceContents(editor, {titles: true, quotes: true})
@@ -343,7 +343,6 @@ onDragStart = function(editor, e) {
       editor.dragzone.style.width = editor.dragging.offsetWidth;
       editor.dragzone.style.left = left + 'px'
       editor.dragzone.style.height = 10 + 'px';
-      editor.dragzone.style.top = e.pageY - 5 + 'px'
       document.body.appendChild(editor.dragzone)
       e.preventDefault()
       e.stopPropagation()
@@ -395,61 +394,79 @@ onDrag = function(editor, e) {
 }
 
 onDragEnd = function(editor, e) {
-  if (editor.dragged) {
+  if (editor.dragged && (Math.abs(editor.dragstart - e.pageY) > 3)) {
     var dragging = editor.dragging;
     var dragged = editor.dragged;
     var dragstart = editor.dragstart
-    if (Math.abs(dragstart - e.pageY) > 3) { 
-      
-    //requestAnimationFrame(function() {
-      var section = newSection()
 
-      if (!dragging.classList.contains('forced'))
-        section.classList.add('new')
+    var section = newSection()
 
-      if (dragstart - e.pageY > 0) {
-        dragging.classList.remove('forced')
-        section.classList.add('forced');
-        if (dragged.length)
-          dragging.parentNode.insertBefore(section, dragging)
+    if (!dragging.classList.contains('forced'))
+      section.classList.add('new')
 
-        for (var i = 0; i < dragged.length; i++) {
-          section.appendChild(dragged[i])
-          dragged[i].classList.remove('moved')
-        }
-        editor.justdropped = section.previousSibling
-      } else {
+    if (dragstart - e.pageY > 0) {
+      dragging.classList.remove('forced')
+      section.classList.add('forced');
+      if (dragged.length)
+        dragging.parentNode.insertBefore(section, dragging)
 
-        for (var i = 0; i < dragged.length; i++) {
-          dragged[i].classList.remove('moved')
-        }
-        var children = Array.prototype.slice.call(dragging.children)
-        if (children.length === dragged.length + 1) {
-          var target = dragging.previousSibling;
-        }
-        else {
-          editor.justdropped = dragging
-          var target = section
-        }
-        for (var i = 0; i < children.length; i++) {
-          if ((dragged.indexOf(children[i]) == -1 || target != section) && !children[i].classList.contains('toolbar'))
-            target.appendChild(children[i])
-        }
-        dragging.classList.add('forced')
-        target.classList.add('forced');
-        dragging.parentNode.insertBefore(section, dragging.nextSibling)
-
+      for (var i = 0; i < dragged.length; i++) {
+        section.appendChild(dragged[i])
+        dragged[i].classList.remove('moved')
       }
-        var selection = editor.getSelection();
-        var range = selection.getRanges()[0]
-        if (range && dragged.length) {
-          range.moveToElementEditEnd(new CKEDITOR.dom.element(dragged[dragged.length - 1]))
-          range.select(true)
-        }
-      editor.fire('saveSnapshot')
+      editor.justdropped = section.previousSibling
+    } else {
+
+      for (var i = 0; i < dragged.length; i++) {
+        dragged[i].classList.remove('moved')
+      }
+      var children = Array.prototype.slice.call(dragging.children)
+      if (children.length === dragged.length + 1) {
+        var target = dragging.previousSibling;
+      }
+      else {
+        editor.justdropped = dragging
+        var target = section
+      }
+      for (var i = 0; i < children.length; i++) {
+        if ((dragged.indexOf(children[i]) == -1 || target != section) && !children[i].classList.contains('toolbar'))
+          target.appendChild(children[i])
+      }
+      //dragging.classList.add('forced')
+      target.classList.add('forced');
+      dragging.parentNode.insertBefore(section, dragging.nextSibling)
+    }
+    var focused = dragged[dragged.length - 1];
+    editor.fire('saveSnapshot')
+  } else {
+    var bookmark = editor.dragbookmark[0];
+    if (bookmark && bookmark.startNode.$.parentNode)
+      bookmark.startNode.$.parentNode.removeChild(editor.dragbookmark[0].startNode.$)
+    editor.dragbookmark = undefined;
+    var target = e.target;
+    while (target && target.tagName != 'svg')
+      target = target.parentNode;
+    if (target) {
+      if (target.classList.contains('split')) {
+        var sect = newSection();
+        sect.classList.add('forced')
+        var focused = document.createElement('p');
+        sect.appendChild(focused);
+        editor.dragging.parentNode.insertBefore(sect, editor.dragging);
+        if (sect.nextElementSibling)
+          sect.nextElementSibling.classList.add('forced')
+        console.log(sect)
+      }
     }
   }
 
+  if (focused) {
+    var selection = editor.getSelection();
+    var range = editor.createRange();
+    range.moveToElementEditEnd(new CKEDITOR.dom.element(focused))
+    editor.getSelection().selectRanges([range])
+  }
+  cleanEmptyContent(editor)
 
   editor.justdragged = dragging;
   setTimeout(function() {
@@ -475,85 +492,88 @@ function onCursorMove(editor, force, blur) {
   cancelAnimationFrame(editor.clearcursor)
   editor.clearcursor = setTimeout(function() {
     editor.clearcursor = requestAnimationFrame(function() {
+      cleanEmptyContent(editor, force, blur)
+    })
+  }, 50)
 
-    var selection = editor.getSelection();
-    var selected = selection.getStartElement();
-    if (selected) selected = selected.$;
-    var children = Array.prototype.slice.call(editor.element.$.children);
-    var snapshot = false;
-    editor.fire('lockSnapshot');
-    for (var i = 0; i < children.length; i++) {
-      var inside = isInside(selected, children[i]);
-      if (selected && inside) {
-        if (editor.section != children[i]) {
-          if (editor.section)
-            editor.section.classList.remove('focused')
-          editor.section = children[i]
-          editor.section.classList.add('focused')
-          setActiveSection(editor.section, true)
-          updateToolbar(editor)
-        }
+}
+
+function cleanEmptyContent(editor, force) {
+  var selection = editor.getSelection();
+  var selected = selection.getStartElement();
+  if (selected) selected = selected.$;
+  var children = Array.prototype.slice.call(editor.element.$.children);
+  var snapshot = editor.stylesnapshot;
+  editor.fire('lockSnapshot');
+  for (var i = 0; i < children.length; i++) {
+    var inside = isInside(selected, children[i]);
+    if (selected && inside) {
+      if (editor.section != children[i]) {
+        if (editor.section)
+          editor.section.classList.remove('focused')
+        editor.section = children[i]
+        editor.section.classList.add('focused')
+        setActiveSection(editor.section, true)
+        updateToolbar(editor)
       }
-      if (!selected || force || !inside) {
-        if (isEmptyParagraph(children[i])) {
-          if (!snapshot) 
-            snapshot = editor.stylesnapshot = snapshotStyles(editor)
-          if (selected) 
-            if (inside) {
-              if (!before && !after) {
-                var before = children[i].previousElementSibling;
-                var after = children[i].nextElementSibling;
-              }
-            } else if (!bookmark)
-              var bookmark = selection.createBookmarks();
-
-          children[i].parentNode.removeChild(children[i])
-        } else {
-          var els = []
-          var grandchildren = children[i].children;
-          for (var j = 0; j < grandchildren.length; j++) {
-            if (grandchildren[j].classList.contains('toolbar'))
-              continue;
-            var grands = grandchildren[j].getElementsByTagName('*');
-            els.push(grandchildren[j])
-            els.push.apply(els, grands);
-          }
-          for (var j = 0; j < els.length; j++) {
-            if (isEmptyParagraph(els[j])) {
-              if (selected) 
-                if (!before && !after && isInside(selected, els[j])) {
-                  var before = els[j].previousElementSibling;
-                  var after = els[j].nextElementSibling;
-                } else if (!bookmark) { 
-                  var bookmark = selection.createBookmarks();
-                }
-
-              if (!snapshot) 
-                snapshot = editor.stylesnapshot = snapshotStyles(editor)
-
-              els[j].parentNode.removeChild(els[j])
-
+    }
+    if (!selected || force || !inside) {
+      if (isEmptyParagraph(children[i])) {
+        if (!snapshot) 
+          snapshot = editor.stylesnapshot = snapshotStyles(editor)
+        if (selected) 
+          if (inside) {
+            if (!before && !after) {
+              var before = children[i].previousElementSibling;
+              var after = children[i].nextElementSibling;
             }
+          } else if (!bookmark)
+            var bookmark = selection.createBookmarks();
+
+        children[i].parentNode.removeChild(children[i])
+      } else {
+        var els = []
+        var grandchildren = children[i].children;
+        for (var j = 0; j < grandchildren.length; j++) {
+          if (grandchildren[j].classList.contains('toolbar'))
+            continue;
+          var grands = grandchildren[j].getElementsByTagName('*');
+          els.push(grandchildren[j])
+          els.push.apply(els, grands);
+        }
+        for (var j = 0; j < els.length; j++) {
+          if (isEmptyParagraph(els[j])) {
+            if (selected) 
+              if (!before && !after && isInside(selected, els[j])) {
+                var before = els[j].previousElementSibling;
+                var after = els[j].nextElementSibling;
+              } else if (!bookmark) { 
+                var bookmark = selection.createBookmarks();
+              }
+
+            if (!snapshot) 
+              snapshot = editor.stylesnapshot = snapshotStyles(editor)
+
+            els[j].parentNode.removeChild(els[j])
+
           }
         }
       }
     }
-    if (before || after) {
-      var range = editor.createRange();
-      if (before)
-        range.moveToElementEditEnd( new CKEDITOR.dom.element(before) );
-      else
-        range.moveToElementEditStart( new CKEDITOR.dom.element(after) )
-      range.select( true );
-    } else if (bookmark)
-      try {
-        editor.getSelection().selectBookmarks(bookmark);
-      } catch(e) {}
+  }
+  if (before || after) {
+    var range = editor.createRange();
+    if (before)
+      range.moveToElementEditEnd( new CKEDITOR.dom.element(before) );
+    else
+      range.moveToElementEditStart( new CKEDITOR.dom.element(after) )
+    range.select( true );
+  } else if (bookmark)
+    try {
+      editor.getSelection().selectBookmarks(bookmark);
+    } catch(e) {}
 
-    editor.fire('unlockSnapshot');
-  })
-  }, 20)
-
+  editor.fire('unlockSnapshot');
 }
 
 // returns newly selected section
@@ -570,6 +590,7 @@ split = function(editor, root) {
     if (p.tagName == 'SECTION')
       var result = p;
   }
+
 
   context = {}
   for (var i = 0; i < children.length; i++) {

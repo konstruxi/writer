@@ -439,13 +439,13 @@ onDragEnd = function(editor, e) {
         target.classList.add('forced');
         dragging.parentNode.insertBefore(section, dragging.nextSibling)
 
+      }
         var selection = editor.getSelection();
         var range = selection.getRanges()[0]
         if (range && dragged.length) {
           range.moveToElementEditEnd(new CKEDITOR.dom.element(dragged[dragged.length - 1]))
           range.select(true)
         }
-      }
       editor.fire('saveSnapshot')
     }
   }
@@ -572,7 +572,6 @@ split = function(editor, root) {
   }
 
   context = {}
-  debugger
   for (var i = 0; i < children.length; i++) {
     var child = children[i];
     if (child.tagName == 'SECTION') {

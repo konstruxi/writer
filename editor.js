@@ -258,6 +258,7 @@ function Editor(content) {
         break;
       case 'touchend': case 'mouseup':
         editor.dragstarted = null;
+        document.body.classList.remove('dragging');
         content.removeEventListener('ontouchstart' in document.documentElement ? 'touchmove' : 'mousemove', editor)
         document.removeEventListener('ontouchstart' in document.documentElement ? 'touchend' : 'mouseup', editor)
         onDragEnd(editor, e)
@@ -398,7 +399,6 @@ onDragEnd = function(editor, e) {
     var dragging = editor.dragging;
     var dragged = editor.dragged;
     var dragstart = editor.dragstart
-    document.body.classList.remove('dragging');
     if (Math.abs(dragstart - e.pageY) > 3) { 
       
     //requestAnimationFrame(function() {
@@ -424,7 +424,7 @@ onDragEnd = function(editor, e) {
           dragged[i].classList.remove('moved')
         }
         var children = Array.prototype.slice.call(dragging.children)
-        if (children.length === dragged.length) {
+        if (children.length === dragged.length + 1) {
           var target = dragging.previousSibling;
         }
         else {
@@ -432,7 +432,7 @@ onDragEnd = function(editor, e) {
           var target = section
         }
         for (var i = 0; i < children.length; i++) {
-          if (dragged.indexOf(children[i]) == -1 || target != section)
+          if ((dragged.indexOf(children[i]) == -1 || target != section) && !children[i].classList.contains('toolbar'))
             target.appendChild(children[i])
         }
         dragging.classList.add('forced')
@@ -442,7 +442,6 @@ onDragEnd = function(editor, e) {
         var selection = editor.getSelection();
         var range = selection.getRanges()[0]
         if (range && dragged.length) {
-          console.log(range, dragged[dragged.length - 1])
           range.moveToElementEditEnd(new CKEDITOR.dom.element(dragged[dragged.length - 1]))
           range.select(true)
         }
@@ -553,7 +552,7 @@ function onCursorMove(editor, force, blur) {
 
     editor.fire('unlockSnapshot');
   })
-  }, 50)
+  }, 20)
 
 }
 
@@ -573,6 +572,7 @@ split = function(editor, root) {
   }
 
   context = {}
+  debugger
   for (var i = 0; i < children.length; i++) {
     var child = children[i];
     if (child.tagName == 'SECTION') {
@@ -587,8 +587,9 @@ split = function(editor, root) {
             newSection(current)
             current = undefined;
           }
-        } else {
-          last = current
+        } else if (last != current) {
+          grandchildren[j].parentNode.removeChild(grandchildren[j]);
+          continue;
         }
         prev = grandchildren[j];
       }

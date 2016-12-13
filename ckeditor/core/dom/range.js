@@ -2169,7 +2169,8 @@ CKEDITOR.dom.range = function( root ) {
 			this.deleteContents();
 
 			if ( startBlock && startBlock.equals( endBlock ) ) {
-				if ( isEndOfBlock ) {
+				// YAROSLAFF FEDIN HACK: when pressing enter in empty element, move cursor to new block
+				if ( isEndOfBlock && (!isStartOfBlock || endBlock.is('p'))) {
 					elementPath = new CKEDITOR.dom.elementPath( this.startContainer, this.root );
 					this.moveToPosition( endBlock, CKEDITOR.POSITION_AFTER_END );
 					endBlock = null;

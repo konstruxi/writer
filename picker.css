@@ -104,7 +104,6 @@ body.dragging .picker li {
   transition: top 0.2s, left 0.2s, opacity 0.3s;
   opacity: 1;
   z-index: 2200;
-  display: none;
 }
 #formatting .cke_button {
   position: absolute;
@@ -114,10 +113,22 @@ body.dragging .picker li {
   opacity: 0;
 }
 
+#formatting .add {
+  position: absolute;
+  top: 2.25rem;
+  z-index: 22;
+  background: none;
+}
+#formatting .add svg {
+  opacity: 0.6;
+}
 #formatting .cke_button__link {
   position: absolute;
   top: 2.25rem;
   background: none;
+}
+#formatting .cke_button__link.actual {
+  z-index: 2000;
 }
 #formatting .cke_button__link svg {
   opacity: 0.6;
@@ -236,3 +247,20 @@ section:hover {
 .wrapper > section {
   margin: 0;
 }
+
+#formatting {
+  position: absolute;
+  transition: 0.2s opacity;
+  margin-left: -1.25rem;
+  margin-top: -1.15rem;
+}
+#formatting[hidden] {
+  opacity: 0;
+}
+
+@media (max-width: 640px) {
+  #formatting {
+    margin-left: -1.25rem;
+  }
+}
+

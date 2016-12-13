@@ -7,6 +7,8 @@ function Editor(content) {
     extraPlugins: 'structural',
     floatSpaceDockedOffsetY: 10
   });
+
+
   editor.on('uiSpace', function() {
     arguments[0].data.html = arguments[0].data.html.replace('>Insert/Remove Bulleted List<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M8 21c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM8 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 24c-1.67 0-3 1.35-3 3s1.35 3 3 3 3-1.35 3-3-1.33-3-3-3zm6 5h28v-4H14v4zm0-12h28v-4H14v4zm0-16v4h28v-4H14z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Insert/Remove Numbered List<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M4 34h4v1H6v2h2v1H4v2h6v-8H4v2zm2-18h2V8H4v2h2v6zm-2 6h3.6L4 26.2V28h6v-2H6.4l3.6-4.2V20H4v2zm10-12v4h28v-4H14zm0 28h28v-4H14v4zm0-12h28v-4H14v4z"/></svg>' + '<')
@@ -44,16 +46,16 @@ function Editor(content) {
       editor.stylesnapshot = snapshotStyles(editor);
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
-      if (range.startOffset > 0 || range.startOffset != range.endOffset) return;
+      if (!range.checkStartOfBlock()) return;
       var container = range.startContainer.$
       for (; container.parentNode; container = container.parentNode) {
-        if (container.parentNode.firstChild != container)
+        if (getSectionFirstChild(container.parentNode).firstChild != container)
           break;
         // remove manual section boundary
         if (container.parentNode.tagName == 'SECTION') {
           if (container.parentNode.classList.contains('forced')) {
             container.parentNode.classList.remove('forced');
-            //fix();
+            fix(editor);
             return false;
           }
         }
@@ -77,12 +79,11 @@ function Editor(content) {
 
     onCursorMove(editor)
     updateToolbar(editor)
-    //requestAnimationFrame(function() {
-    //  var range = editor.getSelection().getRanges()[0];
-    //  if (range)
-    //    setActiveSection(range.startContainer.$)
-    //  repositionPicker(editor)
-    //})
+     requestAnimationFrame(function() {
+       var range = editor.getSelection().getRanges()[0];
+       if (range)
+         setActiveSection(range.startContainer.$)
+     })
     
   } );
   editor.on( 'focus', function(e) {
@@ -99,9 +100,8 @@ function Editor(content) {
   })
   editor.on('beforePaste', function(e) {
     
-    debugger
     snapshotStyles(editor)
-    
+
     if (e.data.dataTransfer) {
       var data = e.data.dataTransfer.getData('text/plain');
       if (data.match(/^\s*(?:https?|mailto):\/\/[^\s]+\s*$/)) {
@@ -130,6 +130,7 @@ function Editor(content) {
   function replaceContents(editor, options) {
     var selection = editor.getSelection()
     var iterator = selection.getRanges()[0].createIterator();
+    iterator.enforceRealBlocks = false;
     var elements = []
     var bookmark = selection.createBookmarks()
     for (var element; element = iterator.getNextParagraph();) {
@@ -225,10 +226,15 @@ function Editor(content) {
       })
     }
   })
+  content.addEventListener('touchend', function(e) {
+
+    //onCursorMove(editor)
+  })
   document.addEventListener('selectionchange', function(e) {
     if (!editor.dragging) {
       requestAnimationFrame(function() {
         //editor.selectionChange( 1 );
+        onCursorMove(editor)
         updateToolbar(editor)
       })
       //requestAnimationFrame(function() {
@@ -263,17 +269,27 @@ function Editor(content) {
   window.addEventListener('scroll', function() {
     updateToolbar(editor)
   })
+  window.addEventListener('resize', function() {
+    onEditorResize(editor)
+  })
+
 
   editor.measure = function() {
     this.offsetHeight = editor.element.$.offsetHeight;
-    this.offsetWidth  = editor.element.$.offsetHeight;
+    this.offsetWidth  = editor.element.$.offsetWidth;
     this.offsetTop  = editor.element.$.offsetTop;
     this.offsetLeft  = editor.element.$.offsetLeft;
   }
   Editor.elements.push(content)
   Editor.editors.push(editor)
+
+  if (!content.id)
+    content.id = 'editor-' + ++Editor.uid
+
+  onEditorResize(editor)
   return editor;
 }
+Editor.uid = 0;
 Editor.elements = []
 Editor.editors = []
 
@@ -285,23 +301,42 @@ Editor.get = function(el) {
   }
 }
 
+onEditorResize = function(editor) {
+  if (!editor.stylesheet) {
+    editor.stylesheet = document.createElement('style');
+    document.body.appendChild(editor.stylesheet)
+  }
+  editor.measure()
+  editor.stylesheet.textContent = '#' + editor.element.$.id + ' section:after{' + 
+    'left: calc(-' + (editor.offsetLeft + 16) + 'px - 1rem); ' +
+    'right: calc(-' + (window.innerWidth - editor.offsetLeft - editor.offsetWidth) + 'px - 1rem); ' +
+  '}'
+  console.log(editor.stylesheet.textContent)
+}
+
 onDragStart = function(editor, e) {
   var target = e.target;
+  while (target && target.tagName != 'DIV')
+    target = target.parentNode;
+  if (target && target.classList.contains('toolbar'))
+    target = target.parentNode;
+  else
+    return;
   if (target.tagName == 'SECTION') {
     var top = 0;
     var left = 0;
 
-    for (; target; target = target.offsetParent) {
-      left += target.offsetLeft;
-      top += target.offsetTop;
+    for (var t = target; t; t = t.offsetParent) {
+      left += t.offsetLeft;
+      top += t.offsetTop;
     }
     // dragging
-    if (top > e.pageY) {
+    //if (top > e.pageY) {
       document.body.classList.add('dragging');
       editor.fire('saveSnapshot')
       editor.stylesnapshot = snapshotStyles(editor)
       editor.dragbookmark = editor.getSelection().createBookmarks();
-      editor.dragging = e.target;
+      editor.dragging = target;
       editor.dragtop = top;
       editor.dragstart = e.pageY;
       editor.dragzone.style.width = editor.dragging.offsetWidth;
@@ -317,20 +352,23 @@ onDragStart = function(editor, e) {
       var selection = editor.getSelection();
       if (!selection.getRanges()[0]) {
         var range = editor.createRange()
-        var target = e.target;
-        while (target.firstElementChild)
-          target = target.firstElementChild;
-        range.moveToElementEditStart(new CKEDITOR.dom.element(target));
+        var focus = getSectionStartElement(target);
+        range.moveToElementEditStart(new CKEDITOR.dom.element(focus));
         range.select()
       }
 
       return true;
-    }
+    //}
   }
 }
 onDrag = function(editor, e) {
   var y = editor.dragstart - e.pageY;
-  if (editor.dragstart - e.pageY > 0) {
+  if (Math.abs(y) < 3) {
+    e.preventDefault()
+    return false;
+  }
+
+  if (y > 0) {
     editor.dragzone.style.top = Math.max(
       editor.dragging.previousSibling ? editor.dragstart - 7 - editor.dragging.previousSibling.offsetHeight : 0,
       editor.dragstart - y - 5
@@ -361,8 +399,10 @@ onDragEnd = function(editor, e) {
     var dragged = editor.dragged;
     var dragstart = editor.dragstart
     document.body.classList.remove('dragging');
+    if (Math.abs(dragstart - e.pageY) > 3) { 
+      
     //requestAnimationFrame(function() {
-      var section = document.createElement('section')
+      var section = newSection()
 
       if (!dragging.classList.contains('forced'))
         section.classList.add('new')
@@ -398,9 +438,17 @@ onDragEnd = function(editor, e) {
         dragging.classList.add('forced')
         target.classList.add('forced');
         dragging.parentNode.insertBefore(section, dragging.nextSibling)
+
+        var selection = editor.getSelection();
+        var range = selection.getRanges()[0]
+        if (range && dragged.length) {
+          console.log(range, dragged[dragged.length - 1])
+          range.moveToElementEditEnd(new CKEDITOR.dom.element(dragged[dragged.length - 1]))
+          range.select(true)
+        }
       }
       editor.fire('saveSnapshot')
-
+    }
   }
 
 
@@ -462,7 +510,15 @@ function onCursorMove(editor, force, blur) {
 
           children[i].parentNode.removeChild(children[i])
         } else {
-          var els = Array.prototype.slice.call(children[i].getElementsByTagName('*'));
+          var els = []
+          var grandchildren = children[i].children;
+          for (var j = 0; j < grandchildren.length; j++) {
+            if (grandchildren[j].classList.contains('toolbar'))
+              continue;
+            var grands = grandchildren[j].getElementsByTagName('*');
+            els.push(grandchildren[j])
+            els.push.apply(els, grands);
+          }
           for (var j = 0; j < els.length; j++) {
             if (isEmptyParagraph(els[j])) {
               if (selected) 
@@ -484,12 +540,12 @@ function onCursorMove(editor, force, blur) {
       }
     }
     if (before || after) {
-      //var range = editor.createRange();
-      //if (before)
-      //  range.moveToElementEditEnd( new CKEDITOR.dom.element(before) );
-      //else
-      //  range.moveToElementEditStart( new CKEDITOR.dom.element(after) )
-      //range.select( true );
+      var range = editor.createRange();
+      if (before)
+        range.moveToElementEditEnd( new CKEDITOR.dom.element(before) );
+      else
+        range.moveToElementEditStart( new CKEDITOR.dom.element(after) )
+      range.select( true );
     } else if (bookmark)
       try {
         editor.getSelection().selectBookmarks(bookmark);
@@ -520,14 +576,19 @@ split = function(editor, root) {
   for (var i = 0; i < children.length; i++) {
     var child = children[i];
     if (child.tagName == 'SECTION') {
-      if (child.classList.contains('forced'))
+      if (child.classList.contains('forced')) 
         last = child;
       var current = child;
       var grandchildren = Array.prototype.slice.call(child.childNodes);
       for (var j = 0; j < grandchildren.length; j++) {
-        last = place(last, prev, grandchildren[j], current, root, selected, context)
-        if (last === current) {
-          current = undefined;
+        if (!grandchildren[j].classList || !grandchildren[j].classList.contains('toolbar')) {
+          last = place(last, prev, grandchildren[j], current, root, selected, context)
+          if (last === current) {
+            newSection(current)
+            current = undefined;
+          }
+        } else {
+          last = current
         }
         prev = grandchildren[j];
       }
@@ -684,7 +745,7 @@ function group(content) {
 }
 
 isEmptyParagraph = function(child) {
-  if (child.tagName == 'IMG' || child.tagName == 'BR')
+  if (child.tagName == 'IMG' || child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('toolbar')))
     return false;
   //if (child.tagName == 'P') {
     var text = child.textContent
@@ -696,7 +757,7 @@ isEmptyParagraph = function(child) {
           return false;
       }
   //}
-  return child.nodeType != 1 || !child.querySelector('img, video, iframe');
+  return child.nodeType != 1 || !child.querySelector('img, video, iframe, svg');
 }
 
 isInside = function(element, another) {
@@ -706,12 +767,45 @@ isInside = function(element, another) {
     element = element.parentNode
   }
 }
+
+newSection = function(section) {
+  if (!section)
+    section = document.createElement('section');
+  if (!section.getElementsByClassName('toolbar')[0]) {
+                
+    var toolbar = document.createElement('div');
+    toolbar.className = 'toolbar'
+    toolbar.setAttribute('unselectable', 'on')
+
+    toolbar.innerHTML = '<x-button class="handle">' +
+                          '<svg viewBox="0 0 48 48" class="resize handler icon"><use xlink:href="#resize-section-icon"></use></svg>' +
+                          '<svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>' +
+                        '</x-button>'
+    section.insertBefore(toolbar, section.firstChild)
+  }
+
+  return section
+}
+
+getSectionFirstChild = function(section) {
+  var first = section.firstElementChild;
+  if (first.classList.contains('toolbar'))
+    return first.nextElementSibling;
+  return first;
+}
+
+getSectionStartElement = function(section) {
+  var first = getSectionFirstChild(section);
+  while (first.firstElementChild)
+    first = first.firstElementChild; 
+  return first;
+}
 place = function(parent, previous, child, current, root, selected, context) {
   if (previous) {
     // start a new line after empty paragraph
     if (selected) {
-      if (previous.parentNode.firstChild == previous && isEmptyParagraph(previous)) {
-        if (isInside(selected, previous)) {
+      if (getSectionFirstChild(previous.parentNode) == previous && isEmptyParagraph(previous)) {
+        if (isInside(selected, previous) && false) {
           if (!current) {
             var removed = previous
             if (context.reselected == previous)
@@ -739,7 +833,7 @@ place = function(parent, previous, child, current, root, selected, context) {
 
       if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
         
-        var section = document.createElement('section');
+        var section = newSection()
         if (parent.parentNode)
           parent.parentNode.insertBefore(section, parent.nextSibling);
         section.appendChild(child)
@@ -765,13 +859,13 @@ place = function(parent, previous, child, current, root, selected, context) {
       if (child && isEmptyParagraph(child) && previous && !isEmptyParagraph(previous))
         context.reselected = child;
 
-      var section = (current || document.createElement('section'));
+      var section = (current || newSection());
       if (parent.parentNode) 
         if (section.parentNode != parent.parentNode || section.previousSibling != parent)
           parent.parentNode.insertBefore(section, parent.nextSibling);
       if (current) {
-        if (current.firstChild != child)
-          section.insertBefore(child, section.firstChild)
+        if (getSectionFirstChild(current) != child)
+          section.insertBefore(child, getSectionFirstChild(current))
       } else if (section.previousSibling != previous) {
         section.appendChild(child); 
       }
@@ -781,7 +875,7 @@ place = function(parent, previous, child, current, root, selected, context) {
     }
   }
   
-  if (!parent) parent = current || document.createElement('section')
+  if (!parent) parent = current || newSection()
   if (!parent.parentNode)
     root.appendChild(parent);
   if (child.parentNode != parent || (previous && previous.parentNode == parent && child.previousSibling != previous)) {
@@ -796,13 +890,29 @@ place = function(parent, previous, child, current, root, selected, context) {
 }
 
 function needsSplitterBetween(left, right) {
-  return (right.tagName == 'H1' && (!left || left.tagName != 'IMG' || left.previousElementSibling)) 
+  return (right.tagName == 'H1' && (!left || left.tagName != 'IMG' || (getSectionFirstChild(left.parentNode) != left))) 
       || (right.tagName == 'H2' && (!left || (left.tagName != 'H1' && (left.tagName != 'IMG' || left.previousElementSibling))))
 }
 
+function getAllElements(editor) {
+  var root = editor.element.$;
+  var elements = Array.prototype.slice.call(root.getElementsByTagName('*'));
+  var result = []
+  loop: for (var i = 0; i < elements.length; i++) {
+    for (var parent = elements[i]; parent; parent = parent.parentNode) {
+      if (parent.classList && parent.classList.contains('toolbar'))
+        continue loop;
+      if (parent.tagName == 'SECTION' || parent == root) {
+        result.push(elements[i])
+        break;
+      }
+    }
+  }
+  return result;
+}
 function snapshotStyles(editor, reset) {
 
-  var elements = Array.prototype.slice.call(editor.element.$.getElementsByTagName('*'));
+  var elements = getAllElements(editor);
   if (reset) {
     editor.element.$.classList.remove('moving')
     editor.element.$.style.height = '';
@@ -833,6 +943,7 @@ function snapshotStyles(editor, reset) {
   var range = selection.getRanges()[0];
   if (range) {
     var iterator = selection.getRanges()[0].createIterator();
+    iterator.enforceRealBlocks = false;
     var selection = []
     for (var element; element = iterator.getNextParagraph();) {
       var selected = element.$;
@@ -847,6 +958,7 @@ function snapshotStyles(editor, reset) {
 }
 
 function fix(editor, mutation, observer) {
+
   var snapshot = editor.stylesnapshot || snapshotStyles(editor);
   editor.stylesnapshot = undefined;
 
@@ -1021,11 +1133,13 @@ CKEDITOR.plugins.add( 'structural', {
         if (m.type === 'childList') {
           for (var j = 0; j < m.removedNodes.length; j++)
             if (m.removedNodes[j].nodeType == 1 &&
-                m.removedNodes[j].tagName != 'SPAN')
+                m.removedNodes[j].tagName != 'SPAN' &&
+                (!m.removedNodes[j].classList || !m.removedNodes[j].classList.contains('toolbar')))
               return fix(editor, mutations[i], observer);
           for (var j = 0; j < m.addedNodes.length; j++)
             if (m.addedNodes[j].nodeType == 1 &&
-                m.addedNodes[j].tagName != 'SPAN')
+                m.addedNodes[j].tagName != 'SPAN' &&
+                (!m.addedNodes[j].classList || !m.addedNodes[j].classList.contains('toolbar')))
               return fix(editor, mutations[i], observer);
         } else {
           if (m.target != editor.element.$
@@ -1103,11 +1217,8 @@ function setLink(editor, url) {
   }
 
   if ( !element || element.getName() != 'a' ) {
-    if (!url) {
+    if (!url)
       url = prompt('Enter url:')
-      if (url.indexOf('//') == -1)
-        url = 'http://' + url;
-    }
     var text = selection.getSelectedText();
     element = editor.document.createElement( 'a' );
     var youtube;
@@ -1129,11 +1240,17 @@ function setLink(editor, url) {
   } else {
     if (url == null)
       url = prompt('Enter url:', element.$.href)
-    if (url.indexOf('//') == -1)
-      url = 'http://' + url;
   }
 
-  element.setAttribute('href', url)
+  if (url) {
+    if (url.indexOf('//') == -1)
+      url = 'http://' + url;
+    element.setAttribute('href', url)
+  } else {
+    while (element.$.firstChild)
+      element.$.parentNode.insertBefore(element.$.firstChild, element.$)
+    element.$.parentNode.removeChild(element.$)
+  }
   editor.fire('saveSnapshot')
 
 }
@@ -1145,23 +1262,39 @@ function youtube_parser(url){
 function getElementsAffectedByDrag(editor, e) {
   var y = editor.dragstart - e.pageY;
   var result = []
+  
+  var target = e.target;
+  while (target && target.tagName != 'SECTION')
+    target = target.parentNode;
+  if (editor.dragover)
+  if (!target) return result;
+
+  editor.dragover = target;
+
   if (y > 0) {
-    var previous = editor.dragging.previousSibling;
+    var previous = target;
     if (previous) {
       var top = editor.dragtop - (editor.dragging.offsetTop - previous.offsetTop)
       var height = previous.offsetHeight
       for (var i = 0, children = previous.childNodes, child; child = children[i++];)
-        if (child.offsetTop + child.offsetHeight / 2 > height - y)
-          result.push(child)
+        if (!child.classList.contains('toolbar'))
+          if (child.offsetTop + Math.min(70, child.offsetHeight / 2) > height - y)
+            result.push(child)
     }
   } else {
-    var next = editor.dragging
+    var next = target
     var top = editor.dragtop + (next.offsetTop - editor.dragging.offsetTop)
     var height = next.offsetHeight
     for (var i = 0, children = next.childNodes, child; child = children[i++];)
-      if (child.offsetTop + child.offsetHeight / 2 < - y)
-        result.push(child)
+      if (!child.classList.contains('toolbar'))
+        if (child.offsetTop + Math.min(70, child.offsetHeight / 2) < - y)
+          result.push(child)
   }
+  
+  var width = target.offsetWidth;
+  dragzone.style.left = target.offsetLeft + editor.offsetLeft + 'px';
+  dragzone.style.width = width + 'px';
+
   return result
 }
 
@@ -1191,7 +1324,7 @@ function updateToolbar(editor, force) {
   while (endSection && endSection.tagName != 'SECTION')
     endSection = endSection.parentNode;
 
-
+  if (!startSection) return;
   var sectionStyle = window.getComputedStyle(startSection);
   var sectionAfterStyle = window.getComputedStyle(startSection, ':after');
 
@@ -1222,9 +1355,9 @@ function updateToolbar(editor, force) {
   }
 
   formatting.style.top= Math.max( offsetTop,
-                          Math.min( window.scrollY + window.innerHeight - 20,
+                          Math.min( window.scrollY + window.innerHeight - 54,
                             Math.min( offsetTop + start.offsetHeight,
-                              Math.max(window.scrollY + 20, offsetTop + offsetHeight / 2)))) + 'px';
+                              Math.max(window.scrollY + 54, offsetTop + offsetHeight / 2)))) + 'px';
 
 
   formattingStyle.textContent = 
@@ -1284,6 +1417,12 @@ function updateToolbar(editor, force) {
       el.removeAttribute('hidden')
     } else if (!el.classList.contains('cke_button__link')) {
       el.setAttribute('hidden', 'hidden')
+    } else {
+      if (range.startContainer.getAscendant( 'a', true )) {
+        el.classList.add('actual')
+      } else {
+        el.classList.remove('actual')
+      }
     }
   }
   //for (editor.ui.instances.title._)

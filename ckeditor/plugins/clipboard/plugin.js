@@ -1035,7 +1035,6 @@
 		}
 
 		function pasteDataFromClipboard( evt ) {
-			debugger
 			// Default type is 'auto', but can be changed by beforePaste listeners.
 			var eventData = {
 					type: 'auto',

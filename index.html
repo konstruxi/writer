@@ -5,9 +5,19 @@
     <link rel="stylesheet" href="./ckeditor.css" />
     <link rel="stylesheet" href="./flexbox.css" />
     <link rel="stylesheet" href="./picker.css" />
-    <meta name="viewport" content="width=device-width">
+    <meta name="viewport" content="width=device-width; initial-scale=1">
   </head>
   <body>
+<svg style="display: none" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+<defs>
+<g id="split-section-icon">
+<path d="M8,26 L20,26 L20,22 L8,22 L8,26 Z M40,34 L8,34 L8,38 L40,38 L40,34 Z M34,10 L8,10 L8,14 L34.5,14 C36.71,14 38.5,15.79 38.5,18 C38.5,20.21 36.71,22 34.5,22 L30,22 L30,18 L24,24 L30,30 L30,26 L34,26 C38.41,26 42,22.41 42,18 C42,13.59 38.41,10 34,10 Z"/>
+</g>
+
+<g id="resize-section-icon">
+  <path d="M40,10 L8,10 L8,14 L40,14 L40,10 Z M40,22 L8,22 L8,26 L40,26 L40,22 Z"></path>
+</g>
+</defs></svg>
 
   <div class="picker" style="display:none">
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
@@ -15,9 +25,12 @@
 
 
 <style id="formattingStyle"></style>
-<div id="formatting">
+<div id="formatting" hidden>
   <div class="picker cke_button">
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+  </div>
+  <div class="add cke_button">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M10 8v4h28V8H10zm0 20h8v12h12V28h8L24 14 10 28z"/></svg>
   </div>
 </div>
 
@@ -81,7 +94,7 @@
   --></tr>
   </table>
 </div>
-  <article class="content" contenteditable autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" >
+  <article class="content" contenteditable autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 <section class="forced">
 <img src="./images/arlberg-pass-833326_1280.jpg" palette="LV#ffc07b#ffcb8f#ffd699 V#bf6100#b25e00#a35400 DV#893f00#713200#662c00 DM#050305" />
 <h1>CSS Zen Garden</h1><h2>The Beauty of&nbsp;CSS&nbsp;Design</h2><p>A demonstration of what can be accomplished through&nbsp;CSS-based design. Select any style sheet from the list to load it into this page.</p><p>Download the example&nbsp;<a title="This page's source HTML code, not to be modified." href="http://www.csszengarden.com/examples/index">html file</a>&nbsp;and&nbsp;<a title="This page's sample CSS, the file you may modify." href="http://www.csszengarden.com/examples/style.css">css file</a></p><h2>The Road to Enlightenment</h2><p>Littering a dark and dreary road lay the past relics of browser-specific tags, incompatible&nbsp;DOMs, broken&nbsp;CSS&nbsp;support, and abandoned browsers.</p><p>We must clear the mind of the past. Web enlightenment has been achieved thanks to the tireless efforts of folk like the&nbsp;W3C,&nbsp;WaSP, and the major browser creators.</p><p>The CSS Zen Garden invites you to relax and meditate on the important lessons of the masters. Begin to see with clarity. Learn to use the time-honored techniques in new and invigorating fashion. Become one with the web.</p></section>

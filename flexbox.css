@@ -12,8 +12,6 @@ article > section {
   margin: 0 auto;
   flex: 1 0 100%;
 }
-
-
 section[pattern="two-images"] {
   align-self: stretch;
   flex: 1 0 30%;
@@ -69,13 +67,14 @@ article > section {
 
 section[pattern="two-images"] {
 
-  -webkit-flex: 0 1 48%;
-  -ms-flex: 0 1 48%;
-  flex: 0 1 48%;
+  -webkit-flex: 0 1 calc(50% - 1rem);
+  -ms-flex: 0 1 calc(50% - 1rem);
+  flex: 0 1 calc(50% - 1rem);
   -webkit-align-self: stretch;
   -ms-flex-item-align: stretch;
   align-self: stretch;
   width: 48%;
+  width: calc(50% - 1rem);
 }
 
 section[pattern="two-images"][index="0"] {

@@ -332,7 +332,6 @@
 					range.moveToElementEditStart( nextBlock );
 			} else {
 				var newBlockDir;
-
 				if ( previousBlock ) {
 					// Do not enter this block if it's a header tag, or we are in
 					// a Shift+Enter (#77). Create a new block element instead
@@ -341,8 +340,16 @@
 						// Otherwise, duplicate the previous block.
 						newBlock = previousBlock.clone();
 					}
-				} else if ( nextBlock ) {
+
+				// YAROSLAFF FEDIN HACK: Dont clone blocks, create ps instead
+				} else if ( nextBlock && nextBlock.is('li') ) {
 					newBlock = nextBlock.clone();
+				} else if (nextBlock &&nextBlock.is('h3')) {
+					newBlock = new CKEDITOR.dom.element('h2')
+				} else if (nextBlock &&nextBlock.is('h2')) {
+					newBlock = new CKEDITOR.dom.element('h1')
+				} else {
+					newBlock = new CKEDITOR.dom.element('p')
 				}
 
 				if ( !newBlock ) {
@@ -380,7 +387,6 @@
 				}
 
 				newBlock.appendBogus();
-
 				if ( !newBlock.getParent() )
 					range.insertNode( newBlock );
 
@@ -400,7 +406,12 @@
 				}
 
 				// Move the selection to the new block.
-				range.moveToElementEditStart( isStartOfBlock && !isEndOfBlock ? nextBlock : newBlock );
+
+				// YAROSLAFF FEDIN HACK: When pressing enter at beginning of block element, move cursor to new block
+				if (isStartOfBlock && !isEndOfBlock && nextBlock && nextBlock.$.previousElementSibling == newBlock.$) {
+					range.moveToElementEditStart( newBlock );
+				} else			
+					range.moveToElementEditStart( isStartOfBlock && !isEndOfBlock ? nextBlock : newBlock );
 			}
 
 			range.select();

@@ -457,9 +457,17 @@ CSS = function(prefix) {
 prefix + " {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
+"  outline-color: " + this.accent + ";\n" +
+"}\n" +
+prefix + " .toolbar .handler {\n" +
+"  background-color: " + this.background + ";\n" +
+"  border-color: " + this.background + ";\n" +
 "}\n" +
 prefix + ":after {\n" +
 "  background-color: " + this.background + ";\n" +
+"}\n" +
+prefix + " .toolbar {\n" +
+"  color: " + this.accent + ";\n" +
 "}\n" +
 prefix + " h1,\n" +
 prefix + " h2,\n" +

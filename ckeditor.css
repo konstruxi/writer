@@ -88,15 +88,19 @@ section .toolbar svg{
   fill: currentColor;
 }
 
-section .toolbar svg.split {
+.no-touch section .toolbar svg.split {
+  display: none;
+}
+.touch section .toolbar svg.resize {
   display: none;
 }
 
-section .toolbar .handle:hover svg.split {
+
+.no-touch section .toolbar .handle:hover svg.split {
   display: block;
   cursor: pointer;
 }
-section .toolbar .handle:hover svg.resize {
+.no-touch section .toolbar .handle:hover svg.resize {
   display: none;
 }
 

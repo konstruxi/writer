@@ -60,7 +60,6 @@ function Editor(content) {
 
   editor.on('key', function(e) {
     if (e.data.keyCode == 13) {
-      snapshotTransforms(editor);
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
       if (range) {
@@ -75,7 +74,6 @@ function Editor(content) {
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
       if (!range || !range.checkStartOfBlock()) return;
-      snapshotTransforms(editor);
       var container = range.startContainer.$
       for (; container.parentNode; container = container.parentNode) {
         if (getSectionFirstChild(container.parentNode).firstChild != container)
@@ -1215,10 +1213,15 @@ function animate(editor, snapshot, section, callback) {
       editor.resetstyles = setTimeout(function() {
         editor.fire( 'lockSnapshot');
         if (editor.toolbarsToRender) {
-          editor.toolbarsToRender.forEach(function(toolbar) {
-            toolbar.element.innerHTML = toolbar.content;
-          })
-          editor.toolbarsToRender = []
+          var toolbars = editor.toolbarsToRender;
+          setTimeout(function() {
+            requestAnimationFrame(function() {
+              toolbars.forEach(function(toolbar) {
+                toolbar.element.innerHTML = toolbar.content;
+              })
+            })
+          }, 100)
+          editor.toolbarsToRender = null
         }
         editor.element.$.classList.remove('animating');
         editor.animating = null
@@ -1286,7 +1289,7 @@ function shift(editor, element, to, all, from, elements, root, parentX, parentY,
     element.parentNode.tagName == 'OL' ||
     element.parentNode.tagName == 'UL' ||
     element.parentNode.tagName == 'BLOCKQUOTE') {
-    if ((!f || !isBoxVisible(editor, f)) && !isBoxVisible(editor, t)) {
+    if (element.classList.contains('unobserved') || (!f || !isBoxVisible(editor, f)) && !isBoxVisible(editor, t)) {
       element.classList.add('unobserved')
     } else {
       if (elements.length 

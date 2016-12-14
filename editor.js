@@ -88,11 +88,11 @@ function Editor(content) {
 
     onCursorMove(editor)
     updateToolbar(editor)
-     requestAnimationFrame(function() {
-       var range = editor.getSelection().getRanges()[0];
-       if (range)
-         setActiveSection(range.startContainer.$)
-     })
+    requestAnimationFrame(function() {
+      var range = editor.getSelection().getRanges()[0];
+      if (range)
+        setActiveSection(range.startContainer.$)
+    })
     
   } );
   editor.on( 'focus', function(e) {
@@ -518,14 +518,14 @@ onDragEnd = function(editor, e) {
 
 // clean up empty content if it's not in currently focused section
 function onCursorMove(editor, force, blur) {
-  if (editor.dontanimate) return;
-  clearTimeout(editor.clearcursor)
-  cancelAnimationFrame(editor.clearcursor)
+  if (editor.dontanimate || editor.clearcursor) return;
   editor.clearcursor = setTimeout(function() {
     editor.clearcursor = requestAnimationFrame(function() {
+      editor.clearcursor = null;
+      console.log('clearcursor')
       cleanEmptyContent(editor, force, blur)
     })
-  }, 50)
+  }, 100)
 
 }
 
@@ -1003,7 +1003,7 @@ function snapshotStyles(editor, reset, focused) {
       offsetTop += p.offsetTop;
 
 
-    requestAnimationFrame(function() {
+    //requestAnimationFrame(function() {
       editor.dragbookmark = null;
       var selection = editor.getSelection();
       var range = editor.createRange();
@@ -1032,7 +1032,7 @@ function snapshotStyles(editor, reset, focused) {
       //if (window.scrollY > offsetTop - 75/* || window.scrollY + window.innerHeight / 3 <  offsetTop - 75*/) {
       //  window.scrollTo(0, offsetTop - window.innerHeight / 6)
       //}
-    })
+    //})
   }
   
   return [elements, dimensions, selection, editor.element.$.offsetHeight];
@@ -1393,9 +1393,9 @@ function updateToolbar(editor, force) {
   var selection = editor.getSelection();
   if (!selection) return;
 
-  clearTimeout(editor.hidingButtons);
+  if (editor.hidingButtons) return;
   editor.hidingButtons = setTimeout(function() {
-
+    editor.hidingButtons = null;
   var range = selection.getRanges()[0];
   if (!range || !range.startContainer) return;
   var start = getEditableAscender(range.startContainer.$);
@@ -1440,25 +1440,6 @@ function updateToolbar(editor, force) {
     }
   }
 
-
-  requestAnimationFrame(function() {
-
-  formatting.style.top= Math.max( offsetTop,
-                          Math.min( window.scrollY + window.innerHeight - 54,
-                            Math.min( offsetTop + start.offsetHeight,
-                              Math.max(window.scrollY + 54, offsetTop + offsetHeight / 2)))) + 'px';
-
-
-// formattingStyle.textContent = 
-// " #formatting { color: " + sectionAfterStyle['color'] + "; background-color: " + sectionStyle['background-color'] + " }" + 
-// " #formatting .cke_button { background-color: " + sectionStyle['background-color'] + "  }" +
-// #formatting .picker:after { background-color: " + sectionAfterStyle['border-color'] + "  }" + 
-// #formatting .picker:before { background-color: " + sectionAfterStyle['background-color'] + "  }" + 
-// #formatting:before { background-color: " + sectionAfterStyle['outline-color'] + "  }"; 
-
-  formatting.style.left = offsetLeft + 'px';
-  formatting.style.display = 'block';
-
   var ui = editor.ui.instances
   if (range.startOffset != range.endOffset && start == end) {
     if (ui.Bold._.state == 2 && ui.Italic._.state == 2 && 
@@ -1498,7 +1479,21 @@ function updateToolbar(editor, force) {
     }
   }
 
-  if (!button) return;
+
+  requestAnimationFrame(function() {
+
+  formatting.style.top= Math.max( offsetTop,
+                          Math.min( window.scrollY + window.innerHeight - 54,
+                            Math.min( offsetTop + start.offsetHeight,
+                              Math.max(window.scrollY + 54, offsetTop + offsetHeight / 2)))) + 'px';
+
+  setUIColors(sectionStyle, sectionAfterStyle);
+
+  formatting.style.left = offsetLeft + 'px';
+  formatting.style.display = 'block';
+
+  if (!button || editor.currentButton == button) return;
+  editor.currentButton = button;
   var buttons = formatting.querySelectorAll('.cke .cke_button');
   var target = 'cke_button__' + button.toLowerCase()
   for (var i = 0, el; el = buttons[i++];) {
@@ -1517,9 +1512,31 @@ function updateToolbar(editor, force) {
   //for (editor.ui.instances.title._)
 
   });
-}, 100)
+  console.log('zing')
+}, 75)
 }
 
 
 
+function setUIColors(sectionStyle, sectionAfterStyle) {
+  //if (!formattingStyle.sheet.cssRules.length) {
+  //  formattingStyle.sheet.insertRule('#formatting {}', 0);
+  //  formattingStyle.sheet.insertRule('#formatting .cke_button {}', 1);
+  //  formattingStyle.sheet.insertRule('#formatting:before {}', 2);
+  //}
+  /*
+  formattingStyle.sheet.cssRules[0].style.color = sectionAfterStyle['color'];
+  formattingStyle.sheet.cssRules[0].style.backgroundColor = sectionStyle['background-color'];
+  formattingStyle.sheet.cssRules[1].style.backgroundColor = sectionStyle['background-color'];
+  formattingStyle.sheet.cssRules[2].style.backgroundColor = sectionAfterStyle['outline-color'];
+*/
+  var text = "#formatting { color: " + sectionAfterStyle['color'] + "; background-color: " + sectionStyle['background-color'] + " }" + 
+  "#formatting .cke_button { background-color: " + sectionStyle['background-color'] + "  }" +
+  "#formatting .picker:after { background-color: " + sectionAfterStyle['border-color'] + "  }" + 
+  "#formatting .picker:before { background-color: " + sectionAfterStyle['background-color'] + "  }" + 
+  "#formatting:before { background-color: " + sectionAfterStyle['outline-color'] + "  }"; 
+
+  if (formattingStyle.textContent != text)
+    formattingStyle.textContent = text;
+}
 

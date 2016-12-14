@@ -16,7 +16,7 @@ function setActiveSection(target, force) {
   }
   clearTimeout(window.unpicking)
   var editor = Editor.get(target || activeSection);
-  if (editor) {
+  if (editor && activeSection != target) {
     editor.fire('lockSnapshot')
     if (!editor.isSetUp) {
       editor.isSetUp = true;

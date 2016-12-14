@@ -11,9 +11,8 @@ div.picker {
   width: 38px;
   opacity: 0.6;
 }
-
 body:not(.dragging) #formatting {
-  transition:  ease-out top 0.2s, left 0.2s, opacity 0.3s;
+  transition:  ease-out top 0.15s, left 0.15s, opacity 0.3s;
 }
 
 body:not(.dragging) #formatting * {
@@ -104,12 +103,12 @@ body.dragging .picker li {
 
 
 #formatting {
-  transition: top 0.2s, left 0.2s, opacity 0.3s;
   opacity: 1;
   z-index: 2200;
 }
 #formatting .cke_button {
   position: absolute;
+  background: #fff;
 }
 #formatting[hidden] {
   display: block;
@@ -253,7 +252,6 @@ section:hover {
 
 #formatting {
   position: absolute;
-  transition: 0.2s opacity;
   margin-left: -1.25rem;
   margin-top: -1.15rem;
 }

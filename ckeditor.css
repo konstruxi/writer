@@ -132,6 +132,10 @@ section.forced:after {
   border-color: #aaa;
 }
 
+.content * {
+  top: 0;
+  left: 0;
+}
 .content h1 {
   font-size: 2em;
   margin: 0;
@@ -218,7 +222,8 @@ section.clone {
 }
 
 .content .moving {
-  transition: 0.3s left, 0.3s top, 0.2s opacity, 0.3s width, 0.3s height, 0.3s font-size;
+  transition: 0.3s -webkit-transform, 0.3s left, 0.3s top, 0.2s opacity, 0.3s width, 0.3s height, 0.3s font-size;
+  -webkit-transition: 0.3s -webkit-transform, 0.3s left, 0.3s top, 0.2s opacity, 0.3s width, 0.3s height, 0.3s font-size;
   opacity: 1;
 }
 
@@ -228,7 +233,10 @@ section.clone {
 }
 
 
+
 .content .moving {
+  will-change: transform;
+  -webkit-will-change: transform;
   position: absolute  !important;
   margin-top: 0 !important;
   margin-left: 0 !important;
@@ -261,9 +269,11 @@ section[pattern="one-quote"] {
 
 section[pattern="two-images"][index="0"]:after {
   right: -1rem !important;
+  border-right-width: 1rem !important;
 }
 section[pattern="two-images"][index="1"]:after {
   left: -1rem !important;
+  border-left-width: 1rem !important;
 }
 section[index="0"], section:not([index]) {
   clear: both;
@@ -279,6 +289,7 @@ section[index="0"], section:not([index]) {
   bottom: -1rem;
   left: -1rem;
   right: -1rem;
+  border: 1rem solid transparent;
 }
 
 

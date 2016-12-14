@@ -463,9 +463,6 @@ prefix + " .toolbar .handler {\n" +
 "  background-color: " + this.background + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "}\n" +
-prefix + ":after {\n" +
-"  background-color: " + this.background + ";\n" +
-"}\n" +
 prefix + " .toolbar {\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
@@ -482,7 +479,7 @@ prefix + " img:after {\n" +
 "}\n" +
 prefix + " a, " + prefix + ":after {\n" +
 "  color: " + this.accent + ";\n" +
-"  border-color: " + this.accentAA + ";\n" +
+"  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}")
 };

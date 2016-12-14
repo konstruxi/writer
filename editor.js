@@ -17,6 +17,7 @@ function Editor(content) {
     floatSpaceDockedOffsetY: 10
   });
 
+  Editor.useTransforms = true;
 
   editor.on('uiSpace', function() {
     arguments[0].data.html = arguments[0].data.html.replace('>Insert/Remove Bulleted List<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M8 21c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM8 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 24c-1.67 0-3 1.35-3 3s1.35 3 3 3 3-1.35 3-3-1.33-3-3-3zm6 5h28v-4H14v4zm0-12h28v-4H14v4zm0-16v4h28v-4H14z"/></svg>' + '<')
@@ -37,25 +38,23 @@ function Editor(content) {
 
   editor.on('key', function(e) {
     if (e.data.keyCode == 13) {
-      if (!editor.stylesnapshot)
-        editor.stylesnapshot = snapshotStyles(editor);
+      //if (!editor.stylesnapshot)
+      //  editor.stylesnapshot = snapshotStyles(editor);
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
-      var container = range.startContainer.$
-      if (isEmptyParagraph(container))
-      for (; container.parentNode; container = container.parentNode) {
-        if (container.parentNode.firstElementChild != container)
-          break;
-        if (container.parentNode.lastElementChild != container)
-          break;
-        return false;
+      if (range) {
+        var container = getElementSection(range.startContainer.$);
+        var first = getSectionFirstChild(container);
+        if (!first || (isEmptyParagraph(first) && !first.nextElementSibling)) {
+         // return false;
+        }
       }
     }
     if (e.data.keyCode == 8) {
-      editor.stylesnapshot = snapshotStyles(editor);
+      //editor.stylesnapshot = snapshotStyles(editor);
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
-      if (!range.checkStartOfBlock()) return;
+      if (!range || !range.checkStartOfBlock()) return;
       var container = range.startContainer.$
       for (; container.parentNode; container = container.parentNode) {
         if (getSectionFirstChild(container.parentNode).firstChild != container)
@@ -71,7 +70,6 @@ function Editor(content) {
       }
       return true;
     }
-    console.log(e.data.keyCode)
     if (e.data.keyCode >= 37 && e.data.keyCode <= 40) {
       setTimeout(function() {
         onCursorMove(editor)
@@ -109,7 +107,7 @@ function Editor(content) {
   })
   editor.on('beforePaste', function(e) {
     
-    snapshotStyles(editor)
+    //snapshotStyles(editor)
 
     if (e.data.dataTransfer) {
       var data = e.data.dataTransfer.getData('text/plain');
@@ -181,34 +179,34 @@ function Editor(content) {
   }
   editor.on('instanceReady', function() {
     editor.commands.paragraph.on('exec', function() {
-      editor.stylesnapshot = snapshotStyles(editor);
+      //editor.stylesnapshot = snapshotStyles(editor);
     })
     editor.commands.heading.on('exec', function() {
-      editor.stylesnapshot = snapshotStyles(editor);
+      //editor.stylesnapshot = snapshotStyles(editor);
       replaceContents(editor, {lists: true, quotes: true})
     })
     editor.commands.subtitle.on('exec', function() {
-      editor.stylesnapshot = snapshotStyles(editor);
+      //editor.stylesnapshot = snapshotStyles(editor);
       replaceContents(editor, {lists: true, quotes: true})
     })
     editor.commands.title.on('exec', function() {
-      editor.stylesnapshot = snapshotStyles(editor);
+      //editor.stylesnapshot = snapshotStyles(editor);
       replaceContents(editor, {lists: true, quotes: true})
     })
     editor.commands.bulletedlist.on('exec', function() {
-      editor.stylesnapshot = snapshotStyles(editor);
+      //editor.stylesnapshot = snapshotStyles(editor);
       replaceContents(editor, {titles: true, quotes: true})
     }, null, null, 1)
     editor.commands.numberedlist.on('exec', function() {
-      editor.stylesnapshot = snapshotStyles(editor);
+      //editor.stylesnapshot = snapshotStyles(editor);
       replaceContents(editor, {titles: true, quotes: true})
     })
     editor.commands.blockquote.on('exec', function() {
-      editor.stylesnapshot = snapshotStyles(editor);
+      //editor.stylesnapshot = snapshotStyles(editor);
       replaceContents(editor, {titles: true, lists: true})
     })
     editor.commands.outdent.on('exec', function() {
-      editor.stylesnapshot = snapshotStyles(editor);
+      //editor.stylesnapshot = snapshotStyles(editor);
     })
     editor.commands.bold.on('exec', function() {
       if (editor.commands.italic.state == 1)
@@ -320,10 +318,11 @@ onEditorResize = function(editor) {
   }
   editor.measure()
   editor.stylesheet.textContent = '#' + editor.element.$.id + ' section:after{' + 
+    'border-left-width: calc(' + (editor.offsetLeft + 16) + 'px + 1rem); ' +
     'left: calc(-' + (editor.offsetLeft + 16) + 'px - 1rem); ' +
+    'border-right-width: calc(' + (window.innerWidth - editor.offsetLeft - editor.offsetWidth) + 'px + 1rem); ' +
     'right: calc(-' + (window.innerWidth - editor.offsetLeft - editor.offsetWidth) + 'px - 1rem); ' +
   '}'
-  console.log(editor.stylesheet.textContent)
 }
 
 onDragStart = function(editor, e) {
@@ -346,7 +345,7 @@ onDragStart = function(editor, e) {
     //if (top > e.pageY) {
       document.body.classList.add('dragging');
       editor.fire('saveSnapshot')
-      editor.stylesnapshot = snapshotStyles(editor)
+      //editor.stylesnapshot = snapshotStyles(editor)
       editor.dragbookmark = editor.getSelection().createBookmarks();
       editor.dragging = target;
       editor.dragtop = top;
@@ -522,7 +521,6 @@ function onCursorMove(editor, force, blur) {
   editor.clearcursor = setTimeout(function() {
     editor.clearcursor = requestAnimationFrame(function() {
       editor.clearcursor = null;
-      console.log('clearcursor')
       cleanEmptyContent(editor, force, blur)
     })
   }, 100)
@@ -554,8 +552,8 @@ function cleanEmptyContent(editor, force, blur) {
     }
     if (!selected || force || !inside) {
       if (isEmptyParagraph(children[i])) {
-        if (!snapshot) 
-          snapshot = editor.stylesnapshot = snapshotStyles(editor)
+        //if (!snapshot) 
+        //  snapshot = editor.stylesnapshot = snapshotStyles(editor)
         if (selected) 
           if (inside) {
             if (!before && !after) {
@@ -586,8 +584,8 @@ function cleanEmptyContent(editor, force, blur) {
                 var bookmark = selection.createBookmarks();
               }
 
-            if (!snapshot) 
-              snapshot = editor.stylesnapshot = snapshotStyles(editor)
+            //if (!snapshot) 
+            //  snapshot = editor.stylesnapshot = snapshotStyles(editor)
 
             els[j].parentNode.removeChild(els[j])
 
@@ -814,6 +812,12 @@ newSection = function(section) {
   return section
 }
 
+getElementSection = function(element) {
+  while (element && element.tagName != 'SECTION')
+    element = element.parentNode;
+  return element;
+}
+
 getSectionFirstChild = function(section) {
   var first = section.firstElementChild;
   if (first.classList.contains('toolbar'))
@@ -941,15 +945,48 @@ function snapshotStyles(editor, reset, focused) {
 
   var elements = getAllElements(editor);
   if (reset) {
+
+    if (Editor.useTransforms && editor.animating) {
+      var transforms = [];
+      for (var i = 0; i < elements.length; i++) {
+        var style = window.getComputedStyle(elements[i]);
+        var transform = style['-webkit-transform'] || style['transform'];
+        var j = transform.indexOf('(') 
+        if (j > -1) {
+          var value = transform.substring(j + 1, transform.indexOf(')'));
+          var bits = value.split(',')
+          var els = editor.styleupdate[0];
+          var oldIndex = els.indexOf(elements[i]);
+          if (oldIndex > -1) {
+            var oldPosition = editor.styleupdate[1][oldIndex]
+            if (bits.length == 6) {
+              var left = oldPosition.x -parseInt(bits[4]);
+              var top  = oldPosition.y -parseInt(bits[5]);
+              transform = [left, top]
+            } else {
+
+            }
+          }
+        }
+        transforms.push(transform)
+      }
+    }
     editor.element.$.classList.remove('moving')
     editor.element.$.style.height = '';
+
     for (var i = 0; i < elements.length; i++) {
+      elements[i].style.webkitTransitionDuration = '0s'
+      elements[i].style.transitionDuration = '0s'
       elements[i].style.height = ''
       elements[i].style.width = ''
-      elements[i].style.top = ''
-      elements[i].style.left = ''
+      if (Editor.useTransforms) {
+        elements[i].style.transform = ''
+        elements[i].style.webkitTransform = ''
+      } else {
+        elements[i].style.top = ''
+        elements[i].style.left = ''
+      }
       elements[i].style.fontSize = ''
-      elements[i].style.transition = 'none'
       elements[i].classList.remove('moving')
     }
   }
@@ -975,8 +1012,9 @@ function snapshotStyles(editor, reset, focused) {
     var range = selection.getRanges()[0];
     if (range) {
       if (bookmark && bookmark.length == 1) {
-        var ancestor = getEditableAscender(bookmark[0].startNode.$.parentNode);
-        var selection = [ancestor, window.getComputedStyle(ancestor)['font-size']]
+        var ancestor = getEditableAscender(bookmark[0].startNode.$);
+        if (ancestor)
+          var selection = [ancestor, window.getComputedStyle(ancestor)['font-size']]
       } else if (range.startContainer.$ == range.endContainer.$) {
         var ancestor = getEditableAscender(range.startContainer.$);
         var selection = [ancestor, window.getComputedStyle(ancestor)['font-size']]
@@ -1035,13 +1073,13 @@ function snapshotStyles(editor, reset, focused) {
     //})
   }
   
-  return [elements, dimensions, selection, editor.element.$.offsetHeight];
+  return [elements, dimensions, selection, editor.element.$.offsetHeight, transforms];
 }
 
 function fix(editor, mutation, observer) {
 
   var snapshot = editor.stylesnapshot || snapshotStyles(editor);
-  editor.stylesnapshot = undefined;
+  //editor.stylesnapshot = undefined;
 
 
   editor.fire( 'lockSnapshot');
@@ -1052,7 +1090,7 @@ function fix(editor, mutation, observer) {
   group(content)
 
 
-  animate(editor, snapshot, section);
+  editor.stylesnapshot = animate(editor, snapshot, section);
 
   if (observer)
     observer.takeRecords()
@@ -1065,17 +1103,14 @@ function animate(editor, snapshot, section, callback) {
   elements = snapshot[0];
   dimensions = snapshot[1];
 
+
   var update = snapshotStyles(editor, true);
   var all = update[0]
   var current = update[1];
+  var transforms = update[4]
   editor.styleupdate = update;
 
-  // dont restart animation on phones to avoid flickering
-  if (editor.animating && window.innerWidth < 600) {
-    updateToolbar(editor, true)
-    togglePicker(editor, true)
-    return
-  }
+
 
   if (snapshot[2] && update[2]) {
 
@@ -1089,6 +1124,7 @@ function animate(editor, snapshot, section, callback) {
         var morphing = true;
         after.style.fontSize = beforeSize;
         after.style.transition = 'none'
+        after.style.webkitTransition = 'none'
         elements.push(after)
         dimensions.push(dimensions[elements.indexOf(before)])
       }
@@ -1097,30 +1133,39 @@ function animate(editor, snapshot, section, callback) {
     editor.element.$.style.height = snapshot[3] + 'px';
 
   }
+  editor.element.$.classList.add('animating');
   updateToolbar(editor, true)
   togglePicker(editor, true)
   
   var repositioned = false;
   var content = editor.element.$;
   for (var i = 0; i < content.children.length; i++) {
-    repositioned = shift(content.children[i], current, all, dimensions, elements, content, 0, 0, repositioned)
+    repositioned = shift(content.children[i], current, all, dimensions, elements, content, 0, 0, repositioned, transforms)
   }
 
 
+  clearTimeout(editor.resetstyles)
+
+  // ios needs 2 frames to avoid transition for some reason
+  cancelAnimationFrame(editor.animating);
+  editor.animating = requestAnimationFrame(function() {
   cancelAnimationFrame(editor.animating);
   editor.animating = requestAnimationFrame(function() {
       editor.fire( 'lockSnapshot');
       editor.element.$.style.transition = '';
+      editor.element.$.style.webkitTransition = '';
       editor.element.$.style.height = update[3] + 'px';
 
       for (var i = 0; i < all.length; i++) {
-        all[i].style.transition = '';
+        all[i].style.transition = 
+        all[i].style.webkitTransition = '';
       }
 
 
       if (morphing) {
         for (var i = 0; i < update[2].length; i += 2) {
           update[2][i].style.transition = ''
+          update[2][i].style.webkitTransition = ''
           update[2][i].style.fontSize = update[2][i + 1];
         }
       }
@@ -1134,6 +1179,7 @@ function animate(editor, snapshot, section, callback) {
 
       clearTimeout(editor.resetstyles)
       editor.resetstyles = setTimeout(function() {
+        editor.element.$.classList.remove('animating');
         editor.animating = null
         editor.styleupdate = null
         editor.fire( 'lockSnapshot');
@@ -1144,20 +1190,28 @@ function animate(editor, snapshot, section, callback) {
           all[i].classList.remove('moving')
           all[i].style.height = ''
           all[i].style.width = ''
-          all[i].style.left = ''
-          all[i].style.top = ''
+          if (Editor.useTransforms) {
+            all[i].style.transform = 
+            all[i].style.webkitTransform = ''
+          } else {
+            all[i].style.left = ''
+            all[i].style.top = ''
+          }
           all[i].style.fontSize = ''
         }
         editor.fire( 'unlockSnapshot' )
-      }, 300)
-    })
+      }, 3000)
+    }, 500)
+})
 
+  return update;
 };
 
 
-function shift(element, to, all, from, elements, root, parentX, parentY, repositioned, diffX, diffY, p) {
+function shift(element, to, all, from, elements, root, parentX, parentY, repositioned, transforms, diffX, diffY, p) {
   var f = from[elements.indexOf(element)]
-  var t = to[all.indexOf(element)]
+  var index = all.indexOf(element);
+  var t = to[index]
   if (!t) return;
 
   if (f) {
@@ -1181,7 +1235,7 @@ function shift(element, to, all, from, elements, root, parentX, parentY, reposit
 
   var repos = false;
   for (var i = 0; i < element.children.length; i++) {
-    repos = shift(element.children[i], to, all, from, elements, root, posX, posY, repos, - diffX, - diffY, t)
+    repos = shift(element.children[i], to, all, from, elements, root, posX, posY, repos, transforms, - diffX, - diffY, t)
   }
   if (element.parentNode.tagName == 'SECTION' || 
     element.parentNode === root || 
@@ -1195,8 +1249,21 @@ function shift(element, to, all, from, elements, root, parentX, parentY, reposit
       if (!repositioned)
         repositioned = 1;
       element.classList.add('moving')
-      element.style.left = Math.floor(shiftX) + 'px'
-      element.style.top = Math.floor(shiftY) + 'px'
+      if (Editor.useTransforms) {
+        var translateX = shiftX;
+        var translateY = shiftY;
+        if (transforms && transforms[index] && transforms[index].push) {
+          translateX -= transforms[index][0];
+          translateY -= transforms[index][1];
+        }
+        element.style.webkitTransform =
+        element.style.transform = 'translateX(' + translateX + 'px) translateY(' + translateY + 'px)'
+      } else {
+        element.style.left = Math.floor(shiftX) + 'px'
+        element.style.top = Math.floor(shiftY) + 'px'
+      }
+      t.x = shiftX;
+      t.y = shiftY;
       element.style.height = (f && f.height || t.height) + 'px'
       element.style.width = (f && f.width || t.width) + 'px'
     }
@@ -1348,10 +1415,8 @@ function getElementsAffectedByDrag(editor, e) {
   var target = e.target;
   while (target && target.tagName != 'SECTION')
     target = target.parentNode;
-  if (editor.dragover)
   if (!target) return result;
 
-  editor.dragover = target;
 
   if (y > 0) {
     var previous = target;
@@ -1381,10 +1446,10 @@ function getElementsAffectedByDrag(editor, e) {
 }
 
 function getEditableAscender(element) {
-  while (!element.tagName || element.tagName == 'STRONG'
-                          || element.tagName == 'EM' 
-                          || element.tagName == 'SPAN'
-                          || element.tagName == 'A')
+  while (element && (!element.tagName || element.tagName == 'STRONG'
+                            || element.tagName == 'EM' 
+                            || element.tagName == 'SPAN'
+                            || element.tagName == 'A'))
     element = element.parentNode;
   return element;
 }
@@ -1482,16 +1547,18 @@ function updateToolbar(editor, force) {
 
   requestAnimationFrame(function() {
 
-  formatting.style.top= Math.max( offsetTop,
+  var top = Math.max( offsetTop,
                           Math.min( window.scrollY + window.innerHeight - 54,
                             Math.min( offsetTop + start.offsetHeight,
                               Math.max(window.scrollY + 54, offsetTop + offsetHeight / 2)))) + 'px';
 
-  setUIColors(sectionStyle, sectionAfterStyle);
-
-  formatting.style.left = offsetLeft + 'px';
+  var left = offsetLeft + 'px';
+  
   formatting.style.display = 'block';
 
+  formatting.style.transform = 
+  formatting.style.webkitTransform = 'translateX(' + left + ') translateY(' + top + ')'; 
+  setUIColors(sectionStyle, sectionAfterStyle);
   if (!button || editor.currentButton == button) return;
   editor.currentButton = button;
   var buttons = formatting.querySelectorAll('.cke .cke_button');
@@ -1511,8 +1578,8 @@ function updateToolbar(editor, force) {
   }
   //for (editor.ui.instances.title._)
 
+
   });
-  console.log('zing')
 }, 75)
 }
 

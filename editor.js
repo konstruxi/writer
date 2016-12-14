@@ -17,8 +17,30 @@ function Editor(content) {
     floatSpaceDockedOffsetY: 10
   });
 
+
   Editor.useTransforms = true;
 
+  editor.measure = function() {
+    this.offsetHeight = editor.element.$.offsetHeight;
+    this.offsetWidth  = editor.element.$.offsetWidth;
+    this.offsetTop    = editor.element.$.offsetTop;
+    this.offsetLeft   = editor.element.$.offsetLeft;
+    this.innerWidth   = window.innerWidth;
+    this.innerHeight  = window.innerHeight;
+    this.scrollY      = window.scrollY;
+    this.box = {
+      width: this.offsetWidth,
+      height: this.offsetHeight,
+      top: this.offsetTop - window.scrollY,
+      left: this.offsetLeft - window.scrollX
+    }
+    this.zoom = this.offsetWidth / this.box.width
+  }
+
+  editor.measure();
+  editor.on('contentDom', function() {
+    editor.measure();
+  })
   editor.on('uiSpace', function() {
     arguments[0].data.html = arguments[0].data.html.replace('>Insert/Remove Bulleted List<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M8 21c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM8 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 24c-1.67 0-3 1.35-3 3s1.35 3 3 3 3-1.35 3-3-1.33-3-3-3zm6 5h28v-4H14v4zm0-12h28v-4H14v4zm0-16v4h28v-4H14z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Insert/Remove Numbered List<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M4 34h4v1H6v2h2v1H4v2h6v-8H4v2zm2-18h2V8H4v2h2v6zm-2 6h3.6L4 26.2V28h6v-2H6.4l3.6-4.2V20H4v2zm10-12v4h28v-4H14zm0 28h28v-4H14v4zm0-12h28v-4H14v4z"/></svg>' + '<')
@@ -38,23 +60,22 @@ function Editor(content) {
 
   editor.on('key', function(e) {
     if (e.data.keyCode == 13) {
-      //if (!editor.stylesnapshot)
-      //  editor.stylesnapshot = snapshotStyles(editor);
+      snapshotTransforms(editor);
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
       if (range) {
         var container = getElementSection(range.startContainer.$);
         var first = getSectionFirstChild(container);
         if (!first || (isEmptyParagraph(first) && !first.nextElementSibling)) {
-         // return false;
+          return false;
         }
       }
     }
     if (e.data.keyCode == 8) {
-      //editor.stylesnapshot = snapshotStyles(editor);
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
       if (!range || !range.checkStartOfBlock()) return;
+      snapshotTransforms(editor);
       var container = range.startContainer.$
       for (; container.parentNode; container = container.parentNode) {
         if (getSectionFirstChild(container.parentNode).firstChild != container)
@@ -277,6 +298,7 @@ function Editor(content) {
   content.addEventListener('ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown', editor)
 
   window.addEventListener('scroll', function() {
+    editor.scrollY = window.scrollY;
     updateToolbar(editor)
   })
   window.addEventListener('resize', function() {
@@ -284,12 +306,6 @@ function Editor(content) {
   })
 
 
-  editor.measure = function() {
-    this.offsetHeight = editor.element.$.offsetHeight;
-    this.offsetWidth  = editor.element.$.offsetWidth;
-    this.offsetTop  = editor.element.$.offsetTop;
-    this.offsetLeft  = editor.element.$.offsetLeft;
-  }
   Editor.elements.push(content)
   Editor.editors.push(editor)
 
@@ -425,7 +441,7 @@ onDragEnd = function(editor, e) {
     var dragged = editor.dragged;
     var dragstart = editor.dragstart
 
-    var section = newSection()
+    var section = newSection(editor)
 
     if (!dragging.classList.contains('forced'))
       section.classList.add('new')
@@ -479,7 +495,7 @@ onDragEnd = function(editor, e) {
         var a = getSectionFirstChild(editor.dragging);
         var b = editor.dragging.previousElementSibling && getSectionFirstChild(editor.dragging.previousElementSibling)
         if ((!a || !isEmptyParagraph(a)) && (!b || !isEmptyParagraph(b))) {
-          var sect = newSection();
+          var sect = newSection(editor);
           sect.classList.add('forced')
           var focused = document.createElement('p');
           sect.appendChild(focused);
@@ -638,13 +654,13 @@ split = function(editor, root) {
       var grandchildren = Array.prototype.slice.call(child.childNodes);
       for (var j = 0; j < grandchildren.length; j++) {
         if (!grandchildren[j].classList || !grandchildren[j].classList.contains('toolbar')) {
-          last = place(last, prev, grandchildren[j], current, root, selected, context)
+          last = place(editor, last, prev, grandchildren[j], current, root, selected, context)
           if (last === current) {
-            newSection(current)
+            newSection(editor, current)
             current = undefined;
           }
         } else if (last != current) {
-          grandchildren[j].parentNode.removeChild(grandchildren[j]);
+          //grandchildren[j].parentNode.removeChild(grandchildren[j]);
           continue;
         }
         prev = grandchildren[j];
@@ -655,7 +671,7 @@ split = function(editor, root) {
       continue;
     }
 
-    last = place(last, prev, child, null, root, null, context)
+    last = place(editor, last, prev, child, null, root, null, context)
     prev = child;
   }
 
@@ -793,19 +809,25 @@ isInside = function(element, another) {
   }
 }
 
-newSection = function(section) {
+newSection = function(editor, section) {
   if (!section)
     section = document.createElement('section');
+  
   if (!section.getElementsByClassName('toolbar')[0]) {
                 
     var toolbar = document.createElement('div');
     toolbar.className = 'toolbar'
     toolbar.setAttribute('unselectable', 'on')
 
-    toolbar.innerHTML = '<x-button class="handle">' +
-                          '<svg viewBox="0 0 48 48" class="resize handler icon"><use xlink:href="#resize-section-icon"></use></svg>' +
-                          '<svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>' +
-                        '</x-button>'
+    if (!editor.toolbarsToRender)
+      editor.toolbarsToRender = []
+    editor.toolbarsToRender.push({
+      element: toolbar,
+      content: '<x-button class="handle">' +
+                  '<svg viewBox="0 0 48 48" class="resize handler icon"><use xlink:href="#resize-section-icon"></use></svg>' +
+                  '<svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>' +
+                '</x-button>'
+    })
     section.insertBefore(toolbar, section.firstChild)
   }
 
@@ -831,7 +853,7 @@ getSectionStartElement = function(section) {
     first = first.firstElementChild; 
   return first;
 }
-place = function(parent, previous, child, current, root, selected, context) {
+place = function(editor, parent, previous, child, current, root, selected, context) {
   if (previous) {
     // start a new line after empty paragraph
     if (selected) {
@@ -864,7 +886,7 @@ place = function(parent, previous, child, current, root, selected, context) {
 
       if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
         
-        var section = newSection()
+        var section = newSection(editor)
         if (parent.parentNode)
           parent.parentNode.insertBefore(section, parent.nextSibling);
         section.appendChild(child)
@@ -890,7 +912,7 @@ place = function(parent, previous, child, current, root, selected, context) {
       if (child && isEmptyParagraph(child) && previous && !isEmptyParagraph(previous))
         context.reselected = child;
 
-      var section = (current || newSection());
+      var section = (current || newSection(editor));
       if (parent.parentNode) 
         if (section.parentNode != parent.parentNode || section.previousSibling != parent)
           parent.parentNode.insertBefore(section, parent.nextSibling);
@@ -906,7 +928,7 @@ place = function(parent, previous, child, current, root, selected, context) {
     }
   }
   
-  if (!parent) parent = current || newSection()
+  if (!parent) parent = current || newSection(editor)
   if (!parent.parentNode)
     root.appendChild(parent);
   if (child.parentNode != parent || (previous && previous.parentNode == parent && child.previousSibling != previous)) {
@@ -941,36 +963,34 @@ function getAllElements(editor) {
   }
   return result;
 }
+
+function snapshotTransforms(editor, elements) {
+  if (!editor.animating || !Editor.useTransforms)
+    return
+  if (!elements)
+    elements = getAllElements(editor);
+  var transitioned = []
+  for (var i = 0; i < elements.length; i++) {
+    var box = null;
+    //for (var p = elements[i]; (p = p.parentNode) != editor.element.$;)
+    //  if (p.style.transform || p.style.webkitTransform) {
+        var bbox = elements[i].getBoundingClientRect()
+        box = {top: bbox.top - editor.box.top, 
+                  left: bbox.left - editor.box.left, 
+          height: bbox.height, width: bbox.width, parent: elements[i].parentNode}
+        //break;
+    //  }
+    transitioned.push(box)
+  }
+  return editor.transformsnapshot = [elements, transitioned]
+}
+
 function snapshotStyles(editor, reset, focused) {
 
   var elements = getAllElements(editor);
+    
+
   if (reset) {
-
-    if (Editor.useTransforms && editor.animating) {
-      var transforms = [];
-      for (var i = 0; i < elements.length; i++) {
-        var style = window.getComputedStyle(elements[i]);
-        var transform = style['-webkit-transform'] || style['transform'];
-        var j = transform.indexOf('(') 
-        if (j > -1) {
-          var value = transform.substring(j + 1, transform.indexOf(')'));
-          var bits = value.split(',')
-          var els = editor.styleupdate[0];
-          var oldIndex = els.indexOf(elements[i]);
-          if (oldIndex > -1) {
-            var oldPosition = editor.styleupdate[1][oldIndex]
-            if (bits.length == 6) {
-              var left = oldPosition.x -parseInt(bits[4]);
-              var top  = oldPosition.y -parseInt(bits[5]);
-              transform = [left, top]
-            } else {
-
-            }
-          }
-        }
-        transforms.push(transform)
-      }
-    }
     editor.element.$.classList.remove('moving')
     editor.element.$.style.height = '';
 
@@ -988,9 +1008,13 @@ function snapshotStyles(editor, reset, focused) {
       }
       elements[i].style.fontSize = ''
       elements[i].classList.remove('moving')
+      //elements[i].classList.remove('unobserved')
+
     }
   }
   var dimensions = []
+
+  editor.measure();
   for (var i = 0; i < elements.length; i++) {
     var box = {top: 0, left: 0, 
       height: elements[i].offsetHeight, width: elements[i].offsetWidth, parent: elements[i].parentNode}
@@ -1000,7 +1024,6 @@ function snapshotStyles(editor, reset, focused) {
     }
     dimensions.push(box)
   }
-  editor.measure();
   
   var bookmark = editor.dragbookmark;
 
@@ -1073,10 +1096,13 @@ function snapshotStyles(editor, reset, focused) {
     //})
   }
   
-  return [elements, dimensions, selection, editor.element.$.offsetHeight, transforms];
+  return [elements, dimensions, selection, reset && editor.element.$.offsetHeight || editor.offsetHeight];
 }
 
 function fix(editor, mutation, observer) {
+
+  if (!editor.transformsnapshot)
+    snapshotTransforms(editor);
 
   var snapshot = editor.stylesnapshot || snapshotStyles(editor);
   //editor.stylesnapshot = undefined;
@@ -1107,7 +1133,15 @@ function animate(editor, snapshot, section, callback) {
   var update = snapshotStyles(editor, true);
   var all = update[0]
   var current = update[1];
-  var transforms = update[4]
+
+  if (editor.transformsnapshot) {
+    var transitioned = []
+    for (var i = 0; i < all.length; i++) {
+      var j = editor.transformsnapshot[0].indexOf(all[i]);
+      transitioned.push(j > -1 ? editor.transformsnapshot[1][j] : null)
+    }
+    editor.transformsnapshot = null;
+  }
   editor.styleupdate = update;
 
 
@@ -1140,7 +1174,7 @@ function animate(editor, snapshot, section, callback) {
   var repositioned = false;
   var content = editor.element.$;
   for (var i = 0; i < content.children.length; i++) {
-    repositioned = shift(content.children[i], current, all, dimensions, elements, content, 0, 0, repositioned, transforms)
+    repositioned = shift(editor, content.children[i], current, all, dimensions, elements, content, 0, 0, repositioned, transitioned)
   }
 
 
@@ -1172,22 +1206,32 @@ function animate(editor, snapshot, section, callback) {
 
       var repositioned = false;
       for (var i = 0; i < content.children.length; i++) {
-        repositioned = shift(content.children[i], current, all, [], [], content, 0, 0, repositioned)
+        repositioned = shift(editor, content.children[i], current, all, [], [], content, 0, 0, repositioned)
       }
 
       editor.fire( 'unlockSnapshot' )
 
       clearTimeout(editor.resetstyles)
       editor.resetstyles = setTimeout(function() {
+        editor.fire( 'lockSnapshot');
+        if (editor.toolbarsToRender) {
+          editor.toolbarsToRender.forEach(function(toolbar) {
+            toolbar.element.innerHTML = toolbar.content;
+          })
+          editor.toolbarsToRender = []
+        }
         editor.element.$.classList.remove('animating');
         editor.animating = null
         editor.styleupdate = null
-        editor.fire( 'lockSnapshot');
         editor.element.$.style.height = '';
         editor.element.$.classList.remove('moving')
         var all = Array.prototype.slice.call(content.getElementsByTagName('*'));
         for (var i = 0; i < all.length; i++) {
           all[i].classList.remove('moving')
+//          if (all[i].classList.contains('unobserved') && all[i].tagName == 'SECTION' && all[i].textContent.indexOf('A11Y') > -1) {
+//            debugger
+//          }
+          all[i].classList.remove('unobserved')
           all[i].style.height = ''
           all[i].style.width = ''
           if (Editor.useTransforms) {
@@ -1200,7 +1244,7 @@ function animate(editor, snapshot, section, callback) {
           all[i].style.fontSize = ''
         }
         editor.fire( 'unlockSnapshot' )
-      }, 3000)
+      }, 300)
     }, 500)
 })
 
@@ -1208,9 +1252,9 @@ function animate(editor, snapshot, section, callback) {
 };
 
 
-function shift(element, to, all, from, elements, root, parentX, parentY, repositioned, transforms, diffX, diffY, p) {
-  var f = from[elements.indexOf(element)]
+function shift(editor, element, to, all, from, elements, root, parentX, parentY, repositioned, transitioned, diffX, diffY, p) {
   var index = all.indexOf(element);
+  var f = transitioned && transitioned[index] || from[elements.indexOf(element)]
   var t = to[index]
   if (!t) return;
 
@@ -1235,41 +1279,51 @@ function shift(element, to, all, from, elements, root, parentX, parentY, reposit
 
   var repos = false;
   for (var i = 0; i < element.children.length; i++) {
-    repos = shift(element.children[i], to, all, from, elements, root, posX, posY, repos, transforms, - diffX, - diffY, t)
+    repos = shift(editor, element.children[i], to, all, from, elements, root, posX, posY, repos, transitioned, - diffX, - diffY, t)
   }
   if (element.parentNode.tagName == 'SECTION' || 
     element.parentNode === root || 
     element.parentNode.tagName == 'OL' ||
     element.parentNode.tagName == 'UL' ||
     element.parentNode.tagName == 'BLOCKQUOTE') {
-    if (elements.length 
-        ?  (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5)
-            || (f && (Math.abs(f.height - t.height) + Math.abs(f.width - t.width)) > 5))
-        : element.classList.contains('moving')) {
-      if (!repositioned)
-        repositioned = 1;
-      element.classList.add('moving')
-      if (Editor.useTransforms) {
-        var translateX = shiftX;
-        var translateY = shiftY;
-        if (transforms && transforms[index] && transforms[index].push) {
-          translateX -= transforms[index][0];
-          translateY -= transforms[index][1];
+    if ((!f || !isBoxVisible(editor, f)) && !isBoxVisible(editor, t)) {
+      element.classList.add('unobserved')
+    } else {
+      if (elements.length 
+          ?  (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5)
+              || (f && (Math.abs(f.height - t.height) + Math.abs(f.width - t.width)) > 5))
+          : element.classList.contains('moving')) {
+        if (!repositioned)
+          repositioned = 1;
+        element.classList.add('moving')
+        if (Editor.useTransforms) {
+          element.style.webkitTransform =
+          element.style.transform = 'translateX(' + shiftX + 'px) translateY(' + shiftY + 'px)'
+        } else {
+          element.style.left = Math.floor(shiftX) + 'px'
+          element.style.top = Math.floor(shiftY) + 'px'
         }
-        element.style.webkitTransform =
-        element.style.transform = 'translateX(' + translateX + 'px) translateY(' + translateY + 'px)'
-      } else {
-        element.style.left = Math.floor(shiftX) + 'px'
-        element.style.top = Math.floor(shiftY) + 'px'
+        t.x = shiftX;
+        t.y = shiftY;
+        element.style.height = (f && f.height || t.height) + 'px'
+        element.style.width = (f && f.width || t.width) + 'px'
       }
-      t.x = shiftX;
-      t.y = shiftY;
-      element.style.height = (f && f.height || t.height) + 'px'
-      element.style.width = (f && f.width || t.width) + 'px'
     }
   }
 
   return repositioned || !!repos;
+}
+
+isBoxVisible = function(editor, box) {
+  var top = box.top;
+  var bottom = box.top + box.height
+  var topmost = editor.scrollY - editor.offsetTop - editor.innerHeight / 4
+  var bottomost = editor.scrollY + editor.innerHeight - editor.offsetTop + editor.innerHeight / 4;
+
+  return ((top >= topmost && top    <= bottomost)
+    || (bottom >= topmost && bottom <= bottomost)
+    ||    (top <= topmost && bottom >= bottomost))
+
 }
 
 
@@ -1283,12 +1337,14 @@ CKEDITOR.plugins.add( 'structural', {
           for (var j = 0; j < m.removedNodes.length; j++)
             if (m.removedNodes[j].nodeType == 1 &&
                 m.removedNodes[j].tagName != 'SPAN' &&
-                (!m.removedNodes[j].classList || !m.removedNodes[j].classList.contains('toolbar')))
+                (!m.removedNodes[j].classList || !m.removedNodes[j].classList.contains('toolbar')) &&
+                (!m.target.classList || !m.target.classList.contains('toolbar')))
               return fix(editor, mutations[i], observer);
           for (var j = 0; j < m.addedNodes.length; j++)
             if (m.addedNodes[j].nodeType == 1 &&
                 m.addedNodes[j].tagName != 'SPAN' &&
-                (!m.addedNodes[j].classList || !m.addedNodes[j].classList.contains('toolbar')))
+                (!m.addedNodes[j].classList || !m.addedNodes[j].classList.contains('toolbar')) &&
+                (!m.target.classList || !m.target.classList.contains('toolbar')))
               return fix(editor, mutations[i], observer);
         } else {
           if (m.target != editor.element.$

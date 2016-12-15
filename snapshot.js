@@ -1,10 +1,36 @@
-Editor.Snapshot = function(editor, elements, dimensions) {
+Editor.Snapshot = function(editor, elements, dimensions, selected) {
   this.editor = editor;
   this.root = editor.element.$
   this.elements = elements || []
   this.dimensions = dimensions || [];
+  this.selected = selected;
 }
 
+
+Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
+
+  if (snapshot.selected && this.selected) {
+
+     for (var i = 0; i < this.selected.length; i += 2) {
+       var before = snapshot.selected[i];
+       var beforeSize = snapshot.selected[i + 1];
+       var after = this.selected[i];
+       var afterSize = this.selected[i + 1];
+
+       if (!snapshot.get(after) && !this.get(before)) {
+         var box = this.get(after);
+         var old = snapshot.get(before)
+         old.fontSize = parseFloat(beforeSize);
+         box.fontSize = parseFloat(afterSize);
+         snapshot.elements.push(after)
+         snapshot.dimensions.push(old)
+       }
+     }
+     //editor.element.$.classList.add('moving')
+     //editor.element.$.style.height = snapshot[3] + 'px';
+
+   }
+}
 Editor.Snapshot.prototype.animate = function(section) {
   var snapshot = Editor.Snapshot.take(this.editor, true);
 
@@ -13,12 +39,11 @@ Editor.Snapshot.prototype.animate = function(section) {
   if (!this.computed)
     this.compute(snapshot)
   snapshot.compute(this)
+  var migrated = false;
 
   if (!this.editor.animation) {
     this.editor.animation = snapshot;
   }
-
-
   snapshot.startTime = null;
   var duration = 300;
   var from = this;
@@ -29,12 +54,18 @@ Editor.Snapshot.prototype.animate = function(section) {
     var start = snapshot.startTime || time
     snapshot.morph(from, (start + Math.floor((time - start) / 1)), start)
 
+    if (!migrated) {
+      migrated = true;
+      snapshot.migrateSelectedElements(from)
+    }
+
     if (!snapshot.startTime)
       snapshot.startTime = time;
 
     if (snapshot.animating.length) {
       snapshot.timer = requestAnimationFrame(onSingleFrame)
     } else {
+      console.log('animated in', time -  snapshot.startTime)
       snapshot.editor.fire('transitionEnd')
       snapshot.reset()
     }
@@ -50,6 +81,7 @@ Editor.Snapshot.prototype.animate = function(section) {
       if (toolbars) {
         toolbars.forEach(function(toolbar) {
           toolbar.element.innerHTML = toolbar.content;
+          toolbar.element.style.display = 'block'
         })
         requestAnimationFrame(function() {
           toolbars.forEach(function(toolbar) {
@@ -58,7 +90,7 @@ Editor.Snapshot.prototype.animate = function(section) {
         })
       }
     })
-  }, 300)
+  }, 800)
   requestAnimationFrame(function() {
     var els = snapshot.editor.element.$.getElementsByClassName('new')
     for (var i = 0; i < els.length; i++)
@@ -90,10 +122,11 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
     var spring = to[springName] = from[springName];
   } else if (from[property] != to[property]) {
     if (property == 'width' || property == 'height') {
-
       var spring = to[springName] = new Spring(74, 7);
+    } else if (property == 'fontSize') {
+      var spring = to[springName] = new Spring(30, 8);
     } else {
-      var spring = to[springName] = new Spring(40, 7);
+      var spring = to[springName] = new Spring(30, 5);
     }
   }
   if (spring) {
@@ -129,7 +162,17 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
     var element = this.elements[i];
     var to = this.dimensions[i];
     var from = snapshot.get(element);
-    if (/*xto.visible && */to.animated || from && from.animated) {
+    if (from && from.visible)
+      to.visible = true;
+    if (!to.visible) {
+      element.classList.add('unobserved')
+      continue
+    }
+    element.classList.remove('unobserved')
+    if (from && to.fontSize != from.fontSize) {
+      to.currentFontSize = this.transition(element, from, to, time, startTime, 'currentFontSize', 'fontSize', 'fontSizeSpring');
+    }
+    if (to.animated || from && from.animated) {
       to.animated = true
 
       if (from) {
@@ -161,12 +204,13 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
       element.style.top = '0';
       element.style.left = '0';
       element.style.margin = '0'
+      if (to.currentFontSize)
+        element.style.fontSize = to.currentFontSize + 'px'
 
       element.style.transform = 
-      element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + to.currentY + 'px)'
+      element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
       element.style.height = to.currentHeight + 'px';
       element.style.width = to.currentWidth + 'px';
-
     }
   }
 }
@@ -205,31 +249,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
     var focused = editor.refocusing;
     editor.refocusing = undefined;
   } else {
-    var selection = editor.getSelection()
-    var range = selection.getRanges()[0];
-    if (range) {
-      if (bookmark && bookmark.length == 1) {
-        var ancestor = Editor.Content.getEditableAscender(bookmark[0].startNode.$);
-        if (ancestor)
-          var selection = [ancestor, window.getComputedStyle(ancestor)['font-size']]
-      } else if (range.startContainer.$ == range.endContainer.$) {
-        var ancestor = Editor.Content.getEditableAscender(range.startContainer.$);
-        var selection = [ancestor, window.getComputedStyle(ancestor)['font-size']]
-      } else {
-        // iterator may cause a reflow
-        var iterator = selection.getRanges()[0].createIterator();
-        iterator.enforceRealBlocks = false;
-        var selection = []
-        for (var element; element = iterator.getNextParagraph();) {
-          var selected = element.$;
-          if (selected) {
-            if (!focused) focused = selected;
-            var fontSize = window.getComputedStyle(selected)['font-size'];
-            selection.push(selected, fontSize)
-          }
-        }
-      }
-    }
+    var selected = Editor.Snapshot.rememberSelected(editor, bookmark)
   }
 
   if (reset && (focused || bookmark)) {
@@ -270,7 +290,37 @@ Editor.Snapshot.take = function(editor, reset, focused) {
     //})
   }
   
-  return new Editor.Snapshot(editor, elements, dimensions)
+  return new Editor.Snapshot(editor, elements, dimensions, selected)
+}
+
+Editor.Snapshot.rememberSelected = function(editor, bookmark) {
+
+  var selection = editor.getSelection()
+  var range = selection.getRanges()[0];
+  if (range) {
+    if (bookmark && bookmark.length == 1) {
+      var ancestor = Editor.Content.getEditableAscender(bookmark[0].startNode.$);
+      if (ancestor)
+        var selected = [ancestor, window.getComputedStyle(ancestor)['font-size']]
+    } else if (range.startContainer.$ == range.endContainer.$) {
+      var ancestor = Editor.Content.getEditableAscender(range.startContainer.$);
+      var selected = [ancestor, window.getComputedStyle(ancestor)['font-size']]
+    } else {
+      // iterator may cause a reflow
+      var iterator = selection.getRanges()[0].createIterator();
+      iterator.enforceRealBlocks = false;
+      var selected = []
+      for (var element; element = iterator.getNextParagraph();) {
+        var selected = element.$;
+        if (selected) {
+          if (!focused) focused = selected;
+          var fontSize = window.getComputedStyle(selected)['font-size'];
+          selected.push(selected, fontSize)
+        }
+      }
+    }
+  }
+  return selected;
 }
 
 Editor.Snapshot.prototype.reset = function(elements) {
@@ -291,7 +341,7 @@ Editor.Snapshot.prototype.reset = function(elements) {
     element.style.fontSize = ''
     element.style.margin = ''
 
-    //elements[i].classList.remove('unobserved')
+    elements[i].classList.remove('unobserved')
 
   }
 }
@@ -302,7 +352,7 @@ Editor.Snapshot.prototype.isVisible = function(element) {
     return Editor.isBoxVisible(this.editor, box)
 }
 
-Editor.Snapshot.prototype.updateVisibility = function(element) {
+Editor.Snapshot.prototype.updateVisibility = function() {
   for (var i = 0; i < this.dimensions.length; i++) {
     this.dimensions[i].visible = Editor.isBoxVisible(this.editor, this.dimensions[i]);
   }

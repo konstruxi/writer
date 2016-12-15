@@ -217,22 +217,11 @@ section.clone {
   box-sizing: border-box;
 }
 
-.content ul, .content li, .content ol, .content p, .content h1, .content h2, .content h3 {
-  transition: 0.3s font-size;
-}
-
 .content section {
   transition: opacity .3s 
   -webkit-transition: opacity .3s 
 }
 
-.content .moving {
-  transition: 0.3s -webkit-transform, 0.3s left, 0.3s top, 0.3s opacity, 0.2s width, 0.2s height, 0.3s font-size;
-  -webkit-transition: 0.3s -webkit-transform, 0.3s left, 0.3s top, 0.3s opacity, 0.2s width, 0.2s height, 0.3s font-size;
-  position: absolute  !important;
-  margin-top: 0 !important;
-  margin-left: 0 !important;
-}
 
 .content {
   outline: none;
@@ -242,10 +231,6 @@ section.clone {
 
 .content .unobserved {
   visibility: hidden;
-  //display: none;
-  transition: none !important;
-  transform: none !important;
-  -webkit-transform: none !important;
 
 }
 
@@ -254,6 +239,10 @@ section.clone {
 }
 .content .toolbar.new {
   opacity: 0;
+}
+
+.content .toolbar {
+  display: none;
 }
 
 .content section, .content .toolbar {

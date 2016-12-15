@@ -141,14 +141,17 @@ function Editor(content) {
     editor.commands.heading.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {lists: true, quotes: true})
+      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
     })
     editor.commands.subtitle.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {lists: true, quotes: true})
+      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
     })
     editor.commands.title.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {lists: true, quotes: true})
+      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
     })
     editor.commands.bulletedlist.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
@@ -235,6 +238,8 @@ function Editor(content) {
 
   window.addEventListener('scroll', function() {
     Editor.measure(editor, true)
+    if (editor.snapshot)
+      editor.snapshot.updateVisibility()
     updateToolbar(editor)
   })
   window.addEventListener('resize', function() {
@@ -504,8 +509,8 @@ Editor.measure = function(editor, scroll) {
 Editor.isBoxVisible = function(editor, box) {
   var top = box.top;
   var bottom = box.top + box.height
-  var topmost = editor.scrollY - editor.offsetTop - editor.innerHeight / 4
-  var bottomost = editor.scrollY + editor.innerHeight - editor.offsetTop + editor.innerHeight / 4;
+  var topmost = editor.scrollY - editor.offsetTop - editor.innerHeight / 16
+  var bottomost = editor.scrollY + editor.innerHeight - editor.offsetTop + editor.innerHeight / 16;
 
   return ((top >= topmost && top    <= bottomost)
     || (bottom >= topmost && bottom <= bottomost)

@@ -10,18 +10,19 @@ Editor.Snapshot = function(editor, elements, dimensions, selected) {
 Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
 
   if (snapshot.selected && this.selected) {
-
      for (var i = 0; i < this.selected.length; i += 2) {
        var before = snapshot.selected[i];
        var beforeSize = snapshot.selected[i + 1];
        var after = this.selected[i];
        var afterSize = this.selected[i + 1];
 
-       if (!snapshot.get(after) && !this.get(before)) {
-         var box = this.get(after);
-         var old = snapshot.get(before)
+       var box = this.get(after);
+       var old = snapshot.get(before)
+       if (old) {
          old.fontSize = parseFloat(beforeSize);
          box.fontSize = parseFloat(afterSize);
+       }
+       if (!snapshot.get(after)) {
          snapshot.elements.push(after)
          snapshot.dimensions.push(old)
        }
@@ -220,46 +221,19 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
 Editor.Snapshot.take = function(editor, reset, focused) {
   var elements = Editor.Content(editor);
   if (reset) {
-    editor.element.$.classList.remove('moving')
-    editor.element.$.style.height = '';
-
     Editor.Snapshot.prototype.reset(elements)
   }
   var dimensions = []
   //debugger
 
-  Editor.measure(editor);
-  for (var i = 0; i < elements.length; i++) {
-    var box = {top: 0, left: 0, 
-      height: elements[i].offsetHeight, 
-      width: elements[i].offsetWidth, 
-      parent: elements[i].parentNode}
-    if (!box.up)
-      box.up = dimensions[elements.indexOf(elements[i].parentNode)]
-    
-    for (var parent = elements[i]; parent && (parent != editor.element.$); parent = parent.offsetParent) {
-      box.top += parent.offsetTop;
-      box.left += parent.offsetLeft;
-    }
-    box.visible = Editor.isBoxVisible(editor, box);
-    dimensions.push(box)
-  }
-  
   var bookmark = editor.dragbookmark;
 
   if (editor.refocusing) {
     var focused = editor.refocusing;
     editor.refocusing = undefined;
-  } else {
-    var selected = Editor.Snapshot.rememberSelected(editor, bookmark)
   }
 
   if (reset && (focused || bookmark)) {
-    var offsetTop = 0;
-    for (var p = focused; p; p = p.offsetParent)
-      offsetTop += p.offsetTop;
-
-
     //requestAnimationFrame(function() {
       editor.dragbookmark = null;
       var selection = editor.getSelection();
@@ -283,19 +257,37 @@ Editor.Snapshot.take = function(editor, reset, focused) {
       if (bookmark && bookmark[0] && bookmark[0].startNode.$.parentNode)
         bookmark[0].startNode.$.parentNode.removeChild(bookmark[0].startNode.$)
 
+  }
 
 
+  Editor.measure(editor);
+  for (var i = 0; i < elements.length; i++) {
+    var box = {top: 0, left: 0, 
+      height: elements[i].offsetHeight, 
+      width: elements[i].offsetWidth, 
+      parent: elements[i].parentNode}
+    if (!box.up)
+      box.up = dimensions[elements.indexOf(elements[i].parentNode)]
+    
+    for (var parent = elements[i]; parent && (parent != editor.element.$); parent = parent.offsetParent) {
+      box.top += parent.offsetTop;
+      box.left += parent.offsetLeft;
+    }
+    box.visible = Editor.isBoxVisible(editor, box);
+    dimensions.push(box)
+  }
+    var selected = Editor.Snapshot.rememberSelected(editor, null)
+  
 
       //if (window.scrollY > offsetTop - 75/* || window.scrollY + window.innerHeight / 3 <  offsetTop - 75*/) {
       //  window.scrollTo(0, offsetTop - window.innerHeight / 6)
       //}
     //})
-  }
   
   return new Editor.Snapshot(editor, elements, dimensions, selected)
 }
 
-Editor.Snapshot.rememberSelected = function(editor, bookmark) {
+Editor.Snapshot.rememberSelected = function(editor, bookmark, focused) {
 
   var selection = editor.getSelection()
   var range = selection.getRanges()[0];
@@ -313,11 +305,11 @@ Editor.Snapshot.rememberSelected = function(editor, bookmark) {
       iterator.enforceRealBlocks = false;
       var selected = []
       for (var element; element = iterator.getNextParagraph();) {
-        var selected = element.$;
-        if (selected) {
-          if (!focused) focused = selected;
-          var fontSize = window.getComputedStyle(selected)['font-size'];
-          selected.push(selected, fontSize)
+        var el = element.$;
+        if (el) {
+          if (!focused) focused = el;
+          var fontSize = window.getComputedStyle(el)['font-size'];
+          selected.push(el, fontSize)
         }
       }
     }

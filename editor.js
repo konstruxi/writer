@@ -136,6 +136,7 @@ function Editor(content) {
 
   editor.on('instanceReady', function() {
     editor.commands.paragraph.on('exec', function() {
+      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
       //editor.stylesnapshot = snapshotStyles(editor);
     })
     editor.commands.heading.on('exec', function() {
@@ -171,7 +172,7 @@ function Editor(content) {
     editor.commands.outdent.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
-    })
+    }, null, null, 1)
     editor.commands.bold.on('exec', function() {
       if (editor.commands.italic.state == 1)
         editor.ui.instances.Italic.click(editor)

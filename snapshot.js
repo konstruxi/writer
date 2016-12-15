@@ -76,7 +76,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
 
       var spring = to[springName] = new Spring(74, 7);
     } else {
-      var spring = to[springName] = new Spring(20, 4);
+      var spring = to[springName] = new Spring(20, 2);
     }
   }
   if (spring) {

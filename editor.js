@@ -63,7 +63,7 @@ function Editor(content) {
   editor.element.$.addEventListener('keydown', function(e) {
 
     if (e.keyCode == 13 || e.keyCode == 8) {
-      snapshotTransforms(editor, true)
+      Editor.Animation.snapshotTransforms(editor, true)
     }
   }, true)
 
@@ -72,9 +72,9 @@ function Editor(content) {
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
       if (range) {
-        var container = getElementSection(range.startContainer.$);
-        var first = getSectionFirstChild(container);
-        if (!first || (isEmptyParagraph(first) && !first.nextElementSibling)) {
+        var container = Editor.Section.get(range.startContainer.$);
+        var first = Editor.Section.getFirstChild(container);
+        if (!first || (Editor.Content.isEmpty(first) && !first.nextElementSibling)) {
           return false;
         }
       }
@@ -85,13 +85,13 @@ function Editor(content) {
       if (!range || !range.checkStartOfBlock()) return;
       var container = range.startContainer.$
       for (; container.parentNode; container = container.parentNode) {
-        if (getSectionFirstChild(container.parentNode).firstChild != container)
+        if (Editor.Section.getFirstChild(container.parentNode).firstChild != container)
           break;
         // remove manual section boundary
         if (container.parentNode.tagName == 'SECTION') {
           if (container.parentNode.classList.contains('forced')) {
             container.parentNode.classList.remove('forced');
-            fix(editor);
+            Editor.Section(editor);
             return false;
           }
         }
@@ -162,76 +162,33 @@ function Editor(content) {
     }
   })
 
-  function replaceContents(editor, options) {
-    var selection = editor.getSelection()
-    var iterator = selection.getRanges()[0].createIterator();
-    iterator.enforceRealBlocks = false;
-    var elements = []
-    var bookmark = selection.createBookmarks()
-    for (var element; element = iterator.getNextParagraph();) {
-      var el = element.$;
-      if (el.parentNode.tagName == 'BLOCKQUOTE')
-        el = el.parentNode;
-      elements.push(el);
-    }
-    for (var e, i = 0; e = elements[i++];) {
-      var tag = e.tagName;
-      switch (e.tagName) {
-        case 'UL': case 'OL':
-          if (options.lists) {
-            while (e.firstChild)
-              e.parentNode.insertBefore(e.firstChild, e)
-            e.parentNode.removeChild(e);
-          }
-          break;
-        case 'LI': case 'H1': case 'H2': case 'H3':
-          if ((e.tagName == 'LI' && options.lists) ||
-              (e.tagName.charAt(0) == 'H' && options.titles)) {
-            var p = document.createElement('p')
-            while (e.firstChild)
-              p.appendChild(e.firstChild)
-            e.parentNode.replaceChild(p, e);
-          }
-          break;
-        case 'BLOCKQUOTE':
-          if (options.quotes && e.firstElementChild && e.firstElementChild.tagName == 'P') {
-            while (e.firstChild)
-              e.parentNode.insertBefore(e.firstChild, e)
-            e.parentNode.removeChild(e);
-          }
-
-
-      }
-    }
-    selection.selectBookmarks(bookmark);
-  }
   editor.on('instanceReady', function() {
     editor.commands.paragraph.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
     })
     editor.commands.heading.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      replaceContents(editor, {lists: true, quotes: true})
+      Editor.cleanSelection(editor, {lists: true, quotes: true})
     })
     editor.commands.subtitle.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      replaceContents(editor, {lists: true, quotes: true})
+      Editor.cleanSelection(editor, {lists: true, quotes: true})
     })
     editor.commands.title.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      replaceContents(editor, {lists: true, quotes: true})
+      Editor.cleanSelection(editor, {lists: true, quotes: true})
     })
     editor.commands.bulletedlist.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      replaceContents(editor, {titles: true, quotes: true})
+      Editor.cleanSelection(editor, {titles: true, quotes: true})
     }, null, null, 1)
     editor.commands.numberedlist.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      replaceContents(editor, {titles: true, quotes: true})
+      Editor.cleanSelection(editor, {titles: true, quotes: true})
     })
     editor.commands.blockquote.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      replaceContents(editor, {titles: true, lists: true})
+      Editor.cleanSelection(editor, {titles: true, lists: true})
     })
     editor.commands.outdent.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
@@ -448,7 +405,7 @@ onDragEnd = function(editor, e) {
     var dragged = editor.dragged;
     var dragstart = editor.dragstart
 
-    var section = newSection(editor)
+    var section = Editor.Section.build(editor)
 
     if (dragstart - e.pageY > 0) {
       dragging.classList.remove('forced')
@@ -496,10 +453,13 @@ onDragEnd = function(editor, e) {
       target = target.parentNode;
     if (target) {
       if (target.classList.contains('split')) {
-        var a = getSectionFirstChild(editor.dragging);
-        var b = editor.dragging.previousElementSibling && getSectionFirstChild(editor.dragging.previousElementSibling)
-        if ((!a || !isEmptyParagraph(a)) && (!b || !isEmptyParagraph(b))) {
-          var sect = newSection(editor);
+        var a = Editor.Section.getFirstChild(editor.dragging);
+        var b = editor.dragging.previousElementSibling 
+             && Editor.Section.getFirstChild(editor.dragging.previousElementSibling);
+
+        if ((!a || !Editor.Content.isEmpty(a)) 
+         && (!b || !Editor.Content.isEmpty(b))) {
+          var sect = Editor.Section.build(editor);
           sect.classList.add('forced')
           var focused = document.createElement('p');
           sect.appendChild(focused);
@@ -513,7 +473,7 @@ onDragEnd = function(editor, e) {
 
   editor.justdragged = dragging;
   editor.refocusing = focused;
-  cleanEmptyContent(editor)
+  Editor.Content.cleanEmpty(editor)
 
   setTimeout(function() {
     editor.justdragged = undefined;
@@ -541,850 +501,17 @@ function onCursorMove(editor, force, blur) {
   editor.clearcursor = setTimeout(function() {
     editor.clearcursor = requestAnimationFrame(function() {
       editor.clearcursor = null;
-      cleanEmptyContent(editor, force, blur)
+      Editor.Content.cleanEmpty(editor, force, blur)
     })
   }, 100)
 
 }
 
-function cleanEmptyContent(editor, force, blur) {
-  var selection = editor.getSelection();
-  if (editor.refocusing) {
-    var selected = editor.refocusing;
-  } else {
-    var selected = selection.getStartElement();
-    if (selected) selected = selected.$;
-  }
-  var children = Array.prototype.slice.call(editor.element.$.children);
-  var snapshot = editor.stylesnapshot;
-  editor.fire('lockSnapshot');
-  for (var i = 0; i < children.length; i++) {
-    var inside = isInside(selected, children[i]);
-    if (selected && inside) {
-      if (editor.section != children[i]) {
-        if (editor.section)
-          editor.section.classList.remove('focused')
-        editor.section = children[i]
-        editor.section.classList.add('focused')
-        setActiveSection(editor.section, true)
-        updateToolbar(editor)
-      }
-    }
-    if (!selected || force || !inside) {
-      if (isEmptyParagraph(children[i])) {
-        //if (!snapshot) 
-        //  snapshot = editor.stylesnapshot = snapshotStyles(editor)
-        if (selected) 
-          if (inside) {
-            if (!before && !after) {
-              var before = children[i].previousElementSibling;
-              var after = children[i].nextElementSibling;
-            }
-          } else if (!bookmark && !editor.refocusing && !blur)
-            var bookmark = selection.createBookmarks();
-
-        children[i].parentNode.removeChild(children[i])
-      } else {
-        var els = []
-        var grandchildren = children[i].children;
-        for (var j = 0; j < grandchildren.length; j++) {
-          if (grandchildren[j].classList.contains('toolbar'))
-            continue;
-          var grands = grandchildren[j].getElementsByTagName('*');
-          els.push(grandchildren[j])
-          els.push.apply(els, grands);
-        }
-        for (var j = 0; j < els.length; j++) {
-          if (isEmptyParagraph(els[j])) {
-            if (selected) 
-              if (!before && !after && isInside(selected, els[j])) {
-                var before = els[j].previousElementSibling;
-                var after = els[j].nextElementSibling;
-              } else if (!bookmark && !editor.refocusing && !blur) { 
-                var bookmark = selection.createBookmarks();
-              }
-
-            //if (!snapshot) 
-            //  snapshot = editor.stylesnapshot = snapshotStyles(editor)
-
-            els[j].parentNode.removeChild(els[j])
-
-          }
-        }
-
-      }
-    }
-  }
-  if (!editor.refocusing && !blur) {
-    if (before || after) {
-      var range = editor.createRange();
-      if (before)
-        range.moveToElementEditEnd( new CKEDITOR.dom.element(before) );
-      else
-        range.moveToElementEditStart( new CKEDITOR.dom.element(after) )
-      range.select( true );
-    } else if (bookmark)
-      try {
-        editor.getSelection().selectBookmarks(bookmark);
-      } catch(e) {}
-  }
-  editor.fire('unlockSnapshot');
-}
-
-// returns newly selected section
-split = function(editor, root) {
-  var children = Array.prototype.slice.call(root.childNodes);
-  var selection = editor.getSelection()
-  if (!editor.dragbookmark)
-    editor.dragbookmark = selection.createBookmarks();
-  var last;
-  var prev;
-  var selected = selection.getStartElement();
-  if (selected) selected = selected.$;
-
-  for (var p = selected; p; p = p.parentNode) {
-    if (p.tagName == 'SECTION')
-      var result = p;
-  }
-
-
-  context = {}
-  for (var i = 0; i < children.length; i++) {
-    var child = children[i];
-    if (child.tagName == 'SECTION') {
-      if (child.classList.contains('forced')) 
-        last = child;
-      var current = child;
-      var grandchildren = Array.prototype.slice.call(child.childNodes);
-      for (var j = 0; j < grandchildren.length; j++) {
-        if (!grandchildren[j].classList || !grandchildren[j].classList.contains('toolbar')) {
-          last = place(editor, last, prev, grandchildren[j], current, root, selected, context)
-          if (last === current) {
-            newSection(editor, current)
-            current = undefined;
-          }
-        } else if (last != current) {
-          //grandchildren[j].parentNode.removeChild(grandchildren[j]);
-          continue;
-        }
-        prev = grandchildren[j];
-      }
-      if (current) {
-        current.parentNode.removeChild(current)
-      }
-      if (isEmptyParagraph(last)) {
-        debugger
-        last.classList.add('new')
-      }
-      continue;
-    }
-
-    last = place(editor, last, prev, child, null, root, null, context)
-    prev = child;
-  }
-
-  if (context.reselected) 
-    editor.refocusing = context.reselected;
-
-  return result;
-}
-
-analyze = function(node) {
-  var tags = [];
-  var titles = 0;
-  var texts = 0;
-  for (var i = 0; i < node.children.length; i++) {
-    var child = node.children[i];
-    switch (child.tagName) {
-      case 'H1': case 'H2':
-        if (child.textContent.length)
-          tags.push('has-title')
-        titles += child.textContent.length;
-        break;
-
-      case 'BLOCKQUOTE':
-        texts += child.textContent.length;
-        tags.push('has-quote');
-        break;
-
-      case 'UL': case 'OL':
-        texts += child.textContent.length;
-        tags.push('has-list');
-        break;
-
-      case 'P': case 'A':
-        var img = child.getElementsByTagName('img')[0]
-        if (img) {
-          tags.push('has-image', 'has-palette-' + img.getAttribute('uid'))
-        } else if (child.textContent.length) {
-          texts += child.textContent.length;
-          tags.push('has-text')
-        }
-        break;
-
-      case 'IMG':
-        tags.push('has-image', 'has-palette-' + child.getAttribute('uid'))
-
-
-    }
-  }
-  if (texts && texts < 200)
-    tags.push('has-short-text')
-  else if (texts > 600)
-    tags.push('has-long-text');
-
-  if (titles && titles < 30)
-    tags.push('has-short-title')
-  else if (titles > 100)
-    tags.push('has-long-title');
-
-  var list = Array.prototype.slice.call(node.classList)
-  for (var i = 0; i < list.length; i++) {
-    if (list[i].indexOf('has-') == 0) {
-      if (tags.indexOf(list[i]) == -1)
-        node.classList.remove(list[i])
-    }
-  }
-  for (var i = 0; i < tags.length; i++)
-    node.classList.add(tags[i])
-}
-
-var patterns = {
-  'two-images': [
-    {'has-image': true, 'has-long-text': false},
-    {'has-image': true, 'has-long-text': false}
-  ],
-  'one-quote': [
-    {'has-quote': true, 'has-text': false}
-  ]
-}
-
-function match(element, conditions) {
-  if (!element) return;
-  for (var klass in conditions)
-    if (element.classList.contains(klass) != conditions[klass])
-      return false;
-  return true;
-}
-
-
-function group(content) {
-  var current;
-  var sections = Array.prototype.slice.call(content.children);
-  outer: for (var i = 0; i < sections.length; i++) {
-    for (var name in patterns) {
-      var pattern = patterns[name];
-      for (var j = 0; j < pattern.length; j++)
-        if (!match(sections[i + j], pattern[j]))
-          break;
-      if (j == pattern.length) {
-        for (var k = 0; k < pattern.length; k++) {
-          sections[i + k].setAttribute('index', k)
-          sections[i + k].setAttribute('pattern', name)
-        }
-        i += j - 1;
-        continue outer;
-      }
-    }
-    if (sections[i].getAttribute('pattern')) {
-      sections[i].removeAttribute('pattern')
-      sections[i].removeAttribute('index')
-    }
-  }
-}
-
-isEmptyParagraph = function(child) {
-  if (child.tagName == 'IMG' || child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('toolbar')))
-    return false;
-  //if (child.tagName == 'P') {
-    var text = child.textContent
-    for (var i = 0; i < text.length; i++)
-      switch (text.charAt(i)) {
-        case '&nbsp;': case ' ': case '\n': case '\r': case '\t': case "​": case " ": case " ":
-          break;
-        default:
-          return false;
-      }
-  //}
-  return child.nodeType != 1 || !child.querySelector('img, video, iframe');
-}
-
-isInside = function(element, another) {
-  while (element) {
-    if (element == another)
-      return true;
-    element = element.parentNode
-  }
-}
-
-newSection = function(editor, section) {
-  if (!section)
-    section = document.createElement('section');
   
-  if (!section.getElementsByClassName('toolbar')[0]) {
-                
-    var toolbar = document.createElement('div');
-    toolbar.className = 'toolbar'
-    toolbar.setAttribute('unselectable', 'on')
-
-    if (!editor.toolbarsToRender)
-      editor.toolbarsToRender = []
-    editor.toolbarsToRender.push({
-      element: toolbar,
-      content: '<x-button class="handle">' +
-                  '<svg viewBox="0 0 48 48" class="resize handler icon"><use xlink:href="#resize-section-icon"></use></svg>' +
-                  '<svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>' +
-                '</x-button>'
-    })
-    section.insertBefore(toolbar, section.firstChild)
-  }
-
-  return section
-}
-
-getElementSection = function(element) {
-  while (element && element.tagName != 'SECTION')
-    element = element.parentNode;
-  return element;
-}
-
-getSectionFirstChild = function(section) {
-  var first = section.firstElementChild;
-  if (first.classList.contains('toolbar'))
-    return first.nextElementSibling;
-  return first;
-}
-
-getSectionStartElement = function(section) {
-  var first = getSectionFirstChild(section);
-  while (first.firstElementChild)
-    first = first.firstElementChild; 
-  return first;
-}
-place = function(editor, parent, previous, child, current, root, selected, context) {
-  if (previous) {
-    // start a new line after empty paragraph
-    if (selected) {
-      if (getSectionFirstChild(previous.parentNode) == previous && isEmptyParagraph(previous)) {
-        if (isInside(selected, previous) && false) {
-          if (!current) {
-            var removed = previous
-            if (context.reselected == previous)
-              context.reselected = undefined
-            previous.parentNode.removeChild(previous)
-            previous = undefined
-          }
-        } else if (selected.previousSibling == previous && isEmptyParagraph(selected)) {
-          if (selected.parentNode.lastChild == child) {
-            previous.parentNode.removeChild(previous)
-            if (context.reselected == previous)
-              context.reselected = undefined
-            return parent;
-          } else {
-            var inserted = previous
-            //editor.dontanimate = true;
-          }
-        } else if (isInside(selected, child)){
-          var focused = previous;
-        }
-      // prepending a header into a section, which will split
-      }/* else if (current && previous.parentNode != current && current.firstElementChild == child && child.nextElementSibling && needsSplitterBetween(child, child.nextElementSibling)) {
-        //editor.dontanimate = true;
-      }*/
-
-      if (!focused && !removed && (isInside(selected, child) && isEmptyParagraph(previous))) {
-        
-        var section = newSection(editor)
-        if (parent.parentNode)
-          parent.parentNode.insertBefore(section, parent.nextSibling);
-        section.appendChild(child)
-        section.classList.add('forced')
-
-        if (inserted) {
-          if (!context.reselected)
-            context.reselected = previous;
-        } else {
-          if (isEmptyParagraph(child)) 
-            if (!context.reselected || context.reselected == previous) 
-              context.reselected = child; 
-
-          previous.parentNode.removeChild(previous)
-        }
-
-        return section;
-      }
-    }
-    if (needsSplitterBetween(previous, child)) {
-      // if header is in the beginning of chapter,
-      // shift focus to previous section
-      if (child && isEmptyParagraph(child) && previous && !isEmptyParagraph(previous))
-        context.reselected = child;
-
-      var section = (current || newSection(editor));
-      if (parent.parentNode) 
-        if (section.parentNode != parent.parentNode || section.previousSibling != parent)
-          parent.parentNode.insertBefore(section, parent.nextSibling);
-      if (current) {
-        if (getSectionFirstChild(current) != child)
-          section.insertBefore(child, getSectionFirstChild(current))
-      } else if (section.previousSibling != previous) {
-        section.appendChild(child); 
-      }
-
-
-      return section;
-    }
-  }
-  
-  if (!parent) parent = current || newSection(editor)
-  if (!parent.parentNode)
-    root.appendChild(parent);
-  if (child.parentNode != parent || (previous && previous.parentNode == parent && child.previousSibling != previous)) {
-    parent.insertBefore(child, previous && previous.nextSibling)
-  }
-  if (removed ? removed == selected : focused) {
-    if (!context.reselected)
-      context.reselected = focused || child;
-  }
-  return parent;  
-
-}
-
-function needsSplitterBetween(left, right) {
-  return (right.tagName == 'H1' && (!left || left.tagName != 'IMG' || (getSectionFirstChild(left.parentNode) != left))) 
-      || (right.tagName == 'H2' && (!left || (left.tagName != 'H1' && (left.tagName != 'IMG' || left.previousElementSibling))))
-}
-
-function getAllElements(editor) {
-  var root = editor.element.$;
-  var elements = Array.prototype.slice.call(root.getElementsByTagName('*'));
-  var result = []
-  loop: for (var i = 0; i < elements.length; i++) {
-    for (var parent = elements[i]; parent; parent = parent.parentNode) {
-      if (parent.classList && parent.classList.contains('toolbar'))
-        continue loop;
-      if (parent.tagName == 'SECTION' || parent == root) {
-        result.push(elements[i])
-        break;
-      }
-    }
-  }
-  return result;
-}
-
-function snapshotTransforms(editor, soft) {
-  if ((soft ? editor.animating : !editor.animating) || !Editor.useTransforms)
-    return
-  var elements = getAllElements(editor);
-  var transitioned = []
-  for (var i = 0; i < elements.length; i++) {
-    var box = null;
-    //for (var p = elements[i]; (p = p.parentNode) != editor.element.$;)
-    //  if (p.style.transform || p.style.webkitTransform) {
-        var bbox = elements[i].getBoundingClientRect()
-        box = {top: bbox.top - editor.box.top, 
-                  left: bbox.left - editor.box.left, 
-          height: bbox.height, width: bbox.width, parent: elements[i].parentNode}
-        //break;
-    //  }
-    transitioned.push(box)
-  }
-  return editor.transformsnapshot = [elements, transitioned]
-}
-
-function snapshotStyles(editor, reset, focused) {
-
-  var elements = getAllElements(editor);
-    
-
-  if (reset) {
-    editor.element.$.classList.remove('moving')
-    editor.element.$.style.height = '';
-
-    for (var i = 0; i < elements.length; i++) {
-      elements[i].style.webkitTransitionDuration = '0s'
-      elements[i].style.transitionDuration = '0s'
-      elements[i].style.height = ''
-      elements[i].style.width = ''
-      if (Editor.useTransforms) {
-        elements[i].style.transform = ''
-        elements[i].style.webkitTransform = ''
-      } else {
-        elements[i].style.top = ''
-        elements[i].style.left = ''
-      }
-      elements[i].style.fontSize = ''
-      if (elements[i].classList.contains('moving')) {
-        elements[i].classList.remove('moving')
-        elements[i].classList.add('was-moving')
-      } 
-      //elements[i].classList.remove('unobserved')
-
-    }
-  }
-  var dimensions = []
-
-  editor.measure();
-  for (var i = 0; i < elements.length; i++) {
-    var box = {top: 0, left: 0, 
-      height: elements[i].offsetHeight, width: elements[i].offsetWidth, parent: elements[i].parentNode}
-    for (var parent = elements[i]; parent && (parent != editor.element.$); parent = parent.offsetParent) {
-      box.top += parent.offsetTop;
-      box.left += parent.offsetLeft;
-    }
-    dimensions.push(box)
-  }
-  
-  var bookmark = editor.dragbookmark;
-
-  if (editor.refocusing) {
-    var focused = editor.refocusing;
-    editor.refocusing = undefined;
-  } else {
-    var selection = editor.getSelection()
-    var range = selection.getRanges()[0];
-    if (range) {
-      if (bookmark && bookmark.length == 1) {
-        var ancestor = getEditableAscender(bookmark[0].startNode.$);
-        if (ancestor)
-          var selection = [ancestor, window.getComputedStyle(ancestor)['font-size']]
-      } else if (range.startContainer.$ == range.endContainer.$) {
-        var ancestor = getEditableAscender(range.startContainer.$);
-        var selection = [ancestor, window.getComputedStyle(ancestor)['font-size']]
-      } else {
-        // iterator may cause a reflow
-        var iterator = selection.getRanges()[0].createIterator();
-        iterator.enforceRealBlocks = false;
-        var selection = []
-        for (var element; element = iterator.getNextParagraph();) {
-          var selected = element.$;
-          if (selected) {
-            if (!focused) focused = selected;
-            var fontSize = window.getComputedStyle(selected)['font-size'];
-            selection.push(selected, fontSize)
-          }
-        }
-      }
-    }
-  }
-
-  if (reset && (focused || bookmark)) {
-    var offsetTop = 0;
-    for (var p = focused; p; p = p.offsetParent)
-      offsetTop += p.offsetTop;
-
-
-    //requestAnimationFrame(function() {
-      editor.dragbookmark = null;
-      var selection = editor.getSelection();
-      var range = editor.createRange();
-      // restore selection
-      var range = editor.createRange();
-
-      if (focused) {
-        range.moveToElementEditEnd(new CKEDITOR.dom.element(focused))
-        var selection = editor.getSelection()
-        selection.selectRanges([range])
-      } else if (bookmark && bookmark[0]) {
-        var bm = bookmark[0].startNode.$;
-        for (; bm.parentNode; bm = bm.parentNode) {
-          if (bm == editor.element.$) {
-            editor.getSelection().selectBookmarks(bookmark);
-            break;
-          }
-        }
-      }
-      if (bookmark && bookmark[0] && bookmark[0].startNode.$.parentNode)
-        bookmark[0].startNode.$.parentNode.removeChild(bookmark[0].startNode.$)
-
-
-
-
-      //if (window.scrollY > offsetTop - 75/* || window.scrollY + window.innerHeight / 3 <  offsetTop - 75*/) {
-      //  window.scrollTo(0, offsetTop - window.innerHeight / 6)
-      //}
-    //})
-  }
-  
-  return [elements, dimensions, selection, reset && editor.element.$.offsetHeight || editor.offsetHeight];
-}
-
-function fix(editor, mutation, observer) {
-
-  if (!editor.transformsnapshot)
-    snapshotTransforms(editor);
-
-  var snapshot = editor.stylesnapshot || snapshotStyles(editor);
-  //editor.stylesnapshot = undefined;
-
-
-  editor.fire( 'lockSnapshot');
-  var content = editor.element.$;
-  var section = split(editor, content) || editor.justdropped
-  for (var i = 0; i < content.children.length; i++)
-    analyze(content.children[i])
-  group(content)
-
-
-  editor.stylesnapshot = animate(editor, snapshot, section);
-
-  if (observer)
-    observer.takeRecords()
-
-  editor.fire( 'unlockSnapshot' );
-}
-
-  
-function animate(editor, snapshot, section, callback) {
-  elements = snapshot[0];
-  dimensions = snapshot[1];
-
-
-  var update = snapshotStyles(editor, true);
-  var all = update[0]
-  var current = update[1];
-
-  if (editor.transformsnapshot) {
-    var transitioned = []
-    for (var i = 0; i < all.length; i++) {
-      var j = editor.transformsnapshot[0].indexOf(all[i]);
-      transitioned.push(j > -1 ? editor.transformsnapshot[1][j] : null)
-    }
-    editor.transformsnapshot = null;
-  }
-  editor.styleupdate = update;
-
-
-
-  if (snapshot[2] && update[2]) {
-
-    for (var i = 0; i < update[2].length; i += 2) {
-      var before = snapshot[2][i];
-      var beforeSize = snapshot[2][i + 1];
-      var after = update[2][i];
-      var afterSize = update[2][i + 1];
-
-      if (elements.indexOf(after) == -1 && all.indexOf(before) == -1) {
-        var morphing = true;
-        after.style.fontSize = beforeSize;
-        after.style.transition = 'none'
-        after.style.webkitTransition = 'none'
-        elements.push(after)
-        dimensions.push(dimensions[elements.indexOf(before)])
-      }
-    }
-    editor.element.$.classList.add('moving')
-    editor.element.$.style.height = snapshot[3] + 'px';
-
-  }
-  editor.element.$.classList.add('animating');
-  updateToolbar(editor, true)
-  togglePicker(editor, true)
-  
-  var repositioned = false;
-  var content = editor.element.$;
-  for (var i = 0; i < content.children.length; i++) {
-    repositioned = shift(editor, content.children[i], current, all, dimensions, elements, content, 0, 0, repositioned, transitioned)
-  }
-
-
-  clearTimeout(editor.resetstyles)
-
-  // ios needs 2 frames to avoid transition for some reason
-  cancelAnimationFrame(editor.animating);
-  editor.animating = requestAnimationFrame(function() {
-  cancelAnimationFrame(editor.animating);
-  editor.animating = requestAnimationFrame(function() {
-      editor.fire( 'lockSnapshot');
-      editor.element.$.style.transition = '';
-      editor.element.$.style.webkitTransition = '';
-      editor.element.$.style.height = update[3] + 'px';
-
-      for (var i = 0; i < all.length; i++) {
-        all[i].style.transition = 
-        all[i].style.webkitTransition = '';
-        all[i].classList.remove('new')
-      }
-
-
-      if (morphing) {
-        for (var i = 0; i < update[2].length; i += 2) {
-          update[2][i].style.transition = ''
-          update[2][i].style.webkitTransition = ''
-          update[2][i].style.fontSize = update[2][i + 1];
-        }
-      }
-
-      var repositioned = false;
-      for (var i = 0; i < content.children.length; i++) {
-        repositioned = shift(editor, content.children[i], current, all, [], [], content, 0, 0, repositioned)
-      }
-
-      editor.fire( 'unlockSnapshot' )
-
-      clearTimeout(editor.resetstyles)
-      editor.resetstyles = setTimeout(function() {
-        editor.fire( 'lockSnapshot');
-        if (editor.toolbarsToRender) {
-          var toolbars = editor.toolbarsToRender;
-          setTimeout(function() {
-            requestAnimationFrame(function() {
-              toolbars.forEach(function(toolbar) {
-                toolbar.element.innerHTML = toolbar.content;
-              })
-            })
-          }, 100)
-          editor.toolbarsToRender = null
-        }
-        editor.element.$.classList.remove('animating');
-        editor.animating = null
-        editor.styleupdate = null
-        editor.element.$.style.height = '';
-        editor.element.$.classList.remove('moving')
-        var all = Array.prototype.slice.call(content.getElementsByTagName('*'));
-        for (var i = 0; i < all.length; i++) {
-          all[i].classList.remove('moving')
-          all[i].classList.remove('was-moving')
-//          if (all[i].classList.contains('unobserved') && all[i].tagName == 'SECTION' && all[i].textContent.indexOf('A11Y') > -1) {
-//            debugger
-//          }
-          all[i].classList.remove('unobserved')
-          all[i].style.height = ''
-          all[i].style.width = ''
-          if (Editor.useTransforms) {
-            all[i].style.transform = 
-            all[i].style.webkitTransform = ''
-          } else {
-            all[i].style.left = ''
-            all[i].style.top = ''
-          }
-          all[i].style.fontSize = ''
-        }
-        editor.fire( 'unlockSnapshot' )
-      }, 300)
-    }, 500)
-})
-
-  return update;
-};
-
-
-function shift(editor, element, to, all, from, elements, root, parentX, parentY, repositioned, transitioned, diffX, diffY, p) {
-  var index = all.indexOf(element);
-  var f = transitioned && transitioned[index] || from[elements.indexOf(element)]
-  var t = to[index]
-  if (!t) return;
-
-  if (f) {
-    diffX = (diffX || 0) + t.left - f.left;
-    diffY = (diffY || 0) + t.top - f.top;
-    var shiftX = f.left - (parentX || 0);
-    var shiftY = f.top - (parentY || 0);
-    var posX = shiftX;
-    var posY = shiftY;
-    var posX = f.left;
-    var posY = f.top;
-
-  } else {
-    diffX = 0;
-    diffY = 0
-    var shiftX = t.left - (p ? p.left : 0) ;
-    var shiftY = t.top - (p ? p.top : 0);
-    var posX = t.left;
-    var posY = t.top;
-  }
-
-  var repos = false;
-  for (var i = 0; i < element.children.length; i++) {
-    repos = shift(editor, element.children[i], to, all, from, elements, root, posX, posY, repos, transitioned, - diffX, - diffY, t)
-  }
-  if (element.parentNode.tagName == 'SECTION' || 
-    element.parentNode === root || 
-    element.parentNode.tagName == 'OL' ||
-    element.parentNode.tagName == 'UL' ||
-    element.parentNode.tagName == 'BLOCKQUOTE') {
-    if (element.classList.contains('unobserved') || (!f || !isBoxVisible(editor, f)) && !isBoxVisible(editor, t)) {
-      element.classList.add('unobserved')
-    } else {
-      if (elements.length 
-          ?  (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5)
-              || (f && (Math.abs(f.height - t.height) + Math.abs(f.width - t.width)) > 5))
-          : element.classList.contains('moving')) {
-        if (!repositioned)
-          repositioned = 1;
-        element.classList.remove('was-moving')
-        element.classList.add('moving')
-        if (Editor.useTransforms) {
-          element.style.webkitTransform =
-          element.style.transform = 'translateX(' + Math.ceil(shiftX) + 'px) translateY(' + Math.ceil(shiftY) + 'px)'
-        } else {
-          element.style.left = Math.floor(shiftX) + 'px'
-          element.style.top = Math.floor(shiftY) + 'px'
-        }
-        t.x = shiftX;
-        t.y = shiftY;
-        element.style.height = (f && f.height || t.height) + 'px'
-        element.style.width = (f && f.width || t.width) + 'px'
-      }
-    }
-  }
-
-  return repositioned || !!repos;
-}
-
-isBoxVisible = function(editor, box) {
-  var top = box.top;
-  var bottom = box.top + box.height
-  var topmost = editor.scrollY - editor.offsetTop - editor.innerHeight / 4
-  var bottomost = editor.scrollY + editor.innerHeight - editor.offsetTop + editor.innerHeight / 4;
-
-  return ((top >= topmost && top    <= bottomost)
-    || (bottom >= topmost && bottom <= bottomost)
-    ||    (top <= topmost && bottom >= bottomost))
-
-}
-
 
 CKEDITOR.plugins.add( 'structural', {
   init: function(editor) {
-
-    var observer = new MutationObserver( function(mutations) {
-      for (var i = 0; i < mutations.length; i++) {
-        var m = mutations[i];
-        if (m.type === 'childList') {
-          for (var j = 0; j < m.removedNodes.length; j++)
-            if (m.removedNodes[j].nodeType == 1 &&
-                m.removedNodes[j].tagName != 'SPAN' &&
-                (!m.removedNodes[j].classList || !m.removedNodes[j].classList.contains('toolbar')) &&
-                (!m.target.classList || !m.target.classList.contains('toolbar')))
-              return fix(editor, mutations[i], observer);
-          for (var j = 0; j < m.addedNodes.length; j++)
-            if (m.addedNodes[j].nodeType == 1 &&
-                m.addedNodes[j].tagName != 'SPAN' &&
-                (!m.addedNodes[j].classList || !m.addedNodes[j].classList.contains('toolbar')) &&
-                (!m.target.classList || !m.target.classList.contains('toolbar')))
-              return fix(editor, mutations[i], observer);
-        } else {
-          if (m.target != editor.element.$
-              && ((m.attributeName == 'class'
-                && ((m.oldValue 
-                  && (m.oldValue.indexOf('forced') > -1) != (m.target.className.indexOf('forced') > -1)))))) {
-            return fix(editor, mutations[i], observer);
-          }
-        }
-      }
-    } );
-    observer.observe( editor.element.$ , {
-      attributes: true,
-      childList: true,
-      subtree: true,
-      attributeOldValue: true,
-      attributeFilter: ['class']
-    });
-
-
-
-
+    Editor.Section.observe(editor);
 
     function addButton(commandName, toolbar, styles, forms) {
 
@@ -1519,14 +646,6 @@ function getElementsAffectedByDrag(editor, e) {
   return result
 }
 
-function getEditableAscender(element) {
-  while (element && (!element.tagName || element.tagName == 'STRONG'
-                            || element.tagName == 'EM' 
-                            || element.tagName == 'SPAN'
-                            || element.tagName == 'A'))
-    element = element.parentNode;
-  return element;
-}
 
 function updateToolbar(editor, force) {
   var selection = editor.getSelection();
@@ -1537,13 +656,13 @@ function updateToolbar(editor, force) {
     editor.hidingButtons = null;
   var range = selection.getRanges()[0];
   if (!range || !range.startContainer) return;
-  var start = getEditableAscender(range.startContainer.$);
+  var start = Editor.Content.getEditableAscender(range.startContainer.$);
 
   var startSection = start;
   while (startSection && startSection.tagName != 'SECTION')
     startSection = startSection.parentNode;
 
-  var end = getEditableAscender(range.endContainer.$);
+  var end = Editor.Content.getEditableAscender(range.endContainer.$);
 
   var endSection = end;
   while (endSection && endSection.tagName != 'SECTION')

@@ -36,6 +36,7 @@ Editor.Snapshot.prototype.animate = function(section) {
       snapshot.timer = requestAnimationFrame(onSingleFrame)
     } else {
       snapshot.editor.fire('transitionEnd')
+      snapshot.reset()
     }
   }
   // call immediately for safari, the reason why we dont use precise RAF timestamp 
@@ -176,23 +177,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
     editor.element.$.classList.remove('moving')
     editor.element.$.style.height = '';
 
-    for (var i = 0; i < elements.length; i++) {
-      //elements[i].style.webkitTransitionDuration = '0s'
-      //elements[i].style.transitionDuration = '0s'
-      elements[i].style.webkitTransform = 'none'
-      elements[i].style.transform = 'none'
-      elements[i].style.height = ''
-      elements[i].style.width = ''
-      elements[i].style.top = ''
-      elements[i].style.left = ''
-      elements[i].style.position = ''
-      elements[i].style.left = ''
-      elements[i].style.fontSize = ''
-      elements[i].style.margin = ''
-
-      //elements[i].classList.remove('unobserved')
-
-    }
+    Editor.Snapshot.prototype.reset(elements)
   }
   var dimensions = []
   //debugger
@@ -286,6 +271,29 @@ Editor.Snapshot.take = function(editor, reset, focused) {
   }
   
   return new Editor.Snapshot(editor, elements, dimensions)
+}
+
+Editor.Snapshot.prototype.reset = function(elements) {
+  if (!elements)
+    elements = this.elements;
+  for (var i = 0; i < elements.length; i++) {
+    var element= elements[i];
+    //element.style.webkitTransitionDuration = '0s'
+    //element.style.transitionDuration = '0s'
+    element.style.webkitTransform = 'none'
+    element.style.transform = 'none'
+    element.style.height = ''
+    element.style.width = ''
+    element.style.top = ''
+    element.style.left = ''
+    element.style.position = ''
+    element.style.left = ''
+    element.style.fontSize = ''
+    element.style.margin = ''
+
+    //elements[i].classList.remove('unobserved')
+
+  }
 }
 
 Editor.Snapshot.prototype.isVisible = function(element) {

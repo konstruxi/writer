@@ -252,8 +252,11 @@ section.clone {
 .content section.new {
   opacity: 0.3;
 }
+.content .toolbar.new {
+  opacity: 0;
+}
 
-.content section {
+.content section, .content .toolbar {
   opacity: 1;
   transition: opacity .2s;
 }

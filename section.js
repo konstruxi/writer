@@ -219,13 +219,18 @@ Editor.Section.build = function(editor, section) {
   if (!section.getElementsByClassName('toolbar')[0]) {
                 
     var toolbar = document.createElement('div');
-    toolbar.className = 'toolbar'
+    toolbar.className = 'new toolbar'
     toolbar.setAttribute('unselectable', 'on')
 
-    toolbar.innerHTML = '<x-button class="handle">' +
+    if (!editor.toolbarsToRender)
+      editor.toolbarsToRender = []
+    editor.toolbarsToRender.push({
+      element: toolbar,
+      content: '<x-button class="handle">' +
                   '<svg viewBox="0 0 48 48" class="resize handler icon"><use xlink:href="#resize-section-icon"></use></svg>' +
                   '<svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>' +
                 '</x-button>'
+    })
     section.insertBefore(toolbar, section.firstChild)
   }
 

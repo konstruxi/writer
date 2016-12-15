@@ -140,27 +140,27 @@ function Editor(content) {
     })
     editor.commands.heading.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      Editor.cleanSelection(editor, {lists: true, quotes: true})
+      Editor.Content.cleanSelection(editor, {lists: true, quotes: true})
     })
     editor.commands.subtitle.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      Editor.cleanSelection(editor, {lists: true, quotes: true})
+      Editor.Content.cleanSelection(editor, {lists: true, quotes: true})
     })
     editor.commands.title.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      Editor.cleanSelection(editor, {lists: true, quotes: true})
+      Editor.Content.cleanSelection(editor, {lists: true, quotes: true})
     })
     editor.commands.bulletedlist.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      Editor.cleanSelection(editor, {titles: true, quotes: true})
+      Editor.Content.cleanSelection(editor, {titles: true, quotes: true})
     }, null, null, 1)
     editor.commands.numberedlist.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      Editor.cleanSelection(editor, {titles: true, quotes: true})
+      Editor.Content.cleanSelection(editor, {titles: true, quotes: true})
     })
     editor.commands.blockquote.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      Editor.cleanSelection(editor, {titles: true, lists: true})
+      Editor.Content.cleanSelection(editor, {titles: true, lists: true})
     })
     editor.commands.outdent.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);

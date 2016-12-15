@@ -34,18 +34,34 @@ Editor.Snapshot.prototype.animate = function(section) {
 
     if (snapshot.animating.length) {
       snapshot.timer = requestAnimationFrame(onSingleFrame)
-      //snapshot.editor.fire('transitionEnd')
+    } else {
+      snapshot.editor.fire('transitionEnd')
     }
   }
   // call immediately for safari, the reason why we dont use precise RAF timestamp 
   onSingleFrame()
 
-  requestAnimationFrame(function() {
-
-  setTimeout(function() {
-    for (var i = 0; i < snapshot.elements.length; i++)
-      snapshot.elements[i].classList.remove('new')
+  clearTimeout(this.toolbars);
+  snapshot.toolbars = setTimeout(function() {
+    requestAnimationFrame(function() {
+      var toolbars = snapshot.editor.toolbarsToRender;
+      snapshot.editor.toolbarsToRender = null;
+      if (toolbars) {
+        toolbars.forEach(function(toolbar) {
+          toolbar.element.innerHTML = toolbar.content;
+        })
+        requestAnimationFrame(function() {
+          toolbars.forEach(function(toolbar) {
+            toolbar.element.classList.remove('new')
+          })
+        })
+      }
+    })
   }, 300)
+  requestAnimationFrame(function() {
+    var els = snapshot.editor.element.$.getElementsByClassName('new')
+    for (var i = 0; i < els.length; i++)
+      els[i].classList.remove('new')
 
   })
   return snapshot;
@@ -76,7 +92,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
 
       var spring = to[springName] = new Spring(74, 7);
     } else {
-      var spring = to[springName] = new Spring(20, 2);
+      var spring = to[springName] = new Spring(40, 7);
     }
   }
   if (spring) {

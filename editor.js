@@ -18,30 +18,9 @@ function Editor(content) {
   });
 
 
-  Editor.useTransforms = true;
-
-  editor.measure = function(scroll) {
-    if (!scroll) {
-      this.offsetHeight = editor.element.$.offsetHeight;
-      this.offsetWidth  = editor.element.$.offsetWidth;
-      this.offsetTop    = editor.element.$.offsetTop;
-      this.offsetLeft   = editor.element.$.offsetLeft;
-      this.innerWidth   = window.innerWidth;
-      this.innerHeight  = window.innerHeight;
-    }
-    this.scrollY      = window.scrollY;
-    this.box = {
-      width: this.offsetWidth,
-      height: this.offsetHeight,
-      top: this.offsetTop - window.scrollY,
-      left: this.offsetLeft - window.scrollX
-    }
-    this.zoom = this.offsetWidth / this.box.width
-  }
-
-  editor.measure();
+  Editor.measure(editor);
   editor.on('contentDom', function() {
-    editor.measure();
+    Editor.measure(editor);
   })
   editor.on('uiSpace', function() {
     arguments[0].data.html = arguments[0].data.html.replace('>Insert/Remove Bulleted List<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M8 21c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM8 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 24c-1.67 0-3 1.35-3 3s1.35 3 3 3 3-1.35 3-3-1.33-3-3-3zm6 5h28v-4H14v4zm0-12h28v-4H14v4zm0-16v4h28v-4H14z"/></svg>' + '<')
@@ -59,13 +38,6 @@ function Editor(content) {
     
   }, null, null, 20);
 
-
-  editor.element.$.addEventListener('keydown', function(e) {
-
-    if (e.keyCode == 13 || e.keyCode == 8) {
-      Editor.Animation.snapshotTransforms(editor, true)
-    }
-  }, true)
 
   editor.on('key', function(e) {
     if (e.data.keyCode == 13) {
@@ -262,7 +234,7 @@ function Editor(content) {
   content.addEventListener('ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown', editor)
 
   window.addEventListener('scroll', function() {
-    editor.measure(true)
+    Editor.measure(editor, true)
     updateToolbar(editor)
   })
   window.addEventListener('resize', function() {
@@ -296,7 +268,7 @@ onEditorResize = function(editor) {
     editor.stylesheet = document.createElement('style');
     document.body.appendChild(editor.stylesheet)
   }
-  editor.measure()
+  Editor.measure(editor)
   editor.stylesheet.textContent = '#' + editor.element.$.id + ' section:after{' + 
     'border-left-width: calc(' + (editor.offsetLeft + 16) + 'px + 1rem); ' +
     'left: calc(-' + (editor.offsetLeft + 16) + 'px - 1rem); ' +
@@ -357,7 +329,7 @@ onDrag = function(editor, e) {
       var selection = editor.getSelection();
       if (!selection.getRanges()[0]) {
         var range = editor.createRange()
-        var focus = getSectionStartElement(editor.dragging);
+        var focus = Editor.Section.getEditStart(editor.dragging);
         range.moveToElementEditStart(new CKEDITOR.dom.element(focus));
         range.select()
       }
@@ -504,6 +476,40 @@ function onCursorMove(editor, force, blur) {
       Editor.Content.cleanEmpty(editor, force, blur)
     })
   }, 100)
+
+}
+
+
+Editor.measure = function(editor, scroll) {
+  if (!scroll) {
+    editor.offsetHeight = editor.element.$.offsetHeight;
+    editor.offsetWidth  = editor.element.$.offsetWidth;
+    editor.offsetTop    = editor.element.$.offsetTop;
+    editor.offsetLeft   = editor.element.$.offsetLeft;
+    editor.innerWidth   = window.innerWidth;
+    editor.innerHeight  = window.innerHeight;
+  }
+  editor.scrollY      = window.scrollY;
+  editor.box = {
+    width: editor.offsetWidth,
+    height: editor.offsetHeight,
+    top: editor.offsetTop - window.scrollY,
+    left: editor.offsetLeft - window.scrollX
+  }
+  editor.zoom = editor.offsetWidth / editor.box.width
+}
+
+
+
+Editor.isBoxVisible = function(editor, box) {
+  var top = box.top;
+  var bottom = box.top + box.height
+  var topmost = editor.scrollY - editor.offsetTop - editor.innerHeight / 4
+  var bottomost = editor.scrollY + editor.innerHeight - editor.offsetTop + editor.innerHeight / 4;
+
+  return ((top >= topmost && top    <= bottomost)
+    || (bottom >= topmost && bottom <= bottomost)
+    ||    (top <= topmost && bottom >= bottomost))
 
 }
 

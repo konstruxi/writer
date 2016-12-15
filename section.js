@@ -1,9 +1,6 @@
 Editor.Section = function(editor, mutation, observer) {
 
-  if (!editor.transformsnapshot)
-    Editor.Animation.snapshotTransforms(editor);
-
-  var snapshot = editor.stylesnapshot || Editor.Animation.snapshotStyles(editor);
+  var snapshot = editor.snapshot || Editor.Snapshot.take(editor);
   //editor.stylesnapshot = undefined;
 
 
@@ -15,7 +12,11 @@ Editor.Section = function(editor, mutation, observer) {
   Editor.Section.group(content)
 
 
-  editor.stylesnapshot = Editor.Animation(editor, snapshot, section);
+  editor.snapshot = snapshot.animate(section);
+
+  //updateToolbar(editor, true)
+  //togglePicker(editor, true)
+
 
   if (observer)
     observer.takeRecords()

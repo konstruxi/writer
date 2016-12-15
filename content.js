@@ -109,6 +109,15 @@ Editor.Content.getEditableAscender = function(element) {
   return element;
 }
 
+Editor.Content.isParagraph = function(element) {
+  switch (element.parentNode.tagName) {
+    case 'SECTION': case 'OL': case 'UL': case 'BLOCKQUOTE':
+      return true;
+    default:
+      return element.parentNode.getAttribute('contenteditable') != null
+  }
+}
+
 Editor.Content.isInside = function(element, another) {
   while (element) {
     if (element == another)

@@ -222,15 +222,10 @@ Editor.Section.build = function(editor, section) {
     toolbar.className = 'toolbar'
     toolbar.setAttribute('unselectable', 'on')
 
-    if (!editor.toolbarsToRender)
-      editor.toolbarsToRender = []
-    editor.toolbarsToRender.push({
-      element: toolbar,
-      content: '<x-button class="handle">' +
+    toolbar.innerHTML = '<x-button class="handle">' +
                   '<svg viewBox="0 0 48 48" class="resize handler icon"><use xlink:href="#resize-section-icon"></use></svg>' +
                   '<svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>' +
                 '</x-button>'
-    })
     section.insertBefore(toolbar, section.firstChild)
   }
 

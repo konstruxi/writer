@@ -74,9 +74,9 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
   } else if (from[property] != to[property]) {
     if (property == 'width' || property == 'height') {
 
-      var spring = to[springName] = new Spring(44, 20);
+      var spring = to[springName] = new Spring(74, 7);
     } else {
-      var spring = to[springName] = new Spring(12, 7);
+      var spring = to[springName] = new Spring(20, 4);
     }
   }
   if (spring) {

@@ -250,12 +250,12 @@ section.clone {
 }
 
 .content section.new {
-  opacity: 0;
+  opacity: 0.3;
 }
 
 .content section {
   opacity: 1;
-  transition: opacity .3s;
+  transition: opacity .2s;
 }
 
 blockquote:before {

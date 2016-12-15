@@ -166,10 +166,11 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
       to.visible = true;
     if (!to.visible) {
       element.classList.add('unobserved')
-      continue
+    } else {
+
+      element.classList.remove('unobserved')
     }
-    element.classList.remove('unobserved')
-    if (from && to.fontSize != from.fontSize) {
+    if (from && to.fontSize != from.fontSize && from.fontSize && to.fontSize) {
       to.currentFontSize = this.transition(element, from, to, time, startTime, 'currentFontSize', 'fontSize', 'fontSizeSpring');
     }
     if (to.animated || from && from.animated) {
@@ -199,18 +200,19 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         to.currentX      = to.x
 
       }
+      if (to.visible) {
+        element.style.position = 'absolute';
+        element.style.top = '0';
+        element.style.left = '0';
+        element.style.margin = '0'
+        if (to.currentFontSize)
+          element.style.fontSize = to.currentFontSize + 'px'
 
-      element.style.position = 'absolute';
-      element.style.top = '0';
-      element.style.left = '0';
-      element.style.margin = '0'
-      if (to.currentFontSize)
-        element.style.fontSize = to.currentFontSize + 'px'
-
-      element.style.transform = 
-      element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
-      element.style.height = to.currentHeight + 'px';
-      element.style.width = to.currentWidth + 'px';
+        element.style.transform = 
+        element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
+        element.style.height = to.currentHeight + 'px';
+        element.style.width = to.currentWidth + 'px';
+      }
     }
   }
 }

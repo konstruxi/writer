@@ -156,17 +156,21 @@ function Editor(content) {
     editor.commands.bulletedlist.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {titles: true, quotes: true})
+      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
     }, null, null, 1)
     editor.commands.numberedlist.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {titles: true, quotes: true})
+      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
     })
     editor.commands.blockquote.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {titles: true, lists: true})
+      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
     })
     editor.commands.outdent.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
+      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
     })
     editor.commands.bold.on('exec', function() {
       if (editor.commands.italic.state == 1)

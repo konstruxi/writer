@@ -20,13 +20,15 @@ function Editor(content) {
 
   Editor.useTransforms = true;
 
-  editor.measure = function() {
-    this.offsetHeight = editor.element.$.offsetHeight;
-    this.offsetWidth  = editor.element.$.offsetWidth;
-    this.offsetTop    = editor.element.$.offsetTop;
-    this.offsetLeft   = editor.element.$.offsetLeft;
-    this.innerWidth   = window.innerWidth;
-    this.innerHeight  = window.innerHeight;
+  editor.measure = function(scroll) {
+    if (!scroll) {
+      this.offsetHeight = editor.element.$.offsetHeight;
+      this.offsetWidth  = editor.element.$.offsetWidth;
+      this.offsetTop    = editor.element.$.offsetTop;
+      this.offsetLeft   = editor.element.$.offsetLeft;
+      this.innerWidth   = window.innerWidth;
+      this.innerHeight  = window.innerHeight;
+    }
     this.scrollY      = window.scrollY;
     this.box = {
       width: this.offsetWidth,
@@ -57,6 +59,13 @@ function Editor(content) {
     
   }, null, null, 20);
 
+
+  editor.element.$.addEventListener('keydown', function(e) {
+
+    if (e.keyCode == 13 || e.keyCode == 8) {
+      snapshotTransforms(editor, true)
+    }
+  }, true)
 
   editor.on('key', function(e) {
     if (e.data.keyCode == 13) {
@@ -296,7 +305,7 @@ function Editor(content) {
   content.addEventListener('ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown', editor)
 
   window.addEventListener('scroll', function() {
-    editor.scrollY = window.scrollY;
+    editor.measure(true)
     updateToolbar(editor)
   })
   window.addEventListener('resize', function() {
@@ -440,9 +449,6 @@ onDragEnd = function(editor, e) {
     var dragstart = editor.dragstart
 
     var section = newSection(editor)
-
-    if (!dragging.classList.contains('forced'))
-      section.classList.add('new')
 
     if (dragstart - e.pageY > 0) {
       dragging.classList.remove('forced')
@@ -665,6 +671,10 @@ split = function(editor, root) {
       }
       if (current) {
         current.parentNode.removeChild(current)
+      }
+      if (isEmptyParagraph(last)) {
+        debugger
+        last.classList.add('new')
       }
       continue;
     }
@@ -962,11 +972,10 @@ function getAllElements(editor) {
   return result;
 }
 
-function snapshotTransforms(editor, elements) {
-  if (!editor.animating || !Editor.useTransforms)
+function snapshotTransforms(editor, soft) {
+  if ((soft ? editor.animating : !editor.animating) || !Editor.useTransforms)
     return
-  if (!elements)
-    elements = getAllElements(editor);
+  var elements = getAllElements(editor);
   var transitioned = []
   for (var i = 0; i < elements.length; i++) {
     var box = null;
@@ -1005,7 +1014,10 @@ function snapshotStyles(editor, reset, focused) {
         elements[i].style.left = ''
       }
       elements[i].style.fontSize = ''
-      elements[i].classList.remove('moving')
+      if (elements[i].classList.contains('moving')) {
+        elements[i].classList.remove('moving')
+        elements[i].classList.add('was-moving')
+      } 
       //elements[i].classList.remove('unobserved')
 
     }
@@ -1191,6 +1203,7 @@ function animate(editor, snapshot, section, callback) {
       for (var i = 0; i < all.length; i++) {
         all[i].style.transition = 
         all[i].style.webkitTransition = '';
+        all[i].classList.remove('new')
       }
 
 
@@ -1231,6 +1244,7 @@ function animate(editor, snapshot, section, callback) {
         var all = Array.prototype.slice.call(content.getElementsByTagName('*'));
         for (var i = 0; i < all.length; i++) {
           all[i].classList.remove('moving')
+          all[i].classList.remove('was-moving')
 //          if (all[i].classList.contains('unobserved') && all[i].tagName == 'SECTION' && all[i].textContent.indexOf('A11Y') > -1) {
 //            debugger
 //          }
@@ -1298,10 +1312,11 @@ function shift(editor, element, to, all, from, elements, root, parentX, parentY,
           : element.classList.contains('moving')) {
         if (!repositioned)
           repositioned = 1;
+        element.classList.remove('was-moving')
         element.classList.add('moving')
         if (Editor.useTransforms) {
           element.style.webkitTransform =
-          element.style.transform = 'translateX(' + shiftX + 'px) translateY(' + shiftY + 'px)'
+          element.style.transform = 'translateX(' + Math.ceil(shiftX) + 'px) translateY(' + Math.ceil(shiftY) + 'px)'
         } else {
           element.style.left = Math.floor(shiftX) + 'px'
           element.style.top = Math.floor(shiftY) + 'px'

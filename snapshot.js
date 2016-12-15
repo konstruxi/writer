@@ -8,6 +8,8 @@ Editor.Snapshot = function(editor, elements, dimensions) {
 Editor.Snapshot.prototype.animate = function(section) {
   var snapshot = Editor.Snapshot.take(this.editor, true);
 
+  snapshot.animating = this.animating || [];
+
   if (!this.computed)
     this.compute(snapshot)
   snapshot.compute(this)
@@ -16,29 +18,36 @@ Editor.Snapshot.prototype.animate = function(section) {
     this.editor.animation = snapshot;
   }
 
-  console.log(snapshot, 123)
 
   snapshot.startTime = null;
   var duration = 300;
   var from = this;
   cancelAnimationFrame(this.timer);
   var onSingleFrame = function() {
+    cancelAnimationFrame(snapshot.timer);
     var time = + new Date;
+    var start = snapshot.startTime || time
+    snapshot.morph(from, (start + Math.floor((time - start) / 1)), start)
+
     if (!snapshot.startTime)
       snapshot.startTime = time;
-    
-    var diff = time - snapshot.startTime;
-    var progress = Math.min(1, diff / duration);
-    console.log(progress)
-    snapshot.morph(from, progress)
-    if (diff <= duration) {
+
+    if (snapshot.animating.length) {
       snapshot.timer = requestAnimationFrame(onSingleFrame)
-      snapshot.editor.fire('transitionEnd')
+      //snapshot.editor.fire('transitionEnd')
     }
   }
   // call immediately for safari, the reason why we dont use precise RAF timestamp 
   onSingleFrame()
 
+  requestAnimationFrame(function() {
+
+  setTimeout(function() {
+    for (var i = 0; i < snapshot.elements.length; i++)
+      snapshot.elements[i].classList.remove('new')
+  }, 300)
+
+  })
   return snapshot;
 };
 
@@ -55,44 +64,74 @@ Editor.Snapshot.prototype.get = function(element) {
   return this.dimensions[this.elements.indexOf(element)]
 }
 
+Editor.Snapshot.prototype.transition = function(element, from, to, time, startTime, fallback, property, springName) {
+  if (to[springName] === false) {
+    return to[property]
+  } else if (to[springName]) {
+    var spring = to[springName];
+  } else if (from[springName]) {
+    var spring = to[springName] = from[springName];
+  } else if (from[property] != to[property]) {
+    if (property == 'width' || property == 'height') {
+
+      var spring = to[springName] = new Spring(44, 20);
+    } else {
+      var spring = to[springName] = new Spring(12, 7);
+    }
+  }
+  if (spring) {
+    if (spring[2] == null) 
+      spring[2] = from[property];
+    spring[3] = to[property];
+    var value = spring.compute(time, startTime);
+
+    if (!this.animating) this.animating = []
+    var j = this.animating.indexOf(spring);
+    if (spring.complete()) {
+      if (j > -1)
+        this.animating.splice(j, 1)
+      from[springName] =
+      to[springName] = false;
+    } else {
+      if (j == -1)
+        this.animating.push(spring)
+    }
+  }
+
+  if (value == null) {
+    if (to[fallback] != null)
+      return to[fallback]
+    return from[property];
+  }
+  return value;
+}
+
 // apply new styles over given snapshot, at specific time point from 0 to 1
-Editor.Snapshot.prototype.morph = function(snapshot, progress) {
+Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
   for (var i = 0; i < this.elements.length; i++) {
     var element = this.elements[i];
     var to = this.dimensions[i];
     var from = snapshot.get(element);
     if (/*xto.visible && */to.animated || from && from.animated) {
       to.animated = true
-          if (element.tagName == 'H2' && element.textContent.indexOf('Beauty') > -1)
-            debugger
-      if (from) {
-        if (from.currentWidth != null) {
 
-          to.currentWidth  = from.currentWidth  + (to.width  - from.currentWidth)  * progress;
-          to.currentHeight = from.currentHeight + (to.height - from.currentHeight) * progress;
-          if (from.parent == to.parent) {
-            var oldY = from.currentY
-            var oldX = from.currentX// + ((from.left) - (to.left))
-          
-          } else{
-            var oldY = (from.top - from.y) - (to.top - to.y)  + (from.currentY)
-            var oldX = (from.left - from.x) - (to.left - to.x) + (from.currentX)
+      if (from) {
+        to.currentTop    = this.transition(element, from, to, time, startTime, 'currentTop', 'top', 'topSpring');
+        to.currentLeft   = this.transition(element, from, to, time, startTime, 'currentLeft', 'left', 'leftSpring');
+        to.currentWidth  = this.transition(element, from, to, time, startTime, 'currentWidth', 'width', 'widthSpring');
+        to.currentHeight = this.transition(element, from, to, time, startTime, 'currentHeight', 'height', 'heightSpring');
+
+        //if (to.parent == from.parent) {
+          var shiftX = 0;
+          var shiftY = 0;
+          if (to.up) {
+            shiftY += (to.up.currentTop || to.up.top) - to.up.top;
+            shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
           }
-          to.currentX      = oldX + (to.x - oldX) * progress;
-          to.currentY      = oldY + (to.y - oldY) * progress;
-        } else if (to.animated) {
-          to.currentWidth  = from.width  + (to.width  - from.width)  * progress;
-          to.currentHeight = from.height + (to.height - from.height) * progress;
-          if (from.x == null) {
-            to.currentX    = to.x;
-            to.currentY    = to.y;
-          } else {
-            var oldY = (from.top - from.y) - (to.top - to.y)  + (from.y)
-            var oldX = (from.left - from.x) - (to.left - to.x) + (from.x)
-            to.currentX    = oldX + (to.x - oldX) * progress;
-            to.currentY    = oldY + (to.y - oldY) * progress;
-          }
-        }
+          to.currentX = to.x + (to.currentLeft - to.left);
+          to.currentY = to.y + (to.currentTop - to.top) - shiftY;
+
+
       } else {
         to.currentWidth  = to.width
         to.currentHeight = to.height
@@ -134,6 +173,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
       elements[i].style.left = ''
       elements[i].style.fontSize = ''
       elements[i].style.margin = ''
+
       //elements[i].classList.remove('unobserved')
 
     }
@@ -147,6 +187,9 @@ Editor.Snapshot.take = function(editor, reset, focused) {
       height: elements[i].offsetHeight, 
       width: elements[i].offsetWidth, 
       parent: elements[i].parentNode}
+    if (!box.up)
+      box.up = dimensions[elements.indexOf(elements[i].parentNode)]
+    
     for (var parent = elements[i]; parent && (parent != editor.element.$); parent = parent.offsetParent) {
       box.top += parent.offsetTop;
       box.left += parent.offsetLeft;

@@ -248,8 +248,14 @@ section.clone {
   -webkit-transform: none !important;
 
 }
-.content .new {
+
+.content section.new {
   opacity: 0;
+}
+
+.content section {
+  opacity: 1;
+  transition: opacity .3s;
 }
 
 blockquote:before {

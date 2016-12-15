@@ -71,7 +71,7 @@ Editor.Section.split = function(editor, root) {
       continue;
     }
 
-    last = place(editor, last, prev, child, null, root, null, context)
+    last = Editor.Section.place(editor, last, prev, child, null, root, null, context)
     prev = child;
   }
 

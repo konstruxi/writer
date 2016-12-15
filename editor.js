@@ -679,15 +679,16 @@ function updateToolbar(editor, force) {
   var sectionAfterStyle = window.getComputedStyle(startSection, ':after');
 
   // use final keyframe positions when animating
-  if (editor.animating && editor.styleupdate) {
-    var index = editor.styleupdate[0].indexOf(start);
-    var indexS = editor.styleupdate[0].indexOf(startSection);
+  if (editor.snapshot) {
+    var index = editor.snapshot.elements.indexOf(start);
+    var indexS = editor.snapshot.elements.indexOf(startSection);
     if (index > -1 && indexS > -1) {
-      var offsetHeight = editor.styleupdate[1][index].height;
-      var sectionOffsetTop = editor.styleupdate[1][indexS].top;
-      var offsetTop = editor.styleupdate[1][index].top + editor.offsetTop;
-      var offsetLeft = editor.styleupdate[1][indexS].left + editor.offsetLeft;
+      var offsetHeight = editor.snapshot.dimensions[index].height;
+      var sectionOffsetTop = editor.snapshot.dimensions[indexS].top;
+      var offsetTop = editor.snapshot.dimensions[index].top + editor.offsetTop;
+      var offsetLeft = editor.snapshot.dimensions[indexS].left + editor.offsetLeft;
     } else {
+      debugger
       return;
     }
   // place at currently selected element mid-point

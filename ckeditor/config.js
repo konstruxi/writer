@@ -39,7 +39,7 @@ CKEDITOR.editorConfig = function( config ) {
 
 	config.allowedContent = 'h1 h2 h3 blockquote ul li ol b i code pre; iframe[src]; a[href,title]; abbr[title]; img[src,alt,title,uid,palette]; section(forced);'
 
-	config.disallowedContent = 'section(focused);'
+	config.disallowedContent = 'section(focused); * {*}'
 
 	config.shiftEnterMode = CKEDITOR.ENTER_P
 

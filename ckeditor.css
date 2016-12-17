@@ -1,4 +1,4 @@
-
+@charset "UTF-8";
 body {
   max-width: 800px;
 }
@@ -41,15 +41,6 @@ section {
   position: relative;
 }
 
-.toolbar {
-  opacity: 0.3;
-  transition: 0.2s opacity;
-}
-
-.forced .toolbar {
-  opacity: 0.7;
-}
-
 .toolbar:hover {
   opacity: 1;
   transition: none;
@@ -62,46 +53,67 @@ section > .toolbar {
   width: 100%;
   height: 2rem;
   cursor: row-resize;
+  z-index: 2000;
 }
 
+section .toolbar .handle {
+  width: 3rem;
+  height: 3rem;
+  display: block;
+  margin: 0 auto;
+  margin-top: -0.64rem;
+}
+
+section .toolbar .resize {
+  clip: rect(0 2.5rem 1.5rem 0);
+  border: 0.2rem solid transparent;
+}
 section .toolbar svg {
   position: absolute;
   left: 50%;
   margin-left: -1.16rem;
-  margin-top: -0.65rem;
+  margin-top: -.68rem;
   height: 2.4rem;
   width: 2.4rem;
-  clip: rect(0 2.5rem 1.5rem 0);
-  overflow: hidden;
   border-radius: 50%;
   box-sizing: border-box;
   border: 0.2rem solid transparent;
+  clip: rect(0 2.5rem 1.9rem 0);
 }
 section .toolbar svg.split {
-  margin-top: -1.15rem;
-  clip: rect(0 2.5rem 2.2rem 0);
+  margin-top: -1.17rem;
+  border: 0.2rem solid transparent;
 }
 section .toolbar svg.handler {
+  background-color: #fff;
+}
+
+section .toolbar .zoom, section .toolbar .styles {
+  display: none;
+}
+section .toolbar:hover .zoom, 
+section .toolbar:hover .styles {
+  display: block;
+}
+section .toolbar svg.palette {
+  margin-left: -3.6rem;
+  background-color: #fff;
+}
+section .toolbar svg.zoomer {
+  margin-left: 1.25rem;
   background-color: #fff;
 }
 section .toolbar svg{
   fill: currentColor;
 }
 
-.no-touch section .toolbar svg.split {
-  display: none;
-}
-.touch section .toolbar svg.resize {
+section .toolbar svg.split {
   display: none;
 }
 
-
-.no-touch section .toolbar .handle:hover svg.split {
+section .toolbar .handle:hover svg.split {
   display: block;
   cursor: pointer;
-}
-.no-touch section .toolbar .handle:hover svg.resize {
-  display: none;
 }
 
 section .toolbar {
@@ -233,33 +245,22 @@ section.clone {
   visibility: hidden;
 
 }
-
+/*
 .content section.new {
-  opacity: 0.3;
-}
-.content .toolbar.new {
-  opacity: 0;
-}
+  opacity: 0.1;
+}*/
 
-.content .toolbar {
-  display: none;
-}
-
-.content section, .content .toolbar {
-  opacity: 1;
-  transition: opacity .2s;
-}
 
 blockquote:before {
   content: '“';
-  float: left;
+  position: absolute;
   font-size: 3em;
-  margin-left: -0.5em;
+  margin-left: -0.45em;
   width: 0.5em;
   line-height: 0.6em;
 }
 blockquote {
-  margin: 0 0 0 1rem;
+  margin: 0 0 0 1.5rem;
   padding: 0;
 }
 section:first-child:not([pattern*=two]) {

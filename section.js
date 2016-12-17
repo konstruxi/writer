@@ -21,6 +21,7 @@ Editor.Section = function(editor, mutation, observer) {
   if (observer)
     observer.takeRecords()
 
+  // Animationg function unlocks snapshot
   editor.fire( 'unlockSnapshot' );
 }
 
@@ -28,7 +29,7 @@ Editor.Section = function(editor, mutation, observer) {
 Editor.Section.split = function(editor, root) {
   var children = Array.prototype.slice.call(root.childNodes);
   var selection = editor.getSelection()
-  if (!editor.dragbookmark)
+  if (!editor.dragbookmark && editor.focusManager.hasFocus)
     editor.dragbookmark = selection.createBookmarks();
   var last;
   var prev;
@@ -219,18 +220,20 @@ Editor.Section.build = function(editor, section) {
   if (!section.getElementsByClassName('toolbar')[0]) {
                 
     var toolbar = document.createElement('div');
-    toolbar.className = 'new toolbar'
+    toolbar.className = 'toolbar'
     toolbar.setAttribute('unselectable', 'on')
 
-    if (!editor.toolbarsToRender)
-      editor.toolbarsToRender = []
-    editor.toolbarsToRender.push({
-      element: toolbar,
-      content: '<x-button class="handle">' +
+    toolbar.innerHTML = '<x-button class="styles">' +
+                  '<svg viewBox="-1 2 50 50" class="pick palette icon"><use xlink:href="#palette-icon"></use></svg>' +
+                '</x-button>' + 
+                '<x-button class="handle">' +
                   '<svg viewBox="0 0 48 48" class="resize handler icon"><use xlink:href="#resize-section-icon"></use></svg>' +
                   '<svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>' +
+                '</x-button>' + 
+                '<x-button class="zoom">' +
+                  '<svg viewBox="-4 2 48 48" class="shrink zoomer icon"><use xlink:href="#zoom-out-icon"></use></svg>' +
+                  '<svg viewBox="-4 2 48 48" class="enlarge zoomer icon"><use xlink:href="#zoom-in-icon"></use></svg>' +
                 '</x-button>'
-    })
     section.insertBefore(toolbar, section.firstChild)
   }
 

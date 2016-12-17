@@ -13,7 +13,7 @@ var CanvasImage, Swatch, Vibrant,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   slice = [].slice;
 
-window.Swatch = Swatch = (function() {
+global.Swatch = Swatch = (function() {
   Swatch.prototype.hsl = void 0;
 
   Swatch.prototype.rgb = void 0;
@@ -81,7 +81,7 @@ window.Swatch = Swatch = (function() {
 
 })();
 
-window.Vibrant = Vibrant = (function() {
+global.Vibrant = Vibrant = (function() {
   Vibrant.prototype.quantize = MMCQ;
 
   Vibrant.prototype.rgbquant = RgbQuant;
@@ -482,7 +482,7 @@ window.Vibrant = Vibrant = (function() {
   Stolen from https://github.com/lokesh/color-thief
  */
 
-window.CanvasImage = CanvasImage = (function() {
+global.CanvasImage = CanvasImage = (function() {
   function CanvasImage(image) {
     this.canvas = document.createElement('canvas');
     this.context = this.canvas.getContext('2d');
@@ -516,4 +516,4 @@ window.CanvasImage = CanvasImage = (function() {
 })()
 
 
-})(window);
+})(this);

@@ -67,7 +67,7 @@ function togglePicker(editor, force) {
     window.unpicking = setTimeout(function() {
       picker.setAttribute('hidden', 'hidden');
       formatting.setAttribute('hidden', 'hidden')
-    }, 50)
+    }, 100)
   }
 }
 

@@ -452,6 +452,8 @@ CKEDITOR.dom.element.clearMarkers = function( database, element, removeFromDatab
 		 */
 		getHtml: function() {
 			var retval = this.$.innerHTML;
+			// YAROSLAFF FEDIN HACK: Ignore style attribute changes
+			retval = retval.replace(/\b(?:style)="[^"]*?"/gi, '');
 			// Strip <?xml:namespace> tags in IE. (#3341).
 			return CKEDITOR.env.ie ? retval.replace( /<\?[^>]*>/g, '' ) : retval;
 		},

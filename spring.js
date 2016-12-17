@@ -130,4 +130,4 @@ Spring.prototype.MAX = 0.064;
 
 Spring.prototype.DISPLACEMENT_THRESHOLD = 0.1;
 
-Spring.prototype.REST_THRESHOLD = 0.1;
+Spring.prototype.REST_THRESHOLD = 0.2;

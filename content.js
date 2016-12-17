@@ -144,17 +144,33 @@ Editor.Content.isEmpty = function(child) {
 
 
 Editor.Content.cleanSelection = function (editor, options) {
-  var selection = editor.getSelection()
-  var iterator = selection.getRanges()[0].createIterator();
+  var selection = editor.getSelection();
+  var range = selection.getRanges()[0];
+
+  var iterator = range.createIterator();
   iterator.enforceRealBlocks = false;
   var elements = []
-  var bookmark = selection.createBookmarks()
+  var section = Editor.Section.get(range.startContainer.$)
   for (var element; element = iterator.getNextParagraph();) {
     var el = element.$;
     if (el.parentNode.tagName == 'BLOCKQUOTE')
       el = el.parentNode;
+    if (Editor.Section.get(el) != section) {
+      if (elements.length) {
+        var end = new CKEDITOR.dom.element(elements[elements.length - 1])
+        break;
+      } else {
+        var start = new CKEDITOR.dom.element(el)
+        section = Editor.Section.get(el);
+      }
+    }
     elements.push(el);
   }
+
+  if (!start && !end)
+    var bookmark = selection.createBookmarks()
+  
+  
   for (var e, i = 0; e = elements[i++];) {
     var tag = e.tagName;
     switch (e.tagName) {
@@ -184,5 +200,14 @@ Editor.Content.cleanSelection = function (editor, options) {
 
     }
   }
-  selection.selectBookmarks(bookmark);
+  if (start || end) {
+    var modified = range.clone();
+    if (start)
+      modified.setStartBefore(start)
+    if (end)
+      modified.setEndAfter(end)
+    editor.getSelection().selectRanges([modified])
+  } else {
+    selection.selectBookmarks(bookmark);
+  }
 }

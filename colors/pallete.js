@@ -5,7 +5,7 @@ var Adjust, CSS, Colors, Contrast, Find, Matrix, Options, Palette, Row, Samples,
 
 var Palette = global.Palette = function(img) {
   var generator, matrix, swatches, vibrance;
-  if (!(swatches = Palette.fromString(img.getAttribute('palette')))) {
+  if (!img.nodeType || !(swatches = Palette.fromString(img.getAttribute('palette')))) {
     vibrance = new Vibrant(img, 120, 1);
     swatches = vibrance.swatches();
   }
@@ -77,6 +77,7 @@ Palette.fromString = function(string) {
         swatches[name].push(new Swatch(rgb, 3 - index))
     })
   })
+debugger
   console.info(swatches, string)
   return swatches
 }
@@ -459,7 +460,7 @@ prefix + " {\n" +
 "  color: " + this.foregroundAAA + ";\n" +
 "  outline-color: " + this.accent + ";\n" +
 "}\n" +
-prefix + " .toolbar .handler {\n" +
+prefix + " .toolbar svg {\n" +
 "  background-color: " + this.background + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "}\n" +
@@ -519,4 +520,4 @@ Schemes = {};
   return results;
 })();
 
-})(window)
+})(this);

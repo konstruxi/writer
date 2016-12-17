@@ -6,36 +6,49 @@ Editor.Snapshot = function(editor, elements, dimensions, selected) {
   this.selected = selected;
 }
 
-
+// attempt to restore identity of selected elements between snapshots
 Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
-
   if (snapshot.selected && this.selected) {
-     for (var i = 0; i < this.selected.length; i += 2) {
-       var before = snapshot.selected[i];
-       var beforeSize = snapshot.selected[i + 1];
-       var after = this.selected[i];
-       var afterSize = this.selected[i + 1];
+    var selected = this.selected.slice();
+    for (var i = 0; i < selected.length; i += 2) {
+      var after = selected[i];
+      var afterSize = selected[i + 1];
 
-       var box = this.get(after);
-       var old = snapshot.get(before)
-       if (old) {
-         old.fontSize = parseFloat(beforeSize);
-         box.fontSize = parseFloat(afterSize);
-       }
-       if (!snapshot.get(after)) {
-         snapshot.elements.push(after)
-         snapshot.dimensions.push(old)
-       }
-     }
-     //editor.element.$.classList.add('moving')
-     //editor.element.$.style.height = snapshot[3] + 'px';
+      if (snapshot.selected.indexOf(after) > -1) {
+        selected.splice(i, 2);
+        i -= 2;
+        continue;
+      }
+      var before = snapshot.selected[i];
+      var beforeSize = snapshot.selected[i + 1];
 
-   }
+      if (this.get(before))
+        continue;
+      
+      var box = this.get(after);
+      if (!box)
+       continue;
+      var old = snapshot.get(before)
+      if (old) {
+        old.fontSize = parseFloat(beforeSize);
+        box.fontSize = parseFloat(afterSize);
+      }
+      if (!snapshot.get(after)) {
+        snapshot.elements.push(after)
+        snapshot.dimensions.push(old)
+      }
+    }
+    //editor.element.$.classList.add('moving')
+    //editor.element.$.style.height = snapshot[3] + 'px';
+
+  }
 }
 Editor.Snapshot.prototype.animate = function(section) {
   var snapshot = Editor.Snapshot.take(this.editor, true);
 
-  snapshot.animating = this.animating || [];
+  snapshot.animating = (this.animating || [])
+
+  //snapshot.locked = true;
 
   if (!this.computed)
     this.compute(snapshot)
@@ -48,7 +61,8 @@ Editor.Snapshot.prototype.animate = function(section) {
   snapshot.startTime = null;
   var duration = 300;
   var from = this;
-  cancelAnimationFrame(this.timer);
+  if (this.timer)
+    cancelAnimationFrame(this.timer);
   var onSingleFrame = function() {
     cancelAnimationFrame(snapshot.timer);
     var time = + new Date;
@@ -66,40 +80,40 @@ Editor.Snapshot.prototype.animate = function(section) {
     if (snapshot.animating.length) {
       snapshot.timer = requestAnimationFrame(onSingleFrame)
     } else {
-      console.log('animated in', time -  snapshot.startTime)
       snapshot.editor.fire('transitionEnd')
-      snapshot.reset()
+      snapshot.reset(null, true)
+      //snapshot.unlock(true, time != snapshot.startTime);
+      console.log('animated in', time -  snapshot.startTime)
     }
   }
   // call immediately for safari, the reason why we dont use precise RAF timestamp 
   onSingleFrame()
-
-  clearTimeout(this.toolbars);
-  snapshot.toolbars = setTimeout(function() {
-    requestAnimationFrame(function() {
-      var toolbars = snapshot.editor.toolbarsToRender;
-      snapshot.editor.toolbarsToRender = null;
-      if (toolbars) {
-        toolbars.forEach(function(toolbar) {
-          toolbar.element.innerHTML = toolbar.content;
-          toolbar.element.style.display = 'block'
-        })
-        requestAnimationFrame(function() {
-          toolbars.forEach(function(toolbar) {
-            toolbar.element.classList.remove('new')
-          })
-        })
-      }
-    })
-  }, 800)
+/*
   requestAnimationFrame(function() {
-    var els = snapshot.editor.element.$.getElementsByClassName('new')
+    snapshot.editor.fire('lockSnapshot') */
+    var els = Array.prototype.slice.call(snapshot.editor.element.$.getElementsByClassName('new'))
     for (var i = 0; i < els.length; i++)
       els[i].classList.remove('new')
-
-  })
+  /*
+    snapshot.editor.fire('unlockSnapshot')
+  })*/
   return snapshot;
 };
+
+Editor.Snapshot.prototype.unlock = function(ended, forceUpdate) {
+  if (this.locked) {
+    console.log(ended ? 'lock finished' : 'unlock temporary')
+    this.locked = ended ? null : false;
+    this.editor.fire('unlockSnapshot', {forceUpdate: forceUpdate})
+  }
+}
+Editor.Snapshot.prototype.relock = function() {
+  if (this.locked === false) {
+    console.log('relocking')
+    this.locked = true;
+    this.editor.fire('lockSnapshot')
+  }
+}
 
 Editor.Snapshot.prototype.compute = function(snapshot) {
   this.computed = true;
@@ -127,10 +141,11 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
     } else if (property == 'fontSize') {
       var spring = to[springName] = new Spring(30, 8);
     } else {
-      var spring = to[springName] = new Spring(30, 5);
+      var spring = to[springName] = new Spring(30, 11);
     }
   }
   if (spring) {
+    spring.element = element;
     if (spring[2] == null) 
       spring[2] = from[property];
     spring[3] = to[property];
@@ -165,12 +180,7 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
     var from = snapshot.get(element);
     if (from && from.visible)
       to.visible = true;
-    if (!to.visible) {
-      element.classList.add('unobserved')
-    } else {
 
-      element.classList.remove('unobserved')
-    }
     if (from && to.fontSize != from.fontSize && from.fontSize && to.fontSize) {
       to.currentFontSize = this.transition(element, from, to, time, startTime, 'currentFontSize', 'fontSize', 'fontSizeSpring');
     }
@@ -202,17 +212,29 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
 
       }
       if (to.visible) {
+        element.style.visibility = ''
         element.style.position = 'absolute';
-        element.style.top = '0';
-        element.style.left = '0';
         element.style.margin = '0'
         if (to.currentFontSize)
           element.style.fontSize = to.currentFontSize + 'px'
 
-        element.style.transform = 
-        element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
+        // if movement animation is at rest, disable gpu transform
+
+        if (!to.topSpring && !to.leftSpring && element.tagName == 'SECTION') {
+          element.style.top = to.currentY + 'px';
+          element.style.left = to.currentX + 'px';
+          element.style.transform = 
+          element.style.webkitTransform = ''
+        } else {
+          element.style.top = '0';
+          element.style.left = '0';
+          element.style.transform = 
+          element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
+        }
         element.style.height = to.currentHeight + 'px';
         element.style.width = to.currentWidth + 'px';
+      } else {
+        element.style.visibility = 'hidden'
       }
     }
   }
@@ -260,7 +282,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
   }
 
 
-  Editor.measure(editor);
+//  Editor.measure(editor);
   for (var i = 0; i < elements.length; i++) {
     var box = {top: 0, left: 0, 
       height: elements[i].offsetHeight, 
@@ -276,7 +298,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
     box.visible = Editor.isBoxVisible(editor, box);
     dimensions.push(box)
   }
-    var selected = Editor.Snapshot.rememberSelected(editor, null)
+    var selected = Editor.Snapshot.rememberSelected(editor)
   
 
       //if (window.scrollY > offsetTop - 75/* || window.scrollY + window.innerHeight / 3 <  offsetTop - 75*/) {
@@ -317,15 +339,15 @@ Editor.Snapshot.rememberSelected = function(editor, bookmark, focused) {
   return selected;
 }
 
-Editor.Snapshot.prototype.reset = function(elements) {
+Editor.Snapshot.prototype.reset = function(elements, over) {
   if (!elements)
     elements = this.elements;
   for (var i = 0; i < elements.length; i++) {
     var element= elements[i];
     //element.style.webkitTransitionDuration = '0s'
     //element.style.transitionDuration = '0s'
-    element.style.webkitTransform = 'none'
-    element.style.transform = 'none'
+    element.style.webkitTransform = ''
+    element.style.transform = ''
     element.style.height = ''
     element.style.width = ''
     element.style.top = ''
@@ -334,8 +356,9 @@ Editor.Snapshot.prototype.reset = function(elements) {
     element.style.left = ''
     element.style.fontSize = ''
     element.style.margin = ''
-
-    elements[i].classList.remove('unobserved')
+    element.style.backgroundColor = ''
+    if (over)
+      element.style.visibility = ''
 
   }
 }

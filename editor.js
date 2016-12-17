@@ -18,24 +18,52 @@ function Editor(content) {
   });
 
 
+  // animations fire up many dom chages each frame, 
+  // so undo snapshot needs to be locked during animations
+  // but should temporarily unlock on user input
+  editor.on('key', function(e) {
+    if (editor.snapshot)
+      editor.snapshot.unlock()
+  }, null, null, -100);
+  editor.on('exec', function(e) {
+    if (editor.snapshot)
+      editor.snapshot.unlock()
+  }, null, null, -100);
+  editor.on('beforePaste', function(e) {
+    if (editor.snapshot)
+      editor.snapshot.unlock()
+  }, null, null, -100);
+  editor.on('saveSnapshot', function(e) {
+    console.log('snapshot', e)
+    if (editor.snapshot)
+      editor.snapshot.relock()
+  }, null, null, 100);
+
   Editor.measure(editor);
   editor.on('contentDom', function() {
     Editor.measure(editor);
+
+
+    var images = editor.element.$.getElementsByTagName('img');
+    for (var i = 0, image; image = images[i++];) {
+      Editor.Image(editor, image, Editor.Image.applyChanges)
+    }
+
   })
   editor.on('uiSpace', function() {
     arguments[0].data.html = arguments[0].data.html.replace('>Insert/Remove Bulleted List<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M8 21c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM8 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 24c-1.67 0-3 1.35-3 3s1.35 3 3 3 3-1.35 3-3-1.33-3-3-3zm6 5h28v-4H14v4zm0-12h28v-4H14v4zm0-16v4h28v-4H14z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Insert/Remove Numbered List<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M4 34h4v1H6v2h2v1H4v2h6v-8H4v2zm2-18h2V8H4v2h2v6zm-2 6h3.6L4 26.2V28h6v-2H6.4l3.6-4.2V20H4v2zm10-12v4h28v-4H14zm0 28h28v-4H14v4zm0-12h28v-4H14v4z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Decrease Indent<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M22 34h20v-4H22v4zM6 24l8 8V16l-8 8zm0 18h36v-4H6v4zM6 6v4h36V6H6zm16 12h20v-4H22v4zm0 8h20v-4H22v4z"/></svg>' + '<')
-    arguments[0].data.html = arguments[0].data.html.replace('>Add heading<',  '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M10 8v6h11v24h6V14h11V8z"/></svg>' + '<')
-    arguments[0].data.html = arguments[0].data.html.replace('>Add title<',    '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M10 8v6h11v24h6V14h11V8z"/></svg>' + '<')
-    arguments[0].data.html = arguments[0].data.html.replace('>Add subtitle<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M10 8v6h11v24h6V14h11V8z"/></svg>' + '<')
+    arguments[0].data.html = arguments[0].data.html.replace('>Add heading<',  '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M5 8v6h10v24h6V14h10V8H5zm38 10H25v6h6v14h6V24h6v-6z"/></svg>' + '<')
+    arguments[0].data.html = arguments[0].data.html.replace('>Add title<',    '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M5 8v6h10v24h6V14h10V8H5zm38 10H25v6h6v14h6V24h6v-6z"/></svg>' + '<')
+    arguments[0].data.html = arguments[0].data.html.replace('>Add subtitle<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M5 8v6h10v24h6V14h10V8H5zm38 10H25v6h6v14h6V24h6v-6z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Bold<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M31.2 21.58c1.93-1.35 3.3-3.53 3.3-5.58 0-4.51-3.49-8-8-8H14v28h14.08c4.19 0 7.42-3.4 7.42-7.58 0-3.04-1.73-5.63-4.3-6.84zM20 13h6c1.66 0 3 1.34 3 3s-1.34 3-3 3h-6v-6zm7 18h-7v-6h7c1.66 0 3 1.34 3 3s-1.34 3-3 3z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Italic<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M20 8v6h4.43l-6.86 16H12v6h16v-6h-4.43l6.86-16H36V8z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Add clear<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M6.54 10L4 12.55l13.94 13.94L13 38h6l3.14-7.32L33.46 42 36 39.45 7.09 10.55 6.54 10zM12 10v.36L17.64 16h4.79l-1.44 3.35 4.2 4.2L28.43 16H40v-6H12z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Add paragraph<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M6.54 10L4 12.55l13.94 13.94L13 38h6l3.14-7.32L33.46 42 36 39.45 7.09 10.55 6.54 10zM12 10v.36L17.64 16h4.79l-1.44 3.35 4.2 4.2L28.43 16H40v-6H12z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Block Quote<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M12 34h6l4-8V14H10v12h6zm16 0h6l4-8V14H26v12h6z"/></svg>' + '<')
     arguments[0].data.html = arguments[0].data.html.replace('>Add link<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M7.8 24c0-3.42 2.78-6.2 6.2-6.2h8V14h-8C8.48 14 4 18.48 4 24s4.48 10 10 10h8v-3.8h-8c-3.42 0-6.2-2.78-6.2-6.2zm8.2 2h16v-4H16v4zm18-12h-8v3.8h8c3.42 0 6.2 2.78 6.2 6.2s-2.78 6.2-6.2 6.2h-8V34h8c5.52 0 10-4.48 10-10s-4.48-10-10-10z"/></svg>' + '<')
-    
+    arguments[0].data.html = arguments[0].data.html.replace('>Add filters<', '>' + '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="-2 -1 28 28"><path d="M9 3L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-3.17L15 3H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-1l1.25-2.75L16 13l-2.75-1.25L12 9l-1.25 2.75L8 13l2.75 1.25z"/></svg>' + '<')
   }, null, null, 20);
 
 
@@ -50,6 +78,8 @@ function Editor(content) {
           return false;
         }
       }
+      if (editor.snapshot)
+        editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
     }
     if (e.data.keyCode == 8) {
       var selection = editor.getSelection()
@@ -106,7 +136,13 @@ function Editor(content) {
     onCursorMove(editor, true)
   })
   editor.on('beforePaste', function(e) {
-    
+    Array.prototype.forEach.call(e.data.dataTransfer.$.items, function(item) {
+      var file = item.getAsFile();
+      if (file) {
+        console.error('Load one file!')
+        Editor.Image(editor, file, Editor.Image.applyChanges, Editor.Image.insert);
+      }
+    });
     //snapshotStyles(editor)
 
     if (e.data.dataTransfer) {
@@ -245,10 +281,12 @@ function Editor(content) {
     Editor.measure(editor, true)
     if (editor.snapshot)
       editor.snapshot.updateVisibility()
-    updateToolbar(editor)
+    updateToolbar(editor, true)
   })
   window.addEventListener('resize', function() {
     onEditorResize(editor)
+    if (editor.snapshot)
+      editor.snapshot.updateVisibility()
   })
 
 
@@ -568,6 +606,9 @@ CKEDITOR.plugins.add( 'structural', {
       if (editor.commands.bold.state == 1)
         editor.ui.instances.Bold.click(editor)
     })
+    addButton('filters', 'basicstyles', function() {
+      alert('set up filters')
+    })
 
   }
 })
@@ -662,13 +703,17 @@ function getElementsAffectedByDrag(editor, e) {
   return result
 }
 
+function rightNow(callback) {
+  callback()
+}
+
 
 function updateToolbar(editor, force) {
   var selection = editor.getSelection();
   if (!selection) return;
 
   if (editor.hidingButtons) return;
-  editor.hidingButtons = setTimeout(function() {
+  editor.hidingButtons = (force ? rightNow : setTimeout)(function() {
     editor.hidingButtons = null;
   var range = selection.getRanges()[0];
   if (!range || !range.startContainer) return;
@@ -698,7 +743,6 @@ function updateToolbar(editor, force) {
       var offsetTop = editor.snapshot.dimensions[index].top + editor.offsetTop;
       var offsetLeft = editor.snapshot.dimensions[indexS].left + editor.offsetLeft;
     } else {
-      debugger
       return;
     }
   // place at currently selected element mid-point
@@ -717,14 +761,24 @@ function updateToolbar(editor, force) {
 
   var ui = editor.ui.instances
   if (range.startOffset != range.endOffset && start == end) {
-    if (ui.Bold._.state == 2 && ui.Italic._.state == 2 && 
-      ui.title._.state == 2 && ui.subtitle._.state == 2 && ui.heading._.state == 2) {
-      var button = 'Bold'
-    } else if (ui.Italic._.state == 2) {
-      var button = 'Italic'
+
+    var iterator = selection.getRanges()[0].createIterator();
+    iterator.enforceRealBlocks = false;
+    var paragraph = iterator.getNextParagraph();
+    if (paragraph && paragraph.is('img') || 
+      (paragraph.is('p') && paragraph.$.getElementsByTagName('img')[0])) {
+      var button = 'filters'
     } else {
-      var button = 'clear';
+      if (ui.Bold._.state == 2 && ui.Italic._.state == 2 && 
+        ui.title._.state == 2 && ui.subtitle._.state == 2 && ui.heading._.state == 2) {
+        var button = 'Bold'
+      } else if (ui.Italic._.state == 2) {
+        var button = 'Italic'
+      } else {
+        var button = 'clear';
+      }
     }
+
   } else {
     var section = start;
     while (section && section.tagName != 'SECTION')
@@ -755,22 +809,26 @@ function updateToolbar(editor, force) {
   }
 
 
-  requestAnimationFrame(function() {
+  (force ? rightNow : requestAnimationFrame)(function() {
 
   var top = Math.max( offsetTop,
-                          Math.min( window.scrollY + window.innerHeight - 54,
-                            Math.min( offsetTop + start.offsetHeight,
-                              Math.max(window.scrollY + 54, offsetTop + offsetHeight / 2)))) + 'px';
+                          Math.min( editor.scrollY + editor.innerHeight - 54,
+                            Math.min( offsetTop + offsetHeight,
+                              Math.max(editor.scrollY + 54, offsetTop + offsetHeight / 2)))) + 'px';
 
   var left = offsetLeft + 'px';
   
   formatting.style.display = 'block';
 
-  formatting.style.transform = 
-  formatting.style.webkitTransform = 'translateX(' + left + ') translateY(' + top + ')'; 
-  setUIColors(sectionStyle, sectionAfterStyle);
-  if (!button || editor.currentButton == button) return;
+  formatting.style.position  = 'absolute' 
+  formatting.style.left = left;
+  formatting.style.top = top;
+
+  if (force && button == editor.currentButton) return;
   editor.currentButton = button;
+  
+  setUIColors(sectionStyle, sectionAfterStyle);
+  
   var buttons = formatting.querySelectorAll('.cke .cke_button');
   var target = 'cke_button__' + button.toLowerCase()
   for (var i = 0, el; el = buttons[i++];) {

@@ -245,7 +245,6 @@
 			else {
 				context = options;
 			}
-
 			// Fall back to the editable as context if not specified.
 			if ( !context && context !== null )
 				context = editor.editable().getName();

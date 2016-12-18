@@ -23,8 +23,97 @@ function Editor(content) {
   // but should temporarily unlock on user input
 
   Editor.measure(editor);
+
+
+
   editor.on('contentDom', function() {
     Editor.measure(editor);
+
+    editor.dataProcessor.dataFilter.addRules({
+      text: function(string) {
+        console.log(string)
+        string = string.replace(/&nbsp;/g, ' ')
+
+        if (string.length < 30)
+        switch (string.replace(/[\s\t\n]/, '').trim().toLowerCase()) {
+          case 'likepage':
+          case 'like':
+          case 'seemore':
+          case 'reply':
+          case 'comment':
+          case 'viewpreviousreplies':
+          case 'edit':
+          case 'delete':
+          case 'readmore':
+          case 'addfriend':
+          case 'addtofavorites':
+          case '·':
+          case '|':
+          case '...':
+            return false;
+        }
+
+        return string;
+      },
+      elements: {
+        a: function(element) {
+          element.children = element.children.filter(function(child) {
+            if (!child.name && Editor.Content.isMeaningless(child.value))
+              return false;
+            return true;
+          })
+          if (!element.children.length) return false;
+        },
+        li: function(element) {
+          element.children = element.children.filter(function(child) {
+            if (!child.name && Editor.Content.isMeaningless(child.value))
+              return false;
+            if (child.name == 'a') {
+              if (!child.children.length) return false;
+              if (child.children.length == 1) { 
+                var grand = child.children[0];
+                if (!grand.name && Editor.Content.isMeaningless(grand.value))
+                  return false;
+              }
+            }
+            return true;
+          })
+          if (!element.children.length) return false;
+        },
+
+        picture: function(element) {
+          if (!element.children.length)
+            return false;
+          return element
+        },
+
+        img: function (element) {
+          if (!element.attributes.uid) {
+            var src = element.attributes.src;
+            if (!src) return false;
+            // Need to CORS proxy the image
+            if (src.indexOf(location.origin) == -1 && src.indexOf('://') > -1) {
+              element.attributes['foreign-src'] = src
+              element.attributes.src = '//:0';
+            }
+          }
+          if (element.attributes.width && parseInt(element.attributes.width ) < 100)
+            return false;
+          if (element.attributes.height && parseInt(element.attributes.height ) < 100)
+            return false;
+          // wrap images into pictures
+          if (element.parent.name != 'picture') {
+            var picture = new CKEDITOR.htmlParser.element('picture', {
+              class: 'loading added'
+            })
+            element.replaceWith(picture)
+            picture.add(element);
+          }
+          return element;
+        }
+      }
+    }, { applyToAll: true })
+
 
     var images = editor.element.$.getElementsByTagName('img');
     for (var i = 0, image; image = images[i++];) {
@@ -131,7 +220,6 @@ function Editor(content) {
           var range = editor.createRange();
           var next = ascender.getNext(Editor.Content.paragraphs);
           var prev = ascender.getPrevious(Editor.Content.paragraphs);
-          debugger
           if (next) {
             range.moveToPosition( next, CKEDITOR.POSITION_AFTER_START);
           } else if (prev) {
@@ -406,7 +494,7 @@ function Editor(content) {
 Editor.moveToEditablePlace = function(editor, reason) {
   var range = editor.getSelection().getRanges()[0]
   // if typing within picture, move cursor to newly created paragraph next
-  if (reason == 'picture') {
+  if (reason == 'picture' || range.startContainer.getAscendant('picture', true)) {
     ascender = range.startContainer.getAscendant('picture', true);
     ascender = ascender.getAscendant('a') || ascender;
 
@@ -416,7 +504,7 @@ Editor.moveToEditablePlace = function(editor, reason) {
     range.select()
   // if pasting within block-level content, move cursor after
   } else {
-    var ascender = range.startContainer.getAscendant(CKEDITOR.dtd.$avoidNest)
+    var ascender = range.startContainer.getAscendant(CKEDITOR.dtd.$avoidNest, true)
     var ascender = ascender.getAscendant('blockquote') || ascender;
     if (ascender) {
       range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
@@ -773,15 +861,9 @@ function setLink(editor, url) {
       }
       else
         img.removeAttribute('uid')
-      if (!Editor.CORS && src.indexOf(document.location.origin) == -1) {
-        var x = new XMLHttpRequest();
-        x.open('GET', 'http://cors-anywhere.herokuapp.com/' + src);
-        x.responseType = 'blob';
-        x.onload = function() {
-          var blob = new Blob([x.response], {type: x.getResponseHeader('Content-Type')});
-          img.src = URL.createObjectURL(blob);
-        };
-        x.send();
+
+      if (src.indexOf('//') > -1 && src.indexOf(document.location.origin) == -1) {
+        Editor.Image.proxy(editor, src, img)
       } else {
         img.src = src
       }

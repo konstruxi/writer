@@ -14,6 +14,8 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded) {
     return image;
   }
 
+  if (image.src && image.src.indexOf(':0') > -1)
+    Editor.Image.proxy(editor, image.getAttribute('foreign-src'), image)
   var timestart = new Date;
   if (file) {
     image.onload = function() {
@@ -34,6 +36,21 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded) {
   return image;
 }
 
+Editor.Image.proxy = function(editor, src, callback) {
+  var x = new XMLHttpRequest();
+  x.open('GET', 'http://cors-anywhere.herokuapp.com/' + src);
+  x.responseType = 'blob';
+  x.onload = callback;
+  x.send();
+  if (typeof callback == 'function') {
+    x.onload = callback;
+  } else if (callback) {
+    x.onload = function() {
+      var blob = new Blob([x.response], {type: x.getResponseHeader('Content-Type')});
+      callback.src = URL.createObjectURL(blob);
+    }
+  }
+}
 Editor.Image.storage = {}
 
 Editor.Image.onLoaded = function(editor, image, callback, file) {
@@ -77,6 +94,7 @@ Editor.Image.uid = 0
 
 Editor.Image.applyChanges = function(data, img) {
   this.fire('lockSnapshot')
+  debugger
   var images = this.element.$.querySelectorAll('img[uid="' + img.getAttribute('uid') + '"]');
   for (var i = 0; i < images.length; i++) {
     var image = images[i];
@@ -127,7 +145,7 @@ Editor.Image.register = function(editor, image) {
 
 Editor.Image.insert = function(image) {
   this.fire('lockSnapshot')
-  if (!image.parentNode || !image.parentNode.tagName != 'PICTURE') {
+  if (!image.parentNode || image.parentNode.tagName != 'PICTURE') {
     var picture = document.createElement('picture');
     picture.classList.add('added')
     if (image.parentNode)

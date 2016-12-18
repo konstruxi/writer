@@ -105,6 +105,10 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
   editor.fire('unlockSnapshot');
 }
 
+Editor.Content.paragraphs = function(node) {
+  return CKEDITOR.dtd.$avoidNest[node.getName && node.getName()]
+}
+
 Editor.Content.getEditableAscender = function(element) {
   while (element && (!element.tagName || element.tagName == 'STRONG'
                             || element.tagName == 'EM' 

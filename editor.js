@@ -95,29 +95,54 @@ function Editor(content) {
     if (e.data.keyCode == 8) {
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
-      if (!range || !range.checkStartOfBlock()) return;
-      var container = range.startContainer.$
-      for (; container.parentNode; container = container.parentNode) {
-        if (Editor.Section.getFirstChild(container.parentNode).firstChild != container)
-          break;
-        // remove manual section boundary
-        if (container.parentNode.tagName == 'SECTION') {
-          if (container.parentNode.classList.contains('forced')) {
-            container.parentNode.classList.remove('forced');
-            Editor.Section(editor);
+      if (!range) return;
+
+      if (range.checkStartOfBlock()) {
+        var container = range.startContainer.$
+        for (; container.parentNode; container = container.parentNode) {
+          if (Editor.Section.getFirstChild(container.parentNode).firstChild != container)
+            break;
+          // backspace at start of forced section (after virtual "hr") 
+          // removes the boundary
+          if (container.parentNode.tagName == 'SECTION') {
+            if (container.parentNode.classList.contains('forced')) {
+              container.parentNode.classList.remove('forced');
+              Editor.Section(editor);
+              return false;
+            }
+          }
+        }
+        // backspace after picture selects it
+        if (range.startOffset == 0) {
+          var p = Editor.Content.getEditableAscender(range.startContainer.$);
+          p = p && p.previousElementSibling;
+          if (p && (p.tagName == 'PICTURE'
+                  || (p.tagName == 'A' 
+                    && (p.firstElementChild && p.firstElementChild.tagName == 'PICTURE')))) {
+            editor.getSelection().selectElement(new CKEDITOR.dom.element(p))
             return false;
           }
         }
-      }
-      
-      // backspace after picture selects it
-      if (range.startOffset == 0) {
-        var p = Editor.Content.getEditableAscender(range.startContainer.$);
-        p = p && p.previousElementSibling;
-        if (p && (p.tagName == 'PICTURE'
-                || (p.tagName == 'A' 
-                  && (p.firstElementChild && p.firstElementChild.tagName == 'PICTURE')))) {
-          editor.getSelection().selectElement(new CKEDITOR.dom.element(p))
+      } else {
+        var path = editor.elementPath()
+        var picture = path.contains('picture');
+        if (range.startOffset != range.endOffset && picture) {
+          var ascender = path.contains('a') || picture;
+          var range = editor.createRange();
+          var next = ascender.getNext(Editor.Content.paragraphs);
+          var prev = ascender.getPrevious(Editor.Content.paragraphs);
+          debugger
+          if (next) {
+            range.moveToPosition( next, CKEDITOR.POSITION_AFTER_START);
+          } else if (prev) {
+            range.moveToPosition( prev, CKEDITOR.POSITION_BEFORE_END);
+          } else {
+            range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END);
+
+          }
+          editor.getSelection().selectRanges([range])
+          ascender.remove()
+
           return false;
         }
       }

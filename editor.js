@@ -54,10 +54,39 @@ function Editor(content) {
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
       if (range) {
-        var container = Editor.Section.get(range.startContainer.$);
-        var first = Editor.Section.getFirstChild(container);
-        if (!first || (Editor.Content.isEmpty(first) && !first.nextElementSibling)) {
+        var paragraph = Editor.Content.getEditableAscender(range.startContainer.$);
+        if (paragraph.tagName == 'LI') return;
+        var section = Editor.Section.get(paragraph);
+        var first = Editor.Section.getFirstChild(section);
+        if (!first) return false;
+        if (Editor.Content.isEmpty(first)) {
+          // ignore enter when section has only single empty element
+          if (!first.nextElementSibling)
+            return false;
+
+          var split = Editor.Section.build();
+          split.classList.add('forced')
+          split.appendChild(paragraph)
+          section.parentNode.insertBefore(split, section);
+          range.moveToElementEditStart(new CKEDITOR.dom.element(paragraph))
+          editor.getSelection().selectRanges([range])
           return false;
+            
+        } else {
+          // split section on enter
+          if (paragraph != first && Editor.Content.isEmpty(paragraph)) {
+            var split = Editor.Section.build();
+            split.classList.add('forced')
+            var children = [];
+            for (var sibling = paragraph; sibling; sibling = sibling.nextSibling)
+              children.push(sibling);
+            for (var child, i = 0; child = children[i++];)
+              split.appendChild(child);
+            section.parentNode.insertBefore(split, section.nextElementSibling);
+            range.moveToElementEditStart(new CKEDITOR.dom.element(paragraph))
+            editor.getSelection().selectRanges([range])
+            return false;
+          }
         }
       }
       if (editor.snapshot)
@@ -95,14 +124,11 @@ function Editor(content) {
   editor.on( 'selectionChange', function( evt ) {
     if ( editor.readOnly )
       return;
-
     onCursorMove(editor)
     updateToolbar(editor)
-    requestAnimationFrame(function() {
       var range = editor.getSelection().getRanges()[0];
       if (range)
         setActiveSection(range.startContainer.$)
-    })
     
   } );
   editor.on( 'focus', function(e) {

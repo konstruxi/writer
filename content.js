@@ -109,7 +109,8 @@ Editor.Content.getEditableAscender = function(element) {
   while (element && (!element.tagName || element.tagName == 'STRONG'
                             || element.tagName == 'EM' 
                             || element.tagName == 'SPAN'
-                            || element.tagName == 'A'))
+                            || element.tagName == 'A'
+                            || element.tagName == 'BR'))
     element = element.parentNode;
   return element;
 }

@@ -50,6 +50,7 @@ CKEDITOR.editorConfig = function( config ) {
 	config.title = false
 	config.startupShowBorders = false;
 	config.disableObjectResizing = true;
+	config.fillEmptyBlocks = true;
 
 };
 
@@ -73,9 +74,6 @@ CKEDITOR.dtd.$avoidNest = {
 }
 
 
-CKEDITOR.config.height = 150;
-CKEDITOR.config.width = 'auto';
-
 CKEDITOR.dtd.$block.p = 1; 
 CKEDITOR.dtd.$block.section = 1; 
 CKEDITOR.dtd.$block.ul = 1; 
@@ -84,12 +82,13 @@ CKEDITOR.dtd.$block.li = 1;
 CKEDITOR.dtd.$block.blockquote = 1; 
 CKEDITOR.dtd.$blockLimit.blockquote = 1; 
 
+/*
 CKEDITOR.dtd.p = 
 CKEDITOR.dtd.h1 = 
 CKEDITOR.dtd.h2 = 
 CKEDITOR.dtd.h3 = 
 CKEDITOR.dtd.li = {a: 1, b: 1, strong: 1, span: 1, em: 1, i: 1};
-
+*/
 CKEDITOR.dtd.blockquote = {p: 1, a: 1, b: 1, strong: 1, span: 1, em: 1, i: 1};
 
 CKEDITOR.dtd.section = {p: 1, a: 1, ul: 1, ol: 1, h1: 1, h2: 1, h3: 1, picture: 1, img: 1};

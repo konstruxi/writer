@@ -258,14 +258,12 @@ Editor.Snapshot.take = function(editor, reset, focused) {
     //requestAnimationFrame(function() {
       editor.dragbookmark = null;
       var selection = editor.getSelection();
-      var range = editor.createRange();
-      // restore selection
-      var range = editor.createRange();
 
       if (focused) {
-        range.moveToElementEditEnd(new CKEDITOR.dom.element(focused))
         var selection = editor.getSelection()
-        selection.selectRanges([range])
+        var range = selection.getRanges()[0] || editor.createRange()
+        range.moveToElementEditEnd(new CKEDITOR.dom.element(focused))
+        editor.getSelection().selectRanges([range])
       } else if (bookmark && bookmark[0]) {
         var bm = bookmark[0].startNode.$;
         for (; bm.parentNode; bm = bm.parentNode) {

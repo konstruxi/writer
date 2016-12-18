@@ -34,13 +34,10 @@ Editor.Section.split = function(editor, root) {
   var last;
   var prev;
   var selected = selection.getStartElement();
-  if (selected) selected = selected.$;
-
-  for (var p = selected; p; p = p.parentNode) {
-    if (p.tagName == 'SECTION')
-      var result = p;
+  if (selected) {
+    selected = Editor.Content.getEditableAscender(selected.$);
+    var result = Editor.Section.get(selected);
   }
-
 
   context = {}
   for (var i = 0; i < children.length; i++) {
@@ -51,6 +48,10 @@ Editor.Section.split = function(editor, root) {
       var current = child;
       var grandchildren = Array.prototype.slice.call(child.childNodes);
       for (var j = 0; j < grandchildren.length; j++) {
+        if (grandchildren[j].tagName == 'SPAN' && Editor.Content.isEmpty(grandchildren[j])) {
+          grandchildren[j].parentNode.removeChild(grandchildren[j]);
+          continue
+        }
         if (!grandchildren[j].classList || !grandchildren[j].classList.contains('toolbar')) {
           last = Editor.Section.place(editor, last, prev, grandchildren[j], current, root, selected, context)
           if (last === current) {
@@ -75,9 +76,6 @@ Editor.Section.split = function(editor, root) {
     last = Editor.Section.place(editor, last, prev, child, null, root, null, context)
     prev = child;
   }
-
-  if (context.reselected) 
-    editor.refocusing = context.reselected;
 
   return result;
 }
@@ -244,67 +242,7 @@ Editor.Section.build = function(editor, section) {
 
 Editor.Section.place = function(editor, parent, previous, child, current, root, selected, context) {
   if (previous) {
-    // start a new line after empty paragraph
-    if (selected) {
-      if (Editor.Section.getFirstChild(previous.parentNode) == previous
-          && Editor.Content.isEmpty(previous)) {
-        if (Editor.Content.isInside(selected, previous) && false) {
-          if (!current) {
-            var removed = previous
-            if (context.reselected == previous)
-              context.reselected = undefined
-            previous.parentNode.removeChild(previous)
-            previous = undefined
-          }
-        } else if (selected.previousSibling == previous 
-                   && Editor.Content.isEmpty(selected)) {
-          if (selected.parentNode.lastChild == child) {
-            previous.parentNode.removeChild(previous)
-            if (context.reselected == previous)
-              context.reselected = undefined
-            return parent;
-          } else {
-            var inserted = previous
-            //editor.dontanimate = true;
-          }
-        } else if (Editor.Content.isInside(selected, child)){
-          var focused = previous;
-        }
-      // prepending a header into a section, which will split
-      }/* else if (current && previous.parentNode != current && current.firstElementChild == child && child.nextElementSibling && needsSplitterBetween(child, child.nextElementSibling)) {
-        //editor.dontanimate = true;
-      }*/
-
-      if (!focused && !removed 
-            && Editor.Content.isInside(selected, child) 
-            && Editor.Content.isEmpty(previous)) {
-        
-        var section = Editor.Section.build(editor)
-        if (parent.parentNode)
-          parent.parentNode.insertBefore(section, parent.nextSibling);
-        section.appendChild(child)
-        section.classList.add('forced')
-
-        if (inserted) {
-          if (!context.reselected)
-            context.reselected = previous;
-        } else {
-          if (Editor.Content.isEmpty(child)) 
-            if (!context.reselected || context.reselected == previous) 
-              context.reselected = child; 
-
-          previous.parentNode.removeChild(previous)
-        }
-
-        return section;
-      }
-    }
     if (Editor.Section.needsSplitterBetween(previous, child)) {
-      // if header is in the beginning of chapter,
-      // shift focus to previous section
-      if (child && Editor.Content.isEmpty(child) && previous && !Editor.Content.isEmpty(previous))
-        context.reselected = child;
-
       var section = (current || Editor.Section.build(editor));
       if (parent.parentNode) 
         if (section.parentNode != parent.parentNode || section.previousSibling != parent)
@@ -316,8 +254,6 @@ Editor.Section.place = function(editor, parent, previous, child, current, root, 
       } else if (section.previousSibling != previous) {
         section.appendChild(child); 
       }
-
-
       return section;
     }
   }
@@ -327,10 +263,6 @@ Editor.Section.place = function(editor, parent, previous, child, current, root, 
     root.appendChild(parent);
   if (child.parentNode != parent || (previous && previous.parentNode == parent && child.previousSibling != previous)) {
     parent.insertBefore(child, previous && previous.nextSibling)
-  }
-  if (removed ? removed == selected : focused) {
-    if (!context.reselected)
-      context.reselected = focused || child;
   }
   return parent;  
 

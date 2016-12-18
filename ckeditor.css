@@ -221,7 +221,7 @@ section.forced:after {
   margin-top: 1rem;
 }
 
-.content * + h1, .content * + h2, .content * + h3, .content * + blockquote, .content * + picture {
+.content * + h1, .content * + h2, .content * + h3, .content * + blockquote, .content * + picture, .content * + a {
   margin-top: 1rem;
 }
 

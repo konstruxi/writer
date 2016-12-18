@@ -94,7 +94,6 @@ Editor.Image.uid = 0
 
 Editor.Image.applyChanges = function(data, img) {
   this.fire('lockSnapshot')
-  debugger
   var images = this.element.$.querySelectorAll('img[uid="' + img.getAttribute('uid') + '"]');
   for (var i = 0; i < images.length; i++) {
     var image = images[i];

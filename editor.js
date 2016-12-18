@@ -280,7 +280,19 @@ function Editor(content) {
       Editor.focused = null;
     onCursorMove(editor, true, true)
   } );
+  editor.on('drop', function(e) {
+    debugger
+    // disallow pasting block content into paragraphs and headers
+    var html = e.data.dataTransfer.getData('text/html')
+    if (html && html.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
+      Editor.moveToEditablePlace(editor, 'next', e.data.dropRange);
+      e.data.dropRange = editor.getSelection().getRanges()[0]
+      e.data.target = e.data.dropRange.startContainer;
+    }
+    onCursorMove(editor, true)
+  })
   editor.on('paste', function(e) {
+    if (e.data.method == 'drop') return;
     // disallow pasting block content into paragraphs and headers
     if (e.data.type == 'html' && e.data.dataValue.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
       Editor.moveToEditablePlace(editor, 'next');
@@ -491,8 +503,8 @@ function Editor(content) {
   onEditorResize(editor)
   return editor;
 }
-Editor.moveToEditablePlace = function(editor, reason) {
-  var range = editor.getSelection().getRanges()[0]
+Editor.moveToEditablePlace = function(editor, reason, range) {
+ if (!range) range = editor.getSelection().getRanges()[0]
   // if typing within picture, move cursor to newly created paragraph next
   if (reason == 'picture' || range.startContainer.getAscendant('picture', true)) {
     ascender = range.startContainer.getAscendant('picture', true);

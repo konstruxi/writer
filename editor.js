@@ -31,7 +31,6 @@ function Editor(content) {
 
     editor.dataProcessor.dataFilter.addRules({
       text: function(string) {
-        console.log(string)
         string = string.replace(/&nbsp;/g, ' ')
 
         if (string.length < 30)
@@ -81,12 +80,42 @@ function Editor(content) {
           if (!element.children.length) return false;
         },
 
+        // remove empty pictures
         picture: function(element) {
           if (!element.children.length)
             return false;
           return element
         },
 
+        // wrap blockquote contents into paragraphs
+        blockquote: function(element) {
+          var paragraphs = [];
+          var paragraph;
+          var hasOwn;
+          element.children.forEach(function(child) {
+            if (child.name == 'br') {
+              paragraph = undefined;
+            } else if (child.name != 'p') {
+              if (!paragraph) {
+                paragraph = new CKEDITOR.htmlParser.element('p');
+                paragraphs.push(paragraph)
+              }
+              if (paragraph.children.length) {
+                paragraph.children.push(new CKEDITOR.htmlParser.text(' '), child)
+              } else {
+                paragraph.children.push(child)
+              }
+            } else {
+              hasOwn = true;
+            }
+          })
+          if (!paragraphs.length && !hasOwn)
+            return false;
+          element.children = paragraphs;
+          return element;
+        },
+
+        // wrap image, handle cors, filter out small images
         img: function (element) {
           if (!element.attributes.uid) {
             var src = element.attributes.src;
@@ -262,7 +291,6 @@ function Editor(content) {
     if (evt.data.path.contains('picture')) {
       var range = evt.data.selection.getRanges()[0];
     }
-    console.error('selectionchange', evt)
 
     onCursorMove(editor)
     updateToolbar(editor)
@@ -281,7 +309,6 @@ function Editor(content) {
     onCursorMove(editor, true, true)
   } );
   editor.on('drop', function(e) {
-    debugger
     // disallow pasting block content into paragraphs and headers
     var html = e.data.dataTransfer.getData('text/html')
     if (html && html.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
@@ -308,7 +335,7 @@ function Editor(content) {
       var file = item.getAsFile();
       if (file) {
         files = true;
-        console.error('Load one file!')
+        console.info('Loading one file!')
         Editor.Image(editor, file, Editor.Image.applyChanges, Editor.Image.insert);
       }
     });

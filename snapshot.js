@@ -313,7 +313,10 @@ Editor.Snapshot.rememberSelected = function(editor, bookmark, focused) {
         var selected = [ancestor, window.getComputedStyle(ancestor)['font-size']]
     } else if (range.startContainer.$ == range.endContainer.$) {
       var ancestor = Editor.Content.getEditableAscender(range.startContainer.$);
-      var selected = [ancestor, window.getComputedStyle(ancestor)['font-size']]
+      if (ancestor)
+        var selected = [ancestor, window.getComputedStyle(ancestor)['font-size']]
+      else
+        var selected = [];
     } else {
       // iterator may cause a reflow
       var iterator = selection.getRanges()[0].createIterator();

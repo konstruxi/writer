@@ -109,7 +109,13 @@ function Editor(content) {
           }
         }
       }
-      return true;
+    } else {
+      var sel = this.getSelection();
+      var start = sel.getStartElement();
+      debugger
+      if (start.getAscendant('picture', true)) {
+        Editor.moveToEditablePlace(editor, 'picture')
+      }
     }
     if (e.data.keyCode >= 37 && e.data.keyCode <= 40) {
       setTimeout(function() {
@@ -121,9 +127,16 @@ function Editor(content) {
     }
   }, null, null, -10);
 
+
   editor.on( 'selectionChange', function( evt ) {
     if ( editor.readOnly )
       return;
+
+    if (evt.data.path.contains('picture')) {
+      var range = evt.data.selection.getRanges()[0];
+    }
+    console.error('selectionchange', evt)
+
     onCursorMove(editor)
     updateToolbar(editor)
       var range = editor.getSelection().getRanges()[0];
@@ -143,15 +156,11 @@ function Editor(content) {
   editor.on('paste', function(e) {
     // disallow pasting block content into paragraphs and headers
     if (e.data.type == 'html' && e.data.dataValue.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
-      var range = editor.getSelection().getRanges()[0]
-      var ascender = range.startContainer.getAscendant(CKEDITOR.dtd.$avoidNest)
-      if (ascender) {
-        range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
-        range.select()
-      }
+      Editor.moveToEditablePlace(editor, 'next');
     }
     onCursorMove(editor, true)
   })
+
   editor.on('beforePaste', function(e) {
 
     var files = false;
@@ -355,6 +364,23 @@ function Editor(content) {
   onEditorResize(editor)
   return editor;
 }
+Editor.moveToEditablePlace = function(editor, reason) {
+  var range = editor.getSelection().getRanges()[0]
+  if (reason == 'picture') {
+    ascender = range.startContainer.getAscendant('picture', true);
+    ascender = ascender.getAscendant('a') || ascender;
+
+    var paragraph = new CKEDITOR.dom.element('p')
+    paragraph.insertAfter(ascender);
+    range.moveToPosition( paragraph, CKEDITOR.POSITION_AFTER_START );
+    range.select()
+  } else {
+    var ascender = range.startContainer.getAscendant(CKEDITOR.dtd.$avoidNest)
+    range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
+    range.select()
+  }
+}
+
 Editor.uid = 0;
 Editor.elements = []
 Editor.editors = []

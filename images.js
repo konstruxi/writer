@@ -12,48 +12,17 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded) {
 
 
   var timestart = new Date;
-  onImageReady = function() {
-    requestAnimationFrame(function() {
-
-    var canvas = document.createElement('canvas');
-    var width = parseInt(image.getAttribute('width')) || image.naturalWidth || width;
-    var height = parseInt(image.getAttribute('height')) || image.naturalHeight || height;
-    canvas.width = width;
-    canvas.height = height;
-
-    image.setAttribute('width', width);
-    image.setAttribute('height', height);
-    image.parentNode.classList.remove('loading');
-
-    if (image.parentNode.classList.contains('added'))
-      editor.snapshot.animate()
-
-    setTimeout(function() {
-      var ctx = canvas.getContext("2d");
-      ctx.drawImage(image, 0, 0, width, height);
-      var data = ctx.getImageData(0, 0, width, height);
-      if (file)
-        console.log('Image loaded in: ', new Date - timestart, 'ms. ' + width + 'x' +  height)
-      
-
-
-      Editor.Worker(editor, data, function(result) {
-
-        console.log('Image processed in: ', new Date - timestart, 'ms. ' + width + 'x' +  height)
-
-        onImageProcessed.call(editor, result, image)
-      });
-    }, 10)
-
-    })
-  }
   if (file) {
-    image.onload = onImageReady
+    image.onload = function() {
+      Editor.Image.onLoaded(editor, this, onImageProcessed, file)
+    }
     image.src = URL.createObjectURL(file);
   } else if (image.complete && image.src) {
-    onImageReady()
+    Editor.Image.onLoaded(editor, image, onImageProcessed)
   } else {
-    image.onload = onImageReady
+    image.onload = function() {
+      Editor.Image.onLoaded(editor, this, onImageProcessed)
+    }
   }
 
   if (onImageLoaded)
@@ -61,6 +30,43 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded) {
 
   return image;
 }
+
+Editor.Image.onLoaded = function(editor, image, callback, file) {
+
+  var width = parseInt(image.getAttribute('width')) || image.naturalWidth || width;
+  var height = parseInt(image.getAttribute('height')) || image.naturalHeight || height;
+
+  image.setAttribute('width', width);
+  image.setAttribute('height', height);
+  image.parentNode.classList.remove('loading');
+
+  if (image.parentNode.classList.contains('added'))
+    editor.snapshot.animate()
+
+  setTimeout(function() {
+    Editor.Image.schedule(editor, image, callback, file)
+  }, 10)
+}
+
+Editor.Image.schedule = function(editor, image, callback, file) {
+  var canvas = document.createElement('canvas');
+  var width = parseInt(image.getAttribute('width'))
+  var height = parseInt(image.getAttribute('height'))
+  canvas.width = width;
+  canvas.height = height;
+
+  var ctx = canvas.getContext("2d");
+  ctx.drawImage(image, 0, 0, width, height);
+  var data = ctx.getImageData(0, 0, width, height);
+  var timestart = new Date;
+  Editor.Worker(editor, data, function(result) {
+
+    console.log('Image processed in: ', new Date - timestart, 'ms. ' + width + 'x' +  height)
+
+    callback.call(editor, result, image)
+  });
+}
+
 Editor.Image.uid = 0
 
 Editor.Image.applyChanges = function(data, image) {
@@ -97,6 +103,13 @@ Editor.Image.applyChanges = function(data, image) {
   
   updateToolbar(this)
   this.fire('unlockSnapshot')
+}
+
+Editor.Image.unload = function(image) {
+  var src = image;
+  setTimeout(function() {
+    URL.revokeObjectURL(src)
+  }, 2000);
 }
 
 

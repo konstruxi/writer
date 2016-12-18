@@ -68,10 +68,6 @@ Editor.Snapshot.prototype.animate = function(section) {
     this.compute(snapshot)
   snapshot.compute(this)
   var migrated = false;
-
-  if (!this.editor.animation) {
-    this.editor.animation = snapshot;
-  }
   snapshot.startTime = null;
   var duration = 300;
   var from = this;

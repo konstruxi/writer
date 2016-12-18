@@ -231,7 +231,7 @@ function Editor(content) {
           }
         }
         // backspace after picture selects it
-        if (range.startOffset == 0) {
+        if (range.startOffset == 0 && range.endOffset == 0) {
           var p = Editor.Content.getEditableAscender(range.startContainer.$);
           p = p && p.previousElementSibling;
           if (p && (p.tagName == 'PICTURE'

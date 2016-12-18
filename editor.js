@@ -21,28 +21,10 @@ function Editor(content) {
   // animations fire up many dom chages each frame, 
   // so undo snapshot needs to be locked during animations
   // but should temporarily unlock on user input
-  editor.on('key', function(e) {
-    if (editor.snapshot)
-      editor.snapshot.unlock()
-  }, null, null, -100);
-  editor.on('exec', function(e) {
-    if (editor.snapshot)
-      editor.snapshot.unlock()
-  }, null, null, -100);
-  editor.on('beforePaste', function(e) {
-    if (editor.snapshot)
-      editor.snapshot.unlock()
-  }, null, null, -100);
-  editor.on('saveSnapshot', function(e) {
-    console.log('snapshot', e)
-    if (editor.snapshot)
-      editor.snapshot.relock()
-  }, null, null, 100);
 
   Editor.measure(editor);
   editor.on('contentDom', function() {
     Editor.measure(editor);
-
 
     var images = editor.element.$.getElementsByTagName('img');
     for (var i = 0, image; image = images[i++];) {
@@ -136,13 +118,18 @@ function Editor(content) {
     onCursorMove(editor, true)
   })
   editor.on('beforePaste', function(e) {
+    var files = false;
+    if (e.data.dataTransfer.$)
     Array.prototype.forEach.call(e.data.dataTransfer.$.items, function(item) {
       var file = item.getAsFile();
       if (file) {
+        files = true;
         console.error('Load one file!')
         Editor.Image(editor, file, Editor.Image.applyChanges, Editor.Image.insert);
       }
     });
+    if (files)
+      return false;
     //snapshotStyles(editor)
 
     if (e.data.dataTransfer) {
@@ -251,7 +238,42 @@ function Editor(content) {
       //  repositionPicker(editor)
       //})
     }
-  })
+  })/*
+  content.addEventListener('mouseover', function(e) {
+    if (e.target.tagName == 'IMG') {
+      var x = parseInt(e.target.getAttribute('crop-x'));
+      var y = parseInt(e.target.getAttribute('crop-y'));
+      if (x === x && y === y) {
+        if (!Editor.cropper) {
+          Editor.cropper = document.createElement('div');
+          Editor.cropper.id = 'image-cropper';
+        }
+        if (!Editor.cropper.parentNode)
+          document.body.appendChild(Editor.cropper)
+
+        var offsetLeft = 0;
+        var offsetTop = 0;
+        for (var p = e.target; p; p = p.offsetParent) {
+          offsetLeft += p.offsetLeft;
+          offsetTop += p.offsetTop;
+        }
+
+        var width  = parseFloat(e.target.getAttribute('width')  || e.target.naturalWidth  || e.target.width);
+        var height = parseFloat(e.target.getAttribute('height') || e.target.naturalHeight || e.target.height);
+        var min = Math.min(height, width);
+        var minActual = Math.min(e.target.offsetHeight, e.target.offsetWidth)
+        var shiftX = x / min * minActual
+        var shiftY = y / min * minActual;
+        Editor.cropper.style.left = offsetLeft + shiftX + 'px';
+        Editor.cropper.style.top = offsetTop + shiftY + 'px';
+        Editor.cropper.style.width  = minActual + 'px';
+        Editor.cropper.style.height = minActual + 'px';
+      }
+    } else if (Editor.cropper) {
+      if (Editor.cropper.parentNode)
+        Editor.cropper.parentNode.removeChild(Editor.cropper)
+    }
+  });*/
   editor.handleEvent = function(e) {
     switch (e.type) {
       case 'touchstart': case 'mousedown':
@@ -623,27 +645,53 @@ function setLink(editor, url) {
      element = selector.getAscendant( 'a', true );
   }
 
-  if ( !element || element.getName() != 'a' ) {
+  var text = selection.getSelectedText();
+  var iterator = selection.getRanges()[0].createIterator()
+  var paragraph = iterator.getNextParagraph();
+  if (paragraph && !text)
+    var img = paragraph.$.getElementsByTagName('img')[0]
+
+  if ( !element || element.getName() != 'a'  || !text) {
     if (!url)
       url = prompt('Enter url:')
-    var text = selection.getSelectedText();
     element = editor.document.createElement( 'a' );
     var youtube;
-    if (!text && ((youtube = youtube_parser(url)))) {
-      var img = document.createElement('img')
-      img.src = "http://img.youtube.com/vi/" + youtube + "/maxresdefault.jpg"
+    if (url.match(/\.jpg|\.gif|\.png/) || 
+       (!text && ((youtube = youtube_parser(url))))) {
+      if (youtube)
+        var src = "http://img.youtube.com/vi/" + youtube + "/maxresdefault.jpg"
+      else
+        var src = url;
+      if (!img)  {
+        var img = document.createElement('img')
+        //debugger
+        //img.setAttribute('src', '//:0') // avoid request
+      }
+      else
+        img.removeAttribute('uid')
+      if (!Editor.CORS && src.indexOf(document.location.origin) == -1) {
+        var x = new XMLHttpRequest();
+        x.open('GET', 'http://cors-anywhere.herokuapp.com/' + src);
+        x.responseType = 'blob';
+        x.onload = function() {
+          var blob = new Blob([x.response], {type: x.getResponseHeader('Content-Type')});
+          img.src = URL.createObjectURL(blob);
+        };
+        x.send();
+      } else {
+        img.src = src
+      }
       element.$.appendChild(img)
-    } else if (url.match(/\.jpg|\.gif|\.png/)) {
-      var img = document.createElement('img')
-      img.src = url
-      element.$.appendChild(img)
+      Editor.Image(editor, img, Editor.Image.applyChanges, Editor.Image.insert);
+      var deferred = true;
     } else if (!text) {
       text = url.split('://')[1];
     }
     if (text)
       element.$.textContent = text
     element.setAttribute("target","_blank")
-    editor.insertElement(element)
+    if (!deferred)
+      editor.insertElement(element)
   } else {
     if (url == null)
       url = prompt('Enter url:', element.$.href)
@@ -658,6 +706,10 @@ function setLink(editor, url) {
       element.$.parentNode.insertBefore(element.$.firstChild, element.$)
     element.$.parentNode.removeChild(element.$)
   }
+  //if (img) {
+  //  var section = Editor.Section.get(img);
+  //  if (section) Editor.Section.analyze(section)
+  //}
   editor.fire('saveSnapshot')
 
 }
@@ -717,6 +769,9 @@ function updateToolbar(editor, force) {
     editor.hidingButtons = null;
   var range = selection.getRanges()[0];
   if (!range || !range.startContainer) return;
+  var container = range.startContainer;
+  if (!container.is)
+    container = container.getParent()
   var start = Editor.Content.getEditableAscender(range.startContainer.$);
 
   var startSection = start;
@@ -761,12 +816,7 @@ function updateToolbar(editor, force) {
 
   var ui = editor.ui.instances
   if (range.startOffset != range.endOffset && start == end) {
-
-    var iterator = selection.getRanges()[0].createIterator();
-    iterator.enforceRealBlocks = false;
-    var paragraph = iterator.getNextParagraph();
-    if (paragraph && paragraph.is('img') || 
-      (paragraph.is('p') && paragraph.$.getElementsByTagName('img')[0])) {
+    if (container.is('picture')) {
       var button = 'filters'
     } else {
       if (ui.Bold._.state == 2 && ui.Italic._.state == 2 && 

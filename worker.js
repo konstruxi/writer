@@ -34,20 +34,23 @@ if (this.Editor) {
         editor.idleWorkers.push(worker)
         clearTimeout(editor.killWorkers)
         editor.killWorkers = setTimeout(function() {
-          editor.idleWorkers.forEach(function(worker, index) {
+          editor.idleWorkers = editor.idleWorkers.filter(function(worker, index) {
             if (index > 0) {
               var i = editor.workers.indexOf(worker)
               if (i > -1) 
                 editor.workers.splice(i, 1)
               worker.terminate()
+            } else {
+              return true;
             }
           });
-          editor.idleWorkers = []
         }, 5000)
       }
     };
     worker.addEventListener('message', listener);
+    console.time('postmessage')
     worker.postMessage(data)
+    console.timeEnd('postmessage')
   }
 } else {
   self.addEventListener('message', function(e) {
@@ -55,8 +58,46 @@ if (this.Editor) {
 
     var palette = Palette(data)
 
-    // send data to main thread to put unto canvas
-    postMessage(palette.toString());
-  }, false);
-}
+    var beforeCrop = new Date;
+    smartcrop.crop(data, {
+      imageOperations: IO,
+      width: Math.min(data.width, data.height),
+      height: Math.min(data.height, data.width)
+    }).then(function(result) {
+      // send data to main thread to put unto canvas
+      postMessage({
+        palette: palette.toString(),
+        square: result.topCrop,
+        cropTime: new Date - beforeCrop
+      });
+    })
 
+  }, false);
+
+
+  var IO = {
+    // Takes imageInput as argument
+    // returns an object which has at least
+    // {width: n, height: n}
+    open: function(image) {
+      return smartcrop.Promise.resolve(image);
+    },
+    // Takes an image (as returned by open), and changes it's size by resampling
+    resample: function(image, width, height) {
+      return Promise.resolve(image).then(function(image) {
+        var c = canvasFactory(~~width, ~~height);
+        var ctx = c.getContext('2d');
+
+        ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, c.width, c.height);
+        return smartcrop.Promise.resolve(c);
+      });
+    },
+    getData: function(image) {
+      return Promise.resolve(image).then(function(c) {
+        return image
+      });
+    },
+  }
+
+
+}

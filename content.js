@@ -24,9 +24,10 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
     var selected = selection.getStartElement();
     if (selected) selected = selected.$;
   }
-  var children = Array.prototype.slice.call(editor.element.$.children);
+  var children = editor.element.$.children;
   var snapshot = editor.stylesnapshot;
   editor.fire('lockSnapshot');
+  var cleaned = [];
   for (var i = 0; i < children.length; i++) {
     var inside = Editor.Content.isInside(selected, children[i]);
     if (selected && inside) {
@@ -52,7 +53,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
           } else if (!bookmark && !editor.refocusing && !blur)
             var bookmark = selection.createBookmarks();
 
-        children[i].parentNode.removeChild(children[i])
+        cleaned.push(children[i])
       } else {
         var els = []
         var grandchildren = children[i].children;
@@ -75,15 +76,19 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
 
             //if (!snapshot) 
             //  snapshot = editor.stylesnapshot = snapshotStyles(editor)
-
-            els[j].parentNode.removeChild(els[j])
-
+            cleaned.push(els[j])
           }
         }
 
       }
     }
   }
+  for (var i = 0; i < cleaned.length; i++) {
+    cleaned[i].parentNode.removeChild(cleaned[i])
+    if (editor.snapshot)
+      editor.snapshot.removeElement(cleaned[i])
+  }
+
   if (!editor.refocusing && !blur) {
     if (before || after) {
       var range = editor.createRange();
@@ -170,7 +175,7 @@ Editor.Content.cleanSelection = function (editor, options) {
   if (!start && !end)
     var bookmark = selection.createBookmarks()
   
-  
+
   for (var e, i = 0; e = elements[i++];) {
     var tag = e.tagName;
     switch (e.tagName) {

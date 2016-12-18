@@ -37,6 +37,8 @@
 			// Get the range for the current selection.
 			range = range || getRange( editor );
 
+			debugger
+
 			// We may not have valid ranges to work on, like when inside a
 			// contenteditable=false element.
 			if ( !range )

@@ -105,7 +105,7 @@ Editor.Section.analyze = function(node) {
         tags.push('has-list');
         break;
 
-      case 'P': case 'A':
+      case 'P': case 'A': case 'PICTURE':
         var img = child.getElementsByTagName('img')[0]
         if (img) {
           tags.push('has-image', 'has-palette-' + img.getAttribute('uid'))
@@ -115,8 +115,9 @@ Editor.Section.analyze = function(node) {
         }
         break;
 
-      case 'IMG':
+      case 'IMG': 
         tags.push('has-image', 'has-palette-' + child.getAttribute('uid'))
+
 
 
     }
@@ -208,8 +209,8 @@ Editor.Section.getEditStart = function(section) {
 }
 
 Editor.Section.needsSplitterBetween = function(left, right) {
-  return (right.tagName == 'H1' && (!left || left.tagName != 'IMG' || (Editor.Section.getFirstChild(left.parentNode) != left))) 
-      || (right.tagName == 'H2' && (!left || (left.tagName != 'H1' && (left.tagName != 'IMG' || left.previousElementSibling))))
+  return (right.tagName == 'H1' && (!left || (left.tagName != 'IMG' && left.tagName != 'PICTURE') || (Editor.Section.getFirstChild(left.parentNode) != left))) 
+      || (right.tagName == 'H2' && (!left || (left.tagName != 'H1' && ((left.tagName != 'IMG' && left.tagName != 'PICTURE') || left.previousElementSibling))))
 }
 
 
@@ -222,6 +223,7 @@ Editor.Section.build = function(editor, section) {
     var toolbar = document.createElement('div');
     toolbar.className = 'toolbar'
     toolbar.setAttribute('unselectable', 'on')
+    //toolbar.setAttribute('contenteditable', 'false')
 
     toolbar.innerHTML = '<x-button class="styles">' +
                   '<svg viewBox="-1 2 50 50" class="pick palette icon"><use xlink:href="#palette-icon"></use></svg>' +
@@ -342,12 +344,14 @@ Editor.Section.observe = function(editor) {
         for (var j = 0; j < m.removedNodes.length; j++)
           if (m.removedNodes[j].nodeType == 1 &&
               m.removedNodes[j].tagName != 'SPAN' &&
+              m.removedNodes[j].tagName != 'DIV' &&
               (!m.removedNodes[j].classList || !m.removedNodes[j].classList.contains('toolbar')) &&
               (!m.target.classList || !m.target.classList.contains('toolbar')))
             return Editor.Section(editor, mutations[i], observer);
         for (var j = 0; j < m.addedNodes.length; j++)
           if (m.addedNodes[j].nodeType == 1 &&
               m.addedNodes[j].tagName != 'SPAN' &&
+              m.addedNodes[j].tagName != 'DIV' &&
               (!m.addedNodes[j].classList || !m.addedNodes[j].classList.contains('toolbar')) &&
               (!m.target.classList || !m.target.classList.contains('toolbar')))
             return Editor.Section(editor, mutations[i], observer);

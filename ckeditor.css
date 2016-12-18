@@ -32,7 +32,59 @@ body,html {
   background: #fafafa;
 }
 
+.content picture {
+  overflow: hidden;
+  display: block;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+}
 
+.content picture:not(.processed) img {
+  height: auto;
+  width: 100%;
+}
+
+.content section[pattern*="two-"] picture:not(.processed) img {
+
+  min-height: 100%;
+  min-width: 100%;
+  max-height: 150%;
+  max-width: 150%;
+  height: auto;
+  width: auto;
+}
+
+.content picture.added.loading {
+  height: 2rem;
+  width: 2rem;
+  background:orange;
+}
+
+.content picture.added.loading img {
+  visibility: hidden;
+}
+
+.content > a {
+  display: block;
+}
+
+.content section[pattern*="two-"] picture:not(.loading) {
+  padding-top: 100%;
+}
+.content section[pattern*="two-"] picture img{
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: top 0.3s, left 0.3s;
+}
+
+
+
+#image-cropper {
+  position: absolute;
+  background: rgba(0,50,0,0.5);
+}
 .content section {
   margin-top: 2rem;
 }
@@ -169,7 +221,7 @@ section.forced:after {
   margin-top: 1rem;
 }
 
-.content * + h1, .content * + h2, .content * + h3, .content * + blockquote {
+.content * + h1, .content * + h2, .content * + h3, .content * + blockquote, .content * + picture {
   margin-top: 1rem;
 }
 
@@ -186,6 +238,9 @@ article h1 + * {
   margin-top: 0.8rem;
 }
 .content img + * {
+  margin-top: 0.8rem;
+}
+.content picture + * {
   margin-top: 0.8rem;
 }
 .content blockquote + * {
@@ -217,7 +272,7 @@ section.clone {
 }
 
 .content img {
-  max-width: 100%;
+  width: 100%;
   height: auto;
 }
 
@@ -227,12 +282,15 @@ section.clone {
 
 .content * {
   box-sizing: border-box;
+  transition: color .3s, background-color .3s; 
+  -webkit-transition: color .3s , background-color .3s
 }
 
 .content section {
   transition: opacity .3s 
   -webkit-transition: opacity .3s 
 }
+
 
 
 .content {
@@ -249,6 +307,10 @@ section.clone {
 .content section.new {
   opacity: 0.1;
 }*/
+
+.content img[crop-x]:hover {
+  width: attr(crop-x px) !important;
+}
 
 
 blockquote:before {

@@ -77,8 +77,6 @@ Palette.fromString = function(string) {
         swatches[name].push(new Swatch(rgb, 3 - index))
     })
   })
-debugger
-  console.info(swatches, string)
   return swatches
 }
 

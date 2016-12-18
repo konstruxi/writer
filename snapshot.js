@@ -43,6 +43,20 @@ Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
 
   }
 }
+Editor.Snapshot.prototype.removeElement = function(element) {
+  var index = this.elements.indexOf(element);
+  if (index == -1) return;
+  this.elements.splice(index, 1);
+  var box = this.dimensions.splice(index, 1)[0];
+  for (var property in box) {
+    if (property.indexOf('Spring') > -1) {
+      var spring = box[property];
+      var j = this.animating.indexOf(spring);
+      if (j > -1)
+        this.animating.splice(j, 1)
+    }
+  }
+}
 Editor.Snapshot.prototype.animate = function(section) {
   var snapshot = Editor.Snapshot.take(this.editor, true);
 
@@ -82,7 +96,6 @@ Editor.Snapshot.prototype.animate = function(section) {
     } else {
       snapshot.editor.fire('transitionEnd')
       snapshot.reset(null, true)
-      //snapshot.unlock(true, time != snapshot.startTime);
       console.log('animated in', time -  snapshot.startTime)
     }
   }
@@ -100,20 +113,6 @@ Editor.Snapshot.prototype.animate = function(section) {
   return snapshot;
 };
 
-Editor.Snapshot.prototype.unlock = function(ended, forceUpdate) {
-  if (this.locked) {
-    console.log(ended ? 'lock finished' : 'unlock temporary')
-    this.locked = ended ? null : false;
-    this.editor.fire('unlockSnapshot', {forceUpdate: forceUpdate})
-  }
-}
-Editor.Snapshot.prototype.relock = function() {
-  if (this.locked === false) {
-    console.log('relocking')
-    this.locked = true;
-    this.editor.fire('lockSnapshot')
-  }
-}
 
 Editor.Snapshot.prototype.compute = function(snapshot) {
   this.computed = true;
@@ -141,7 +140,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
     } else if (property == 'fontSize') {
       var spring = to[springName] = new Spring(30, 8);
     } else {
-      var spring = to[springName] = new Spring(30, 11);
+      var spring = to[springName] = new Spring(30, 5);
     }
   }
   if (spring) {

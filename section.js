@@ -271,6 +271,7 @@ Editor.Section.place = function(editor, parent, previous, child, current, root, 
 Editor.Section.observe = function(editor) {
   var observer = new MutationObserver( function(mutations) {
     var removedImages = [];
+    var addedImages = [];
 
     for (var i = 0; i < mutations.length; i++) {
       var m = mutations[i];
@@ -301,11 +302,15 @@ Editor.Section.observe = function(editor) {
             var k = removedImages.indexOf(m.addedNodes[j]);
             if (k > -1)
               removedImages.splice(k, 1)
+            else
+              addedImages.push(m.addedNodes[j])
           } else if (m.addedNodes[j].tagName) {
             Array.prototype.forEach.call(m.addedNodes[j].getElementsByTagName('img'), function(img) {
               var k = removedImages.indexOf(img);
               if (k > -1)
                 removedImages.splice(k, 1)
+              else
+                addedImages.push(img)
             })
           }
         }
@@ -321,8 +326,15 @@ Editor.Section.observe = function(editor) {
 
     if (removedImages.length) {
       console.error('removedImages', removedImages);
-      for (var i = 0; i < removedImages.length; i++)
+      for (var i = 0; i < removedImages.length; i++) {
         Editor.Image.unload(editor, removedImages[i]);
+      }
+    }
+    if (addedImages.length) {
+      console.error('addedImages', addedImages);
+      for (var i = 0; i < addedImages.length; i++) {
+        Editor.Image.register(editor, addedImages[i]);
+      }
     }
     if (reason)
       Editor.Section(editor, reason, observer);

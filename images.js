@@ -7,9 +7,12 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded) {
     var image = new Image;
   } 
 
-  if (!image.getAttribute('uid')) 
+  if (!image.getAttribute('uid')) {
     image.setAttribute('uid', ++Editor.Image.uid);
-
+  } else if (image.parentNode.classList.contains('loading')
+          || image.parentNode.classList.contains('processed')) {
+    return image;
+  }
 
   var timestart = new Date;
   if (file) {
@@ -31,6 +34,8 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded) {
   return image;
 }
 
+Editor.Image.storage = {}
+
 Editor.Image.onLoaded = function(editor, image, callback, file) {
 
   var width = parseInt(image.getAttribute('width')) || image.naturalWidth || width;
@@ -40,78 +45,85 @@ Editor.Image.onLoaded = function(editor, image, callback, file) {
   image.setAttribute('height', height);
   image.parentNode.classList.remove('loading');
 
+  Editor.Image.schedule(editor, image, callback, file)
+
   if (image.parentNode.classList.contains('added'))
     editor.snapshot.animate()
 
-  setTimeout(function() {
-    Editor.Image.schedule(editor, image, callback, file)
-  }, 10)
 }
 
 Editor.Image.schedule = function(editor, image, callback, file) {
-  var canvas = document.createElement('canvas');
   var width = parseInt(image.getAttribute('width'))
   var height = parseInt(image.getAttribute('height'))
+  var cache = Editor.Image.storage[image.getAttribute('uid')];
+  if (cache) {
+    console.log('Use cached processed data: ', 'ms. ', cache,  width + 'x' +  height)
+    callback.call(editor, cache, image)
+  }
+  var canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-
   var ctx = canvas.getContext("2d");
   ctx.drawImage(image, 0, 0, width, height);
   var data = ctx.getImageData(0, 0, width, height);
   var timestart = new Date;
   Editor.Worker(editor, data, function(result) {
-
-    console.log('Image processed in: ', new Date - timestart, 'ms. ' + width + 'x' +  height)
-
+    Editor.Image.storage[image.getAttribute('uid')] = result;
     callback.call(editor, result, image)
   });
 }
 
 Editor.Image.uid = 0
 
-Editor.Image.applyChanges = function(data, image) {
+Editor.Image.applyChanges = function(data, img) {
   this.fire('lockSnapshot')
-  image.setAttribute('palette', data.palette);
-  console.error('crops', data)
-  if (!Editor.Image.style) {
+  var images = this.element.$.querySelectorAll('img[uid="' + img.getAttribute('uid') + '"]');
+  for (var i = 0; i < images.length; i++) {
+    var image = images[i];
+    image.setAttribute('palette', data.palette);
+    console.error('crops', data)
+    if (!Editor.Image.style) {
+      updateToolbar(this)
 
+      Editor.Image.style = document.createElement('style')
+      document.body.appendChild(Editor.Image.style);
+    }
 
-    Editor.Image.style = document.createElement('style')
-    document.body.appendChild(Editor.Image.style);
+    image.setAttribute('crop-x', data.square.x);
+    image.setAttribute('crop-y', data.square.y);
+    image.parentNode.classList.add('processed')
+
+    var generator = Palette(image)
+    var result = generator('DV+V')
+
+    var width = parseInt(image.getAttribute('width'));
+    var height = parseInt(image.getAttribute('height'));
+    var min = Math.min(parseInt(image.getAttribute('width')), parseInt(image.getAttribute('height')));
+    
+    image.style.maxWidth  = width + 'px';
+    image.style.maxHeight = height + 'px';
+    var ratio = width > height ? width / height : height / width;
+    Editor.Image.style.textContent += result.toString('.content section.has-palette-' + image.getAttribute('uid'))
+    Editor.Image.style.textContent += '.content section[pattern*="two-"] img[uid="' + image.getAttribute('uid') + '"] {' + 
+      'left: -' + data.square.x / width * ratio * 100 + '%; ' +
+      'top: -' + data.square.y / height * ratio * 100 + '%; ' +
+      'width: ' + (height < width ? ratio : 1) * 100 + '%; ' +
+    '}'
   }
-
-  image.setAttribute('crop-x', data.square.x);
-  image.setAttribute('crop-y', data.square.y);
-  image.parentNode.classList.add('processed')
-
-  var generator = Palette(image)
-  var result = generator('DV+V')
-
-  var width = parseInt(image.getAttribute('width'));
-  var height = parseInt(image.getAttribute('height'));
-  var min = Math.min(parseInt(image.getAttribute('width')), parseInt(image.getAttribute('height')));
-  
-  image.style.maxWidth  = width + 'px';
-  image.style.maxHeight = height + 'px';
-  var ratio = width > height ? width / height : height / width;
-  Editor.Image.style.textContent += result.toString('.content section.has-palette-' + image.getAttribute('uid'))
-  Editor.Image.style.textContent += '.content section[pattern*="two-"] img[uid="' + image.getAttribute('uid') + '"] {' + 
-    'left: -' + data.square.x / width * ratio * 100 + '%; ' +
-    'top: -' + data.square.y / height * ratio * 100 + '%; ' +
-    'width: ' + (height < width ? ratio : 1) * 100 + '%; ' +
-  '}'
-  
   updateToolbar(this)
   this.fire('unlockSnapshot')
 }
 
-Editor.Image.unload = function(image) {
+Editor.Image.unload = function(editor, image) {
   var src = image;
   setTimeout(function() {
     URL.revokeObjectURL(src)
   }, 2000);
 }
 
+Editor.Image.register = function(editor, image) {
+  Editor.Image(editor, image, Editor.Image.applyChanges)
+}
 
 Editor.Image.insert = function(image) {
   this.fire('lockSnapshot')

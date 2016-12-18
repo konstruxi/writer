@@ -109,13 +109,14 @@ function Editor(content) {
           }
         }
       }
-    } else {
+    } else if (!e.data.domEvent.$.metaKey
+            && !e.data.domEvent.$.ctrlKey
+            && !e.data.domEvent.$.altKey)
+    {
       var sel = this.getSelection();
       var start = sel.getStartElement();
-      debugger
-      if (start.getAscendant('picture', true)) {
+      if (start && start.getAscendant('picture', true))
         Editor.moveToEditablePlace(editor, 'picture')
-      }
     }
     if (e.data.keyCode >= 37 && e.data.keyCode <= 40) {
       setTimeout(function() {
@@ -366,6 +367,7 @@ function Editor(content) {
 }
 Editor.moveToEditablePlace = function(editor, reason) {
   var range = editor.getSelection().getRanges()[0]
+  // if typing within picture, move cursor to newly created paragraph next
   if (reason == 'picture') {
     ascender = range.startContainer.getAscendant('picture', true);
     ascender = ascender.getAscendant('a') || ascender;
@@ -374,10 +376,14 @@ Editor.moveToEditablePlace = function(editor, reason) {
     paragraph.insertAfter(ascender);
     range.moveToPosition( paragraph, CKEDITOR.POSITION_AFTER_START );
     range.select()
+  // if pasting within block-level content, move cursor after
   } else {
     var ascender = range.startContainer.getAscendant(CKEDITOR.dtd.$avoidNest)
-    range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
-    range.select()
+    var ascender = ascender.getAscendant('blockquote') || ascender;
+    if (ascender) {
+      range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
+      range.select()
+    }
   }
 }
 

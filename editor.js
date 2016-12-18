@@ -28,8 +28,8 @@ function Editor(content) {
 
   editor.on('contentDom', function() {
     Editor.measure(editor);
-
-    editor.dataProcessor.dataFilter.addRules({
+    var rules;
+    editor.dataProcessor.dataFilter.addRules(rules = {
       text: function(string) {
         string = string.replace(/&nbsp;/g, ' ')
 
@@ -55,6 +55,13 @@ function Editor(content) {
         return string;
       },
       elements: {
+        $: function(element) {
+          if (element.children[0] && element.children[0].name == 'br')
+            element.children.shift()
+          if (element.children[0] && element.children[0].name == 'a' && rules.elements.a(element.children[0]) === false)
+            return false;
+          return element
+        },
         a: function(element) {
           element.children = element.children.filter(function(child) {
             if (!child.name && Editor.Content.isMeaningless(child.value))
@@ -112,6 +119,12 @@ function Editor(content) {
           if (!paragraphs.length && !hasOwn)
             return false;
           element.children = paragraphs;
+          return element;
+        },
+
+        p: function(element) {
+          if (!element.children.length || element.children.length == 1 && element.children[0].name == 'br')
+            return false;
           return element;
         },
 

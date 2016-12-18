@@ -115,9 +115,19 @@ function Editor(content) {
     onCursorMove(editor, true, true)
   } );
   editor.on('paste', function(e) {
+    // disallow pasting block content into paragraphs and headers
+    if (e.data.type == 'html' && e.data.dataValue.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
+      var range = editor.getSelection().getRanges()[0]
+      var ascender = range.startContainer.getAscendant(CKEDITOR.dtd.$avoidNest)
+      if (ascender) {
+        range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
+        range.select()
+      }
+    }
     onCursorMove(editor, true)
   })
   editor.on('beforePaste', function(e) {
+
     var files = false;
     if (e.data.dataTransfer.$)
     Array.prototype.forEach.call(e.data.dataTransfer.$.items, function(item) {
@@ -132,15 +142,13 @@ function Editor(content) {
       return false;
     //snapshotStyles(editor)
 
-    if (e.data.dataTransfer) {
-      var data = e.data.dataTransfer.getData('text/plain');
-      if (data.match(/^\s*(?:https?|mailto):\/\/[^\s]+\s*$/)) {
-        var selection = editor.getSelection();
-        var range = selection.getRanges()[0];
-        if (range) {
-          setLink(editor, data)
-          return false
-        }
+    var data = e.data.dataTransfer.getData('text/plain');
+    if (data.match(/^\s*(?:https?|mailto):\/\/[^\s]+\s*$/)) {
+      var selection = editor.getSelection();
+      var range = selection.getRanges()[0];
+      if (range) {
+        setLink(editor, data)
+        return false
       }
     }
   })

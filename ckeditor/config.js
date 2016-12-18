@@ -51,7 +51,6 @@ CKEDITOR.editorConfig = function( config ) {
 	config.startupShowBorders = false;
 	config.disableObjectResizing = true;
 
-	config.autoParagraph = false;	
 };
 
 CKEDITOR.dtd.picture = {img: 1}
@@ -60,36 +59,43 @@ CKEDITOR.dtd.$object.img = 1
 CKEDITOR.dtd.$cdata.picture = 1
 CKEDITOR.dtd.$block.picture = 1; 
 CKEDITOR.dtd.$block.img = 1; 
-CKEDITOR.dtd.$block.section = 1; 
 CKEDITOR.dtd.article = Object.create(CKEDITOR.dtd.article)
 CKEDITOR.dtd.article.picture = 1;
 CKEDITOR.dtd.$intermediate.picture = 1; 
+
+CKEDITOR.dtd.$avoidNest = {
+	p: 1,
+	h1: 1,
+	h2: 1,
+	h3: 1,
+	picture: 1,
+	li: 1
+}
 
 
 CKEDITOR.config.height = 150;
 CKEDITOR.config.width = 'auto';
 
 CKEDITOR.dtd.$block.p = 1; 
-CKEDITOR.dtd.$block.a = 1; 
-CKEDITOR.dtd.$block.h1 = 1; 
+CKEDITOR.dtd.$block.section = 1; 
+CKEDITOR.dtd.$block.ul = 1; 
+CKEDITOR.dtd.$block.ol = 1;  
 CKEDITOR.dtd.$block.li = 1; 
 CKEDITOR.dtd.$block.blockquote = 1; 
 CKEDITOR.dtd.$blockLimit.blockquote = 1; 
 
+CKEDITOR.dtd.p = 
+CKEDITOR.dtd.h1 = 
+CKEDITOR.dtd.h2 = 
+CKEDITOR.dtd.h3 = 
+CKEDITOR.dtd.li = {a: 1, b: 1, strong: 1, span: 1, em: 1, i: 1};
+
+CKEDITOR.dtd.blockquote = {p: 1, a: 1, b: 1, strong: 1, span: 1, em: 1, i: 1};
+
+CKEDITOR.dtd.section = {p: 1, a: 1, ul: 1, ol: 1, h1: 1, h2: 1, h3: 1, picture: 1, img: 1};
+
 CKEDITOR.dtd.$intermediate.blockquote = 1; 
+CKEDITOR.dtd.$intermediate.section = 1; 
+
 CKEDITOR.dtd.a = Object.create(CKEDITOR.dtd.a)
 CKEDITOR.dtd.a.picture = 1;
-CKEDITOR.dtd.section = Object.create(CKEDITOR.dtd.section)
-CKEDITOR.dtd.section.section = undefined;
-CKEDITOR.dtd.section.picture = 1;
-CKEDITOR.dtd.section.a = 1;
-CKEDITOR.dtd.blockquote = Object.create(CKEDITOR.dtd.blockquote)
-CKEDITOR.dtd.blockquote.section = undefined;
-CKEDITOR.dtd.blockquote.h1 = undefined;
-CKEDITOR.dtd.blockquote.h2 = undefined;
-CKEDITOR.dtd.blockquote.h3 = undefined;
-CKEDITOR.dtd.li = Object.create(CKEDITOR.dtd.li)
-CKEDITOR.dtd.li.img = undefined;
-
-
-//CKEDITOR.dtd.$removeEmpty.section = 1

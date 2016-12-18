@@ -109,10 +109,23 @@ function Editor(content) {
           }
         }
       }
+      
+      // backspace after picture selects it
+      if (range.startOffset == 0) {
+        var p = Editor.Content.getEditableAscender(range.startContainer.$);
+        p = p && p.previousElementSibling;
+        if (p && (p.tagName == 'PICTURE'
+                || (p.tagName == 'A' 
+                  && (p.firstElementChild && p.firstElementChild.tagName == 'PICTURE')))) {
+          editor.getSelection().selectElement(new CKEDITOR.dom.element(p))
+          return false;
+        }
+      }
     } else if (!e.data.domEvent.$.metaKey
             && !e.data.domEvent.$.ctrlKey
             && !e.data.domEvent.$.altKey)
     {
+      // typing within picture is forbidden
       var sel = this.getSelection();
       var start = sel.getStartElement();
       if (start && start.getAscendant('picture', true))

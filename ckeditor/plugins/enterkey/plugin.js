@@ -409,7 +409,6 @@
 
 				// YAROSLAFF FEDIN HACK: When pressing enter at beginning of block element, move cursor to new block
 				if (isStartOfBlock && !isEndOfBlock && nextBlock && nextBlock.$.previousElementSibling == newBlock.$) {
-					debugger
 					range.moveToElementEditStart( newBlock );
 				} else			
 					range.moveToElementEditStart( isStartOfBlock && !isEndOfBlock ? nextBlock : newBlock );

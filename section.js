@@ -272,7 +272,7 @@ Editor.Section.observe = function(editor) {
   var observer = new MutationObserver( function(mutations) {
     var removedImages = [];
     var addedImages = [];
-
+    var removed = []
     for (var i = 0; i < mutations.length; i++) {
       var m = mutations[i];
       if (m.type === 'childList') {
@@ -284,6 +284,7 @@ Editor.Section.observe = function(editor) {
               (!m.target.classList || !m.target.classList.contains('toolbar'))) {
             var reason = mutations[i];
           }
+          removed.push(m.removedNodes[j]);
           if (m.removedNodes[j].tagName == 'IMG') {
             removedImages.push(m.removedNodes[j])
           } else if (m.removedNodes[j].tagName) {
@@ -298,6 +299,9 @@ Editor.Section.observe = function(editor) {
               (!m.target.classList || !m.target.classList.contains('toolbar'))) {
             var reason = mutations[i];
           }
+          var k = removed.indexOf(m.addedNodes[j]);
+          if (k > -1)
+            removed.splice(k, 1);
           if (m.addedNodes[j].tagName == 'IMG') {
             var k = removedImages.indexOf(m.addedNodes[j]);
             if (k > -1)
@@ -323,7 +327,11 @@ Editor.Section.observe = function(editor) {
         }
       }
     }
-
+    if (removed.length) {
+      for (var i = 0; i < removed.length; i++)
+        if (editor.snapshot)
+          editor.snapshot.removeElement(removed[i])
+    }
     if (removedImages.length) {
       console.error('removedImages', removedImages);
       for (var i = 0; i < removedImages.length; i++) {

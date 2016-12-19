@@ -105,6 +105,13 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
   editor.fire('unlockSnapshot');
 }
 
+Editor.Content.isMeaningless = function(text) {
+  // numbers 
+  if (!isNaN(parseFloat(text)))
+    return true;
+  return text.match(/^(?:[\s\n\t]|&nbsp;)*$/);
+}
+
 Editor.Content.paragraphs = function(node) {
   return CKEDITOR.dtd.$avoidNest[node.getName && node.getName()]
 }

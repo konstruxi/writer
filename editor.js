@@ -25,7 +25,6 @@ function Editor(content) {
   Editor.measure(editor);
 
 
-
   editor.on('contentDom', function() {
     Editor.measure(editor);
     var rules;
@@ -278,8 +277,8 @@ function Editor(content) {
       }
     } else if (!e.data.domEvent.$.metaKey
             && !e.data.domEvent.$.ctrlKey
-            && !e.data.domEvent.$.altKey)
-    {
+            && !e.data.domEvent.$.altKey 
+            && (e.data.keyCode < 37 || e.data.keyCode > 40)) {
       // typing within picture is forbidden
       var sel = this.getSelection();
       var start = sel.getStartElement();

@@ -45,12 +45,14 @@ Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
 }
 Editor.Snapshot.prototype.removeElement = function(element) {
   var index = this.elements.indexOf(element);
-  if (index == -1) return;
-  this.elements.splice(index, 1);
+  if (index == -1 || this.selected && this.selected.indexOf(element) > -1) return;
+
+  //this.elements.splice(index, 1);
   var box = this.dimensions.splice(index, 1)[0];
   for (var property in box) {
     if (property.indexOf('Spring') > -1) {
       var spring = box[property];
+      box[property] = false;
       var j = this.animating.indexOf(spring);
       if (j > -1)
         this.animating.splice(j, 1)

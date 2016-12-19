@@ -1,74 +1,120 @@
 
-
 Editor.DTD = function(editor) {
   var rules;
   editor.dataProcessor.dataFilter.addRules(rules = {
-    text: function(string) {
+    text: function(string, context) {
+      if (!context || !context.parent) return false;
+
       string = string.replace(/&nbsp;/g, ' ')
 
-      if (string.length < 30)
-      switch (string.replace(/[\s\t\n]/, '').trim().toLowerCase()) {
-        case 'likepage':
-        case 'like':
-        case 'seemore':
-        case 'reply':
-        case 'comment':
-        case 'viewpreviousreplies':
-        case 'edit':
-        case 'delete':
-        case 'readmore':
-        case 'addfriend':
-        case 'addtofavorites':
-        case '·':
-        case '|':
-        case '...':
-          return false;
+      // check if paragraph only consists of meaningless stuff like "1 retweet 2 likes 10 follows"
+      if (string.length < 50) {
+        for (var p = context; p  = p.parent;) {
+          if (p.name == 'p' || p.name == 'li') {
+            var tag = string.toLowerCase().replace(/[·|_.?!-:#]|[0-9.,]+[kK]?/g, '');
+            var bits = tag.split(/[\s\t\n]+/)
+            for (var i = 0, bit; bit = bits[i++];)
+              if (!Editor.Content.soundsLikeUIText[bit || ''])
+                return;
+            return false;
+          }
+        }
       }
 
       return string;
     },
     elements: {
+      ul: function(element) {
+        element.filterChildren(editor.dataProcessor.dataFilter)
+        if (element.children.length == 0)
+          return false;
+        if (element.children.length == 1) {
+          var node = element.children[0];
+          for ( var i = node.children.length - 1; i >= 0; i-- ) {
+            node.children[ i ].insertAfter( element );
+          }
+          return false;
+        }
+      },
+      ol: function(element) {
+        element.filterChildren(editor.dataProcessor.dataFilter)
+        if (element.children.length == 0)
+          return false;
+        if (element.children.length == 1) {
+          var node = element.children[0];
+          for ( var i = node.children.length - 1; i >= 0; i-- ) {
+            node.children[ i ].insertAfter( element );
+          }
+          return false;
+        }
+
+      },
       $: function(element) {
         if (element.children[0] && element.children[0].name == 'br')
           element.children.shift()
         if (element.children[0] && element.children[0].name == 'a' && rules.elements.a(element.children[0]) === false)
           return false;
+        //if (element.attributes.hidden || element.attributes['data-hidden'])
+        //  return false;
         return element
       },
+      span: function(element) {
+
+        if (element.attributes.hidden || element.attributes['data-hidden'])
+          return false;
+      },
+      div: function(element) {
+
+        if (element.attributes.hidden || element.attributes['data-hidden'])
+          return false;
+      },
+      br: function(element) {
+        if (element.parent)
+          return false;
+        //debugger
+        // return new CKEDITOR.htmlParser.text('\n');
+        //element.replaceWith(new CKEDITOR.htmlParser.text('\n'))
+
+      },
       a: function(element) {
-        var img;
-        element.children = element.children.filter(function(child) {
-          if (!child.name && Editor.Content.isMeaningless(child.value))
-            return false;
-          if (child.name == 'img' || child.name == 'picture')
-            img = child;
-          return true;
-        })
-        
+        element.filterChildren(editor.dataProcessor.dataFilter)
+
         if (!element.children.length) return false;
 
-        if (element.parent && element.parent.name == 'p' && img) {
-          element.insertAfter(element.parent);
-          return false
+
+        // split link if it wraps picture and text together
+        for (var i = element.children.length; i--;) {
+          var child = element.children[i];
+          if (child.name == 'picture') {
+            if (element.children.length > 1) {
+              element.split(i + 1)
+              if (i) 
+                var wrapper = element.split(i)
+              else
+                var wrapper = element;
+            } else {
+              var wrapper = element;
+            }  
+            wrapper.addClass('picture')
+          }
         }
 
         return element;
       },
       li: function(element) {
-        element.children = element.children.filter(function(child) {
-          if (!child.name && Editor.Content.isMeaningless(child.value))
-            return false;
-          if (child.name == 'a') {
-            if (!child.children.length) return false;
-            if (child.children.length == 1) { 
-              var grand = child.children[0];
-              if (!grand.name && Editor.Content.isMeaningless(grand.value))
-                return false;
+        element.filterChildren(editor.dataProcessor.dataFilter)
+        if (!element.children.length) return false;
+        var paragraph;
+        for (var i = 0, child; child = element.children[i++];) {
+          if (child.name) {
+            if (!paragraph)
+              var paragraph = child;
+            else {
+              debugger
+              //element.name = 'section'
             }
           }
-          return true;
-        })
-        if (!element.children.length) return false;
+        }
       },
 
       // remove empty pictures
@@ -108,6 +154,26 @@ Editor.DTD = function(editor) {
       },
 
       p: function(element) {
+        element.filterChildren(editor.dataProcessor.dataFilter)
+
+        // split paragraphs containing pictures, then unwrap pictures
+        var wrapper = element;
+        for (var i = element.children.length; i--;) {
+          var child = element.children[i];
+          if (child.name == 'picture' || (child.name == 'a' && child.children.length == 1 && child.children[0].name == 'picture')) {
+            if (element.children.length > 1) {
+              element.split(i + 1)
+              if (i) 
+                var wrapper = element.split(i)
+            }
+            for ( var j = wrapper.children.length - 1; j >= 0; j-- )
+              wrapper.children[ j ].insertAfter( wrapper );
+
+            if (!i) return false;
+
+          }
+        }
+
         if (!element.children.length || element.children.length == 1 && element.children[0].name == 'br')
           return false;
         return element;
@@ -124,10 +190,10 @@ Editor.DTD = function(editor) {
             element.attributes.src = '//:0';
           }
         }
-        if (element.attributes.width && parseInt(element.attributes.width ) < 100)
-          return false;
-        if (element.attributes.height && parseInt(element.attributes.height ) < 100)
-          return false;
+        //if (element.attributes.width && parseInt(element.attributes.width ) < 100)
+        //  return false;
+        //if (element.attributes.height && parseInt(element.attributes.height ) < 100)
+        //  return false;
         // wrap images into pictures
         if (element.parent.name != 'picture') {
           var picture = new CKEDITOR.htmlParser.element('picture', {
@@ -184,10 +250,6 @@ Editor.DTD = function(editor) {
 
   CKEDITOR.dtd.a = Object.create(CKEDITOR.dtd.a)
   CKEDITOR.dtd.a.picture = 1;
-
-  CKEDITOR.dtd.li = Object.create(CKEDITOR.dtd.li)
-  CKEDITOR.dtd.li.picture = 1;
-  CKEDITOR.dtd.li = {a: 1};
 
 
 

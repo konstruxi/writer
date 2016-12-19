@@ -55,23 +55,36 @@ Editor.Image.storage = {}
 
 Editor.Image.onLoaded = function(editor, image, callback, file) {
 
-  var width = parseInt(image.getAttribute('width')) || image.naturalWidth || width;
-  var height = parseInt(image.getAttribute('height')) || image.naturalHeight || height;
+  var width = image.naturalWidth || parseInt(image.getAttribute('width')) || width;
+  var height = image.naturalHeight || parseInt(image.getAttribute('height')) || height;
 
-  image.setAttribute('width', width);
-  image.setAttribute('height', height);
-  image.parentNode.classList.remove('loading');
+  //image.style.width =  width + 'px';
+  //image.style.height =  height + 'px';
 
+
+  
+  if (image.parentNode.classList.contains('added')) {
+    editor.snapshot.invalidate(function() {
+      image.setAttribute('width', width);
+      image.setAttribute('height', height);
+      image.parentNode.classList.remove('loading');
+      image.parentNode.style.width =  width + 'px';
+      image.parentNode.style.height =  height + 'px';
+    })
+  } else {
+
+    image.setAttribute('width', width);
+    image.setAttribute('height', height);
+    image.parentNode.style.width =  width + 'px';
+    image.parentNode.style.height =  height + 'px';
+  }
   Editor.Image.schedule(editor, image, callback, file)
-
-  if (image.parentNode.classList.contains('added'))
-    editor.snapshot.animate()
 
 }
 
 Editor.Image.schedule = function(editor, image, callback, file) {
-  var width = parseInt(image.getAttribute('width'))
-  var height = parseInt(image.getAttribute('height'))
+  var width = image.naturalWidth || parseInt(image.getAttribute('width'))
+  var height = image.naturalHeight || parseInt(image.getAttribute('height'))
   var cache = Editor.Image.storage[image.getAttribute('uid')];
   if (cache) {
     console.log('Use cached processed data: ', 'ms. ', cache,  width + 'x' +  height)

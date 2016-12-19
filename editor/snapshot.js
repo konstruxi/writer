@@ -45,10 +45,10 @@ Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
 }
 Editor.Snapshot.prototype.removeElement = function(element) {
   var index = this.elements.indexOf(element);
-  if (index == -1 || this.selected && this.selected.indexOf(element) > -1) return;
+  if (index == -1) return;// || this.selected && this.selected.indexOf(element) > -1) return;
 
   //this.elements.splice(index, 1);
-  var box = this.dimensions.splice(index, 1)[0];
+  var box = this.dimensions[index];
   for (var property in box) {
     if (property.indexOf('Spring') > -1) {
       var spring = box[property];
@@ -83,7 +83,7 @@ Editor.Snapshot.prototype.animate = function(section) {
 
     if (!migrated) {
       migrated = true;
-      snapshot.migrateSelectedElements(from)
+      //snapshot.migrateSelectedElements(from)
     }
 
     if (!snapshot.startTime)
@@ -415,4 +415,18 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
   }
 
   return repositioned || !!repos;
+}
+
+Editor.Snapshot.prototype.invalidate = function(callback) {
+  if (!this.dirty) this.dirty = []
+  this.dirty.push(callback);
+  var that = this;
+  cancelAnimationFrame(this.reanimate)
+  this.reanimate = setTimeout(function() {
+    that.dirty.forEach(function(callback) {
+      callback(that)
+    });
+    this.dirty = []
+    that.animate()
+  })
 }

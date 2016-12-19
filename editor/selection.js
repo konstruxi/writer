@@ -41,12 +41,14 @@ Editor.Selection = function(editor, content) {
   } );
 
   // select image on tap on mobile
-  content.addEventListener('touchend', function(e) {
+
+
+  editor.pointer.on('tap', function(e) {
     for (var p = e.target; p; p = p.parentNode) {
       if (p.tagName == 'IMG') {
           editor.getSelection().selectElement(new CKEDITOR.dom.element(p))
+        Editor.Selection.onChange(editor, true, true)
         e.preventDefault();
-        e.stopPropagation()
         break;
       }
     }
@@ -121,7 +123,9 @@ Editor.Selection.moveToEditablePlace = function(editor, range) {
     return Editor.Selection.moveToParagraphAfter(editor, range)
   // if pasting within block-level content, move cursor after
   } else {
-    return Editor.Selection.moveToNextParagraph(editor, range)
+    var ascender = Editor.Content.getEditableAscender(range.startContainer.$);
+    //if (!ascender || !Editor.Content.isEmpty(ascender))
+      return Editor.Selection.moveToNextParagraph(editor, range)
   }
 }
 

@@ -18,18 +18,18 @@ function Editor(content) {
     Editor.Section.observe(editor);
   }, null, null, -100)
   editor.on('contentDom', function() {
+    Editor.Container(editor, content)
     var images = editor.element.$.getElementsByTagName('img');
     for (var i = 0, image; image = images[i++];) {
       Editor.Image(editor, image, Editor.Image.applyChanges)
     }
   })
 
+  Editor.Pointer(editor, content)
   Editor.Keys(editor, content)
   Editor.Clipboard(editor, content)
   Editor.Chrome(editor, content)
-  Editor.Container(editor, content)
   Editor.Selection(editor, content)
-  Editor.Drag(editor, content)
 
 
   Editor.elements.push(content)

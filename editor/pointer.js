@@ -1,5 +1,9 @@
-Editor.Drag = function(editor, content) {
+Editor.Pointer = function(editor, content) {
+  delete Hammer.defaults.cssProps.userSelect;
 
+  editor.pointer = new Hammer(content, {
+
+  })
 
   editor.dragging = null;
   editor.dragstart = null;

@@ -7,7 +7,7 @@ CKEDITOR.editorConfig = function( config ) {
 	
 	// %REMOVE_START%
 	// The configuration options below are needed when running CKEditor from source files.
-	config.plugins = 'SimpleLink,sharedspace,blockquote,dialogui,dialog,clipboard,basicstyles,divarea,enterkey,floatingspace,entities,indent,indentlist,list,button,toolbar,undo,pastefromword' // ,magicline;
+	config.plugins = 'SimpleLink,sharedspace,blockquote,dialogui,dialog,clipboard,basicstyles,divarea,enterkey,floatingspace,entities,indent,indentlist,list,button,toolbar,undo' // ,magicline;
 	config.skin = 'none';
 	// %REMOVE_END%
 
@@ -17,17 +17,7 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// The toolbar groups arrangement, optimized for a single toolbar row.
 	config.toolbarGroups = [
-		{ name: 'document',	   groups: [ 'mode', 'document', 'doctools' ] },
-		{ name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
-		{ name: 'editing',     groups: [ 'find', 'selection', 'spellchecker' ] },
-		{ name: 'forms' },
-		{ name: 'basicstyles', groups: [ 'basicstyles', 'links', 'others', 'cleanup' ] },
-		{ name: 'paragraph',   groups: [ 'structural', 'blocks', 'align', 'bidi','list', 'indent' ] },
-		{ name: 'insert' },
-		{ name: 'styles' },
-		{ name: 'colors' },
-		{ name: 'tools' },
-		{ name: 'about' }
+		{ name: 'paragraph',   groups: [ 'basicstyles', 'links', 'cleanup' , 'structural', 'blocks', 'list', 'indent' ] },
 	];
 
 	// The default plugins included in the basic setup define some buttons that
@@ -37,7 +27,7 @@ CKEDITOR.editorConfig = function( config ) {
 	// Dialog windows are also simplified.
 	config.removeDialogTabs = 'link:advanced';
 
-	config.allowedContent = 'picture(loading,added); h1 h2 h3 blockquote ul li ol b i code pre; iframe[src]; a[href,title]; abbr[title]; img[src,alt,title,uid,palette,width,height]; section(forced);'
+	config.allowedContent = 'picture(loading,added); h1 h2 h3 blockquote ul li ol b i code pre; iframe[src]; a[href,title,hidden,aria-hidden]; abbr[title]; img[src,alt,title,uid,palette,width,height]; section(forced); * [aria-hidden,hidden]'
 
 	config.disallowedContent = 'section(focused); * {*}'
 

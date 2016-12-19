@@ -9,6 +9,11 @@ Editor.Clipboard = function(editor) {
     //Editor.Selection.onChange(editor, true)
   })
 
+  editor.on('paste', function(e) {
+    if (e.data.method == 'drop') return;
+    console.log(e.data.dataValue)
+  }, null, null, 800000)
+
   editor.on('beforePaste', function(e) {
 
     var files = false;

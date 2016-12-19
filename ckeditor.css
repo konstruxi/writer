@@ -35,12 +35,24 @@ body,html {
 .content picture {
   overflow: hidden;
   display: block;
+  max-width: 100%;
   position: relative;
+  vertical-align: top;
+}
+
+.content a.picture {
+  display: block;
+}
+
+.content picture img {
+  max-width: 100%;
+  height: auto !important;
 }
 
 .content picture:not(.processed) img {
-  height: auto;
+  height: auto !important;
   width: 100%;
+  max-width: 100%;
 }
 
 .content section[pattern*="two-"] picture:not(.processed) img {
@@ -51,6 +63,9 @@ body,html {
   max-width: 150%;
   height: auto;
   width: auto;
+}
+.content section[pattern*="two-"] picture img{
+  max-width: 400%;
 }
 
 .content picture.added.loading {
@@ -269,6 +284,9 @@ section.clone {
   pointer-events: none;
 }
 
+.content picture {
+  cursor: pointer;
+}
 .content img {
   width: 100%;
   height: auto;

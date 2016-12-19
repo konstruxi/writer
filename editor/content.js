@@ -1,55 +1,4 @@
 
-
-CKEDITOR.dtd.picture = {img: 1}
-CKEDITOR.dtd.$object.picture = 1
-CKEDITOR.dtd.$object.img = 1
-CKEDITOR.dtd.$cdata.picture = 1
-/*CKEDITOR.dtd.$block.picture = 1; */
-CKEDITOR.dtd.$block.img = 1; 
-CKEDITOR.dtd.article = Object.create(CKEDITOR.dtd.article)
-CKEDITOR.dtd.article.picture = 1;
-//CKEDITOR.dtd.$intermediate.picture = 1; 
-
-CKEDITOR.dtd.$avoidNest = {
-  p: 1,
-  h1: 1,
-  h2: 1,
-  h3: 1,
-  picture: 1,
-  li: 1
-}
-
-
-CKEDITOR.dtd.$block.p = 1; 
-CKEDITOR.dtd.$block.section = 1; 
-CKEDITOR.dtd.$block.ul = 1; 
-CKEDITOR.dtd.$block.ol = 1;  
-CKEDITOR.dtd.$block.li = 1; 
-CKEDITOR.dtd.$block.blockquote = 1; 
-
-/*
-CKEDITOR.dtd.p = 
-CKEDITOR.dtd.h1 = 
-CKEDITOR.dtd.h2 = 
-CKEDITOR.dtd.h3 = 
-CKEDITOR.dtd.li = {a: 1, b: 1, strong: 1, span: 1, em: 1, i: 1};
-CKEDITOR.dtd.blockquote = {p: 1, a: 1, b: 1, strong: 1, span: 1, em: 1, i: 1};
-*/
-
-CKEDITOR.dtd.section = {p: 1, a: 1, ul: 1, ol: 1, h1: 1, h2: 1, h3: 1, picture: 1, img: 1, blockquote: 1};
-
-
-CKEDITOR.dtd.a = Object.create(CKEDITOR.dtd.a)
-CKEDITOR.dtd.a.picture = 1;
-
-CKEDITOR.dtd.li = Object.create(CKEDITOR.dtd.li)
-CKEDITOR.dtd.li.picture = 1;
-CKEDITOR.dtd.li = {a: 1};
-
-
-
-
-
 CKEDITOR.dom.elementPath.prototype.isContextFor = function() {
   return true;
 }
@@ -60,15 +9,14 @@ Editor.Content = function(editor) {
   var elements = Array.prototype.slice.call(root.getElementsByTagName('*'));
   var result = []
   loop: for (var i = 0; i < elements.length; i++) {
-    for (var parent = elements[i]; parent; parent = parent.parentNode) {
-      if ((parent.classList && parent.classList.contains('toolbar')) 
-        ||(parent.className && parent.className.indexOf && parent.className.indexOf('cke_') > -1))
-        continue loop;
-      if (parent.tagName == 'SECTION' || parent == root) {
+    //for (var parent = elements[i]; parent; parent = parent.parentNode) {
+      //if ((parent.classList && parent.classList.contains('toolbar')) 
+      //  ||(parent.className && parent.className.indexOf && parent.className.indexOf('cke_') > -1))
+      //  continue loop;
+      if (Editor.Content.isBlock(elements[i])) {
         result.push(elements[i])
-        break;
       }
-    }
+    //}
   }
   return result;
 }
@@ -143,12 +91,12 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
   }
   for (var i = 0; i < cleaned.length; i++) {
     cleaned[i].parentNode.removeChild(cleaned[i])
-    if (editor.snapshot)
-      editor.snapshot.removeElement(cleaned[i])
+    //if (editor.snapshot)
+    //  editor.snapshot.removeElement(cleaned[i])
   }
 
   if (!editor.refocusing && !blur) {
-    if (before || after) {
+    if (before && before.parentNode || after && after.parentNode) {
       var range = editor.createRange();
       if (before)
         range.moveToElementEditEnd( new CKEDITOR.dom.element(before) );
@@ -184,6 +132,20 @@ Editor.Content.getEditableAscender = function(element) {
   return element;
 }
 
+Editor.Content.isBlock = function(element) {
+  return  element.tagName == 'P'
+       || element.tagName == 'LI' 
+       || element.tagName == 'BLOCKQUOTE'
+       || element.tagName == 'UL'
+       || element.tagName == 'OL'
+       || element.tagName == 'H1'
+       || element.tagName == 'H2'
+       || element.tagName == 'H3'
+       || element.tagName == 'SECTION'
+       || element.tagName == 'PICTURE'
+       || (element.tagName == 'A' && element.firstElementChild && element.firstElementChild.tagName == 'PICTURE')
+}
+
 Editor.Content.isParagraph = function(element) {
   switch (element.parentNode.tagName) {
     case 'SECTION': case 'OL': case 'UL': case 'BLOCKQUOTE':
@@ -202,7 +164,7 @@ Editor.Content.isInside = function(element, another) {
 }
 
 Editor.Content.isEmpty = function(child) {
-  if (child.tagName == 'IMG' || child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('toolbar')))
+  if (child.tagName == 'IMG' || child.tagName == 'PICTURE' ||child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('toolbar')))
     return false;
   //if (child.tagName == 'P') {
     var text = child.textContent
@@ -293,3 +255,42 @@ Editor.Content.parseYoutubeURL = function(url) {
     return (match&&match[7].length==11)? match[7] : false;
 }
 
+
+Editor.Content.soundsLikeUIText = {
+'': 1,
+'likepage': 1,
+'like': 1,
+'likes': 1,
+'more': 1,
+'seemore': 1,
+'reply': 1,
+'replies': 1,
+'comment': 1,
+'view': 1,
+'views': 1,
+'new': 1,
+'edit': 1,
+'delete': 1,
+'readmore': 1,
+'addfriend': 1,
+'addtofavorites': 1,
+'follow': 1,
+'refresh': 1,
+'retweet': 1,
+'retweets': 1,
+'follows': 1,
+'·': 1,
+'|': 1,
+'...': 1,
+
+// dangerous
+'recommended': 1,
+'you': 1,
+'for': 1,
+'who': 1,
+'to': 1,
+'dismiss': 1,
+'this': 1,
+'user': 1,
+'actions': 1
+};

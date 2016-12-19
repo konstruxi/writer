@@ -171,7 +171,6 @@ Editor.Chrome.update = function(editor, force) {
 Editor.Chrome.togglePicker = function(editor, force) {
   if (!editor.activeSection) return;
   clearTimeout(window.unpicking);
-  var editor = Editor.get(editor.activeSection)
   if (editor.activeSection.classList.contains('focused') && editor && editor.focusManager.hasFocus) {
     formatting.removeAttribute('hidden')
   } else if (formatting.getAttribute('hidden') == null){

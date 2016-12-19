@@ -357,6 +357,7 @@ Editor.Section.observe = function(editor) {
       }
     }
     if (removed.length) {
+      console.error(removed)
       for (var i = 0; i < removed.length; i++)
         if (editor.snapshot)
           editor.snapshot.removeElement(removed[i])

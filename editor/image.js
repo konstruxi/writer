@@ -100,7 +100,7 @@ Editor.Image.applyChanges = function(data, img) {
     image.setAttribute('palette', data.palette);
     console.error('crops', data)
     if (!Editor.Image.style) {
-      updateToolbar(this)
+      Editor.Chrome.update(this)
 
       Editor.Image.style = document.createElement('style')
       document.body.appendChild(Editor.Image.style);
@@ -127,7 +127,7 @@ Editor.Image.applyChanges = function(data, img) {
       'width: ' + (height < width ? ratio : 1) * 100 + '%; ' +
     '}'
   }
-  updateToolbar(this)
+  Editor.Chrome.update(this)
   this.fire('unlockSnapshot')
 }
 

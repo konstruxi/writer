@@ -133,18 +133,27 @@
   <script src="colors/vibrant.js"></script>
   <script src="colors/pallete.js"></script>
   <script src="colors/resize.js"></script>
-  <script src="colors/glur.js"></script>
   <script src="colors/unsharp.js"></script>
   <script src="colors/crop.js"></script>
 
-  <script src="editor.js"></script>
-  <script src="content.js"></script>
-  <script src="section.js"></script>
-  <script src="snapshot.js"></script>
-  <script src="spring.js"></script>
-  <script src="picker.js"></script>
+  <script src="editor/editor.js"></script>
+  <script src="editor/dtd.js"></script>
+  <script src="editor/commands.js"></script>
+  <script src="editor/keys.js"></script>
+  <script src="editor/selection.js"></script>
+  <script src="editor/clipboard.js"></script>
+  <script src="editor/keys.js"></script>
+  <script src="editor/drag.js"></script>
+
   <script src="worker.js"></script>
-  <script src="images.js"></script>
+  <script src="editor/container.js"></script>
+  <script src="editor/snapshot.js"></script>
+  <script src="editor/chrome.js"></script>
+  <script src="editor/content.js"></script>
+  <script src="editor/section.js"></script>
+  <script src="editor/image.js"></script>
+  <script src="spring.js"></script>
+
   <script>
   var editors = document.querySelectorAll('article[contenteditable]');
   for (var i = 0; i < editors.length; i++)

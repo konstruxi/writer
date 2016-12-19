@@ -1,34 +1,8 @@
 var picker = document.getElementsByClassName('picker')[0]
 var matrix = document.getElementsByClassName('matrix')[0];
-var activeSection;
 
 
 
-function setActiveSection(target, force) {
-  for (; target; target = target.parentNode) {
-    if (target.tagName == 'SECTION') {
-      if (target == activeSection) {
-        togglePicker(Editor.get(activeSection));
-        return false
-      }
-      break
-    }
-  }
-  clearTimeout(window.unpicking)
-  var editor = Editor.get(target || activeSection);
-  if (editor && activeSection != target) {
-    editor.fire('lockSnapshot')
-    if (!editor.isSetUp) {
-      editor.isSetUp = true;
-      editor.on('blur', function() {
-        togglePicker(editor)
-      })
-    }
-    activeSection = target
-    togglePicker(editor, true);
-    editor.fire('unlockSnapshot')
-  }
-}
 
 function populateMatrix(activeSection) {
   var cells = matrix.getElementsByTagName('td');
@@ -55,21 +29,8 @@ formatting.addEventListener('mousemove', function(e) {
   e.stopPropagation()
 })
 
-function togglePicker(editor, force) {
-  if (!activeSection) return;
-  clearTimeout(window.unpicking);
-  var editor = Editor.get(activeSection)
-  if (activeSection.classList.contains('focused') && editor && editor.focusManager.hasFocus) {
-    picker.removeAttribute('hidden');
-    formatting.removeAttribute('hidden')
-    repositionPicker(editor, activeSection, force)
-  } else if (formatting.getAttribute('hidden') == null){
-    window.unpicking = setTimeout(function() {
-      picker.setAttribute('hidden', 'hidden');
-      formatting.setAttribute('hidden', 'hidden')
-    }, 100)
-  }
-}
+
+/*
 
 document.addEventListener('click', function(e) {
   for (var target = e.target; target.nodeType != 9; target = target.parentNode) {
@@ -102,7 +63,7 @@ document.addEventListener('click', function(e) {
     e.stopPropagation()
   }
 })
-
+*/
 function repositionPicker(editor, target, force) {
   return;
   if (!target || !target.parentNode) return;

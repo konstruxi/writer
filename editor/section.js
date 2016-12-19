@@ -25,6 +25,31 @@ Editor.Section = function(editor, mutation, observer) {
   editor.fire( 'unlockSnapshot' );
 }
 
+Editor.Section.setActive = function(editor, target, force) {
+  for (; target; target = target.parentNode) {
+    if (target.tagName == 'SECTION') {
+      if (target == editor.activeSection) {
+        Editor.Chrome.togglePicker(Editor.get(editor.activeSection));
+        return false
+      }
+      break
+    }
+  }
+  clearTimeout(window.unpicking)
+  var editor = Editor.get(target || editor.activeSection);
+  if (editor && editor.activeSection != target) {
+    editor.fire('lockSnapshot')
+    if (!editor.isSetUp) {
+      editor.isSetUp = true;
+      editor.on('blur', function() {
+        Editor.Chrome.togglePicker(editor)
+      })
+    }
+    editor.activeSection = target
+    Editor.Chrome.togglePicker(editor, true);
+    editor.fire('unlockSnapshot')
+  }
+}
 
 Editor.Section.split = function(editor, root) {
   var children = Array.prototype.slice.call(root.childNodes);

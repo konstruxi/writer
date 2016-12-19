@@ -290,7 +290,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
       box.top += parent.offsetTop;
       box.left += parent.offsetLeft;
     }
-    box.visible = Editor.isBoxVisible(editor, box);
+    box.visible = Editor.Container.isBoxVisible(editor, box);
     dimensions.push(box)
   }
     var selected = Editor.Snapshot.rememberSelected(editor)
@@ -364,12 +364,12 @@ Editor.Snapshot.prototype.reset = function(elements, over) {
 Editor.Snapshot.prototype.isVisible = function(element) {
   var box = this.get(element)
   if (box)
-    return Editor.isBoxVisible(this.editor, box)
+    return Editor.Container.isBoxVisible(this.editor, box)
 }
 
 Editor.Snapshot.prototype.updateVisibility = function() {
   for (var i = 0; i < this.dimensions.length; i++) {
-    this.dimensions[i].visible = Editor.isBoxVisible(this.editor, this.dimensions[i]);
+    this.dimensions[i].visible = Editor.Container.isBoxVisible(this.editor, this.dimensions[i]);
   }
 }
 

@@ -12,6 +12,11 @@
   display: none;
 }
 
+.cke_pastebin {
+  position: fixed;
+  visibility: visible !important;
+}
+
 .cke_button {
   width: 36px;
   height: 36px;

@@ -4,7 +4,8 @@ Editor.Content = function(editor) {
   var result = []
   loop: for (var i = 0; i < elements.length; i++) {
     for (var parent = elements[i]; parent; parent = parent.parentNode) {
-      if (parent.classList && parent.classList.contains('toolbar'))
+      if ((parent.classList && parent.classList.contains('toolbar')) 
+        ||(parent.className && parent.className.indexOf && parent.className.indexOf('cke_') > -1))
         continue loop;
       if (parent.tagName == 'SECTION' || parent == root) {
         result.push(elements[i])
@@ -227,4 +228,148 @@ Editor.Content.cleanSelection = function (editor, options) {
   } else {
     selection.selectBookmarks(bookmark);
   }
+}
+
+
+
+Editor.Content.Filter = function(editor) {
+  var rules;
+  editor.dataProcessor.dataFilter.addRules(rules = {
+    text: function(string) {
+      string = string.replace(/&nbsp;/g, ' ')
+
+      if (string.length < 30)
+      switch (string.replace(/[\s\t\n]/, '').trim().toLowerCase()) {
+        case 'likepage':
+        case 'like':
+        case 'seemore':
+        case 'reply':
+        case 'comment':
+        case 'viewpreviousreplies':
+        case 'edit':
+        case 'delete':
+        case 'readmore':
+        case 'addfriend':
+        case 'addtofavorites':
+        case '·':
+        case '|':
+        case '...':
+          return false;
+      }
+
+      return string;
+    },
+    elements: {
+      $: function(element) {
+        if (element.children[0] && element.children[0].name == 'br')
+          element.children.shift()
+        if (element.children[0] && element.children[0].name == 'a' && rules.elements.a(element.children[0]) === false)
+          return false;
+        return element
+      },
+      a: function(element) {
+        var img;
+        element.children = element.children.filter(function(child) {
+          if (!child.name && Editor.Content.isMeaningless(child.value))
+            return false;
+          if (child.name == 'img' || child.name == 'picture')
+            img = child;
+          return true;
+        })
+        
+        if (!element.children.length) return false;
+
+        if (element.parent && element.parent.name == 'p' && img) {
+          element.insertAfter(element.parent);
+          return false
+        }
+
+        return element;
+      },
+      li: function(element) {
+        element.children = element.children.filter(function(child) {
+          if (!child.name && Editor.Content.isMeaningless(child.value))
+            return false;
+          if (child.name == 'a') {
+            if (!child.children.length) return false;
+            if (child.children.length == 1) { 
+              var grand = child.children[0];
+              if (!grand.name && Editor.Content.isMeaningless(grand.value))
+                return false;
+            }
+          }
+          return true;
+        })
+        if (!element.children.length) return false;
+      },
+
+      // remove empty pictures
+      picture: function(element) {
+        if (!element.children.length)
+          return false;
+        return element
+      },
+
+      // wrap blockquote contents into paragraphs
+      blockquote: function(element) {
+        var paragraphs = [];
+        var paragraph;
+        var hasOwn;
+        element.children.forEach(function(child) {
+          if (child.name == 'br') {
+            paragraph = undefined;
+          } else if (child.name != 'p') {
+            if (!paragraph) {
+              paragraph = new CKEDITOR.htmlParser.element('p');
+              paragraphs.push(paragraph)
+            }
+            if (paragraph.children.length) {
+              paragraph.children.push(new CKEDITOR.htmlParser.text(' '), child)
+            } else {
+              paragraph.children.push(child)
+            }
+          } else {
+            hasOwn = true;
+          }
+        })
+        if (!paragraphs.length && !hasOwn)
+          return false;
+        element.children = paragraphs;
+        return element;
+      },
+
+      p: function(element) {
+        if (!element.children.length || element.children.length == 1 && element.children[0].name == 'br')
+          return false;
+        return element;
+      },
+
+      // wrap image, handle cors, filter out small images
+      img: function (element) {
+        if (!element.attributes.uid) {
+          var src = element.attributes.src;
+          if (!src) return false;
+          // Need to CORS proxy the image
+          if (src.indexOf(location.origin) == -1 && src.indexOf('://') > -1) {
+            element.attributes['foreign-src'] = src
+            element.attributes.src = '//:0';
+          }
+        }
+        if (element.attributes.width && parseInt(element.attributes.width ) < 100)
+          return false;
+        if (element.attributes.height && parseInt(element.attributes.height ) < 100)
+          return false;
+        // wrap images into pictures
+        if (element.parent.name != 'picture') {
+          var picture = new CKEDITOR.htmlParser.element('picture', {
+            class: 'loading added'
+          })
+          element.replaceWith(picture)
+          picture.add(element);
+        }
+        return element;
+      }
+    }
+  }, { applyToAll: true })
+
 }

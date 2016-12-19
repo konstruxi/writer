@@ -273,9 +273,13 @@ Editor.Section.observe = function(editor) {
     var removedImages = [];
     var addedImages = [];
     var removed = []
-    for (var i = 0; i < mutations.length; i++) {
+    mutations: for (var i = 0; i < mutations.length; i++) {
       var m = mutations[i];
       if (m.type === 'childList') {
+        for (var t = m.target; t && t != editor.element.$; t = t.parentNode) {
+          if (t.id == 'cke_pastebin') 
+            continue mutations;
+        }
         for (var j = 0; j < m.removedNodes.length; j++) {
           if (m.removedNodes[j].nodeType == 1 &&
               m.removedNodes[j].tagName != 'SPAN' &&

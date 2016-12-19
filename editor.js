@@ -24,138 +24,11 @@ function Editor(content) {
 
   Editor.measure(editor);
 
-
+  editor.on('instanceReady', function() {
+    Editor.Content.Filter(editor);
+  })
   editor.on('contentDom', function() {
     Editor.measure(editor);
-    var rules;
-    editor.dataProcessor.dataFilter.addRules(rules = {
-      text: function(string) {
-        string = string.replace(/&nbsp;/g, ' ')
-
-        if (string.length < 30)
-        switch (string.replace(/[\s\t\n]/, '').trim().toLowerCase()) {
-          case 'likepage':
-          case 'like':
-          case 'seemore':
-          case 'reply':
-          case 'comment':
-          case 'viewpreviousreplies':
-          case 'edit':
-          case 'delete':
-          case 'readmore':
-          case 'addfriend':
-          case 'addtofavorites':
-          case '·':
-          case '|':
-          case '...':
-            return false;
-        }
-
-        return string;
-      },
-      elements: {
-        $: function(element) {
-          if (element.children[0] && element.children[0].name == 'br')
-            element.children.shift()
-          if (element.children[0] && element.children[0].name == 'a' && rules.elements.a(element.children[0]) === false)
-            return false;
-          return element
-        },
-        a: function(element) {
-          element.children = element.children.filter(function(child) {
-            if (!child.name && Editor.Content.isMeaningless(child.value))
-              return false;
-            return true;
-          })
-          if (!element.children.length) return false;
-        },
-        li: function(element) {
-          element.children = element.children.filter(function(child) {
-            if (!child.name && Editor.Content.isMeaningless(child.value))
-              return false;
-            if (child.name == 'a') {
-              if (!child.children.length) return false;
-              if (child.children.length == 1) { 
-                var grand = child.children[0];
-                if (!grand.name && Editor.Content.isMeaningless(grand.value))
-                  return false;
-              }
-            }
-            return true;
-          })
-          if (!element.children.length) return false;
-        },
-
-        // remove empty pictures
-        picture: function(element) {
-          if (!element.children.length)
-            return false;
-          return element
-        },
-
-        // wrap blockquote contents into paragraphs
-        blockquote: function(element) {
-          var paragraphs = [];
-          var paragraph;
-          var hasOwn;
-          element.children.forEach(function(child) {
-            if (child.name == 'br') {
-              paragraph = undefined;
-            } else if (child.name != 'p') {
-              if (!paragraph) {
-                paragraph = new CKEDITOR.htmlParser.element('p');
-                paragraphs.push(paragraph)
-              }
-              if (paragraph.children.length) {
-                paragraph.children.push(new CKEDITOR.htmlParser.text(' '), child)
-              } else {
-                paragraph.children.push(child)
-              }
-            } else {
-              hasOwn = true;
-            }
-          })
-          if (!paragraphs.length && !hasOwn)
-            return false;
-          element.children = paragraphs;
-          return element;
-        },
-
-        p: function(element) {
-          if (!element.children.length || element.children.length == 1 && element.children[0].name == 'br')
-            return false;
-          return element;
-        },
-
-        // wrap image, handle cors, filter out small images
-        img: function (element) {
-          if (!element.attributes.uid) {
-            var src = element.attributes.src;
-            if (!src) return false;
-            // Need to CORS proxy the image
-            if (src.indexOf(location.origin) == -1 && src.indexOf('://') > -1) {
-              element.attributes['foreign-src'] = src
-              element.attributes.src = '//:0';
-            }
-          }
-          if (element.attributes.width && parseInt(element.attributes.width ) < 100)
-            return false;
-          if (element.attributes.height && parseInt(element.attributes.height ) < 100)
-            return false;
-          // wrap images into pictures
-          if (element.parent.name != 'picture') {
-            var picture = new CKEDITOR.htmlParser.element('picture', {
-              class: 'loading added'
-            })
-            element.replaceWith(picture)
-            picture.add(element);
-          }
-          return element;
-        }
-      }
-    }, { applyToAll: true })
-
-
     var images = editor.element.$.getElementsByTagName('img');
     for (var i = 0, image; image = images[i++];) {
       Editor.Image(editor, image, Editor.Image.applyChanges)
@@ -323,6 +196,7 @@ function Editor(content) {
   editor.on('drop', function(e) {
     // disallow pasting block content into paragraphs and headers
     var html = e.data.dataTransfer.getData('text/html')
+    console.log('drop', html)
     if (html && html.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
       Editor.moveToEditablePlace(editor, 'next', e.data.dropRange);
       e.data.dropRange = editor.getSelection().getRanges()[0]
@@ -332,6 +206,7 @@ function Editor(content) {
   })
   editor.on('paste', function(e) {
     if (e.data.method == 'drop') return;
+    console.log(e.data.dataValue)
     // disallow pasting block content into paragraphs and headers
     if (e.data.type == 'html' && e.data.dataValue.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
       Editor.moveToEditablePlace(editor, 'next');
@@ -342,19 +217,22 @@ function Editor(content) {
   editor.on('beforePaste', function(e) {
 
     var files = false;
-    if (e.data.dataTransfer.$)
-    Array.prototype.forEach.call(e.data.dataTransfer.$.items, function(item) {
-      var file = item.getAsFile();
-      if (file) {
-        files = true;
-        console.info('Loading one file!')
-        Editor.Image(editor, file, Editor.Image.applyChanges, Editor.Image.insert);
-      }
-    });
+    if (e.data.dataTransfer.$ && e.data.dataTransfer.$.items)
+      Array.prototype.forEach.call(e.data.dataTransfer.$.items, function(item) {
+        var file = item.getAsFile();
+        if (file) {
+          files = true;
+          console.info('Loading one file!')
+          Editor.Image(editor, file, Editor.Image.applyChanges, Editor.Image.insert);
+        }
+      });
     if (files)
       return false;
     //snapshotStyles(editor)
 
+    var html = e.data.dataTransfer.getData('text/html')
+    console.error('beforepaste', html)
+    console.error('beforepaste', e.data.dataTransfer.getData('text/plain'))
     var data = e.data.dataTransfer.getData('text/plain');
     if (data.match(/^\s*(?:https?|mailto):\/\/[^\s]+\s*$/)) {
       var selection = editor.getSelection();
@@ -434,6 +312,17 @@ function Editor(content) {
   editor.dragzone = document.createElement('div')
   editor.dragzone.id = 'dragzone'
 
+  // select image on tap on mobile
+  content.addEventListener('touchend', function(e) {
+    for (var p = e.target; p; p = p.parentNode) {
+      if (p.tagName == 'IMG') {
+          editor.getSelection().selectElement(new CKEDITOR.dom.element(p))
+        e.preventDefault();
+        e.stopPropagation()
+        break;
+      }
+    }
+  })
   content.addEventListener('mouseup', function(e) {
     if (!editor.dragging) {
       requestAnimationFrame(function() {
@@ -441,10 +330,6 @@ function Editor(content) {
         updateToolbar(editor)
       })
     }
-  })
-  content.addEventListener('touchend', function(e) {
-
-    //onCursorMove(editor)
   })
   document.addEventListener('selectionchange', function(e) {
     if (!editor.dragging) {
@@ -459,9 +344,9 @@ function Editor(content) {
       //  repositionPicker(editor)
       //})
     }
-  })/*
+  })
   content.addEventListener('mouseover', function(e) {
-    if (e.target.tagName == 'IMG') {
+    if (e.target.tagName == 'IMG' && e.metaKey) {
       var x = parseInt(e.target.getAttribute('crop-x'));
       var y = parseInt(e.target.getAttribute('crop-y'));
       if (x === x && y === y) {
@@ -494,7 +379,7 @@ function Editor(content) {
       if (Editor.cropper.parentNode)
         Editor.cropper.parentNode.removeChild(Editor.cropper)
     }
-  });*/
+  });
   editor.handleEvent = function(e) {
     switch (e.type) {
       case 'touchstart': case 'mousedown':
@@ -556,11 +441,12 @@ Editor.moveToEditablePlace = function(editor, reason, range) {
   // if pasting within block-level content, move cursor after
   } else {
     var ascender = range.startContainer.getAscendant(CKEDITOR.dtd.$avoidNest, true)
-    var ascender = ascender.getAscendant('blockquote') || ascender;
-    if (ascender) {
-      range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
-      range.select()
-    }
+    if (ascender)
+      var ascender = ascender.getAscendant('blockquote') || ascender;
+      if (ascender) {
+        range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
+        range.select()
+      }
   }
 }
 

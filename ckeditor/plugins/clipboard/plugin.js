@@ -2053,7 +2053,7 @@
 			// YAROSLAFF FEDIN HACK: Allow clipboardData for IOS
 			if ( !this.isCustomCopyCutSupported ) {
 				// Edge does not support custom copy/cut, but it have some useful data in the clipboardData (#13755).
-				return new this.dataTransfer( ( evt && evt.data.$ && evt.data.$.clipboardData ) || null, sourceEditor );
+				return new this.dataTransfer( null && ( evt && evt.data.$ && evt.data.$.clipboardData ) || null, sourceEditor );
 			} else if ( evt && evt.data && evt.data.$ ) {
 				var dataTransfer = new this.dataTransfer( evt.data.$.clipboardData, sourceEditor );
 

@@ -176,7 +176,6 @@ CKEDITOR.htmlParser = function() {
 						while ( ( attribMatch = attribsRegex.exec( attribsPart ) ) ) {
 							var attName = attribMatch[ 1 ].toLowerCase(),
 								attValue = attribMatch[ 2 ] || attribMatch[ 3 ] || attribMatch[ 4 ] || '';
-
 							if ( !attValue && emptyAttribs[ attName ] )
 								attribs[ attName ] = attName;
 							else

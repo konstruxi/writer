@@ -1667,7 +1667,8 @@
 		if ( !status.allClasses || status.hadInvalidClass ) {
 			for ( i = 0; i < classes.length; ++i ) {
 				// See comment for styles.
-				if ( status.allClasses || validClasses[ classes[ i ] ] )
+				// YAROSLAFF FEDIN HACK: Allow all classes, filtered later
+				if ( status.allClasses || validClasses[ classes[ i ] ] || true)
 					classesArr.push( classes[ i ] );
 			}
 			if ( classesArr.length )

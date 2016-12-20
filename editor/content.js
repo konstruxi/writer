@@ -164,7 +164,7 @@ Editor.Content.isInside = function(element, another) {
 }
 
 Editor.Content.isEmpty = function(child) {
-  if (child.tagName == 'IMG' || child.tagName == 'PICTURE' ||child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('toolbar')))
+  if (child.tagName == 'IMG' || child.tagName == 'HR' || child.tagName == 'PICTURE' ||child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('toolbar')))
     return false;
   //if (child.tagName == 'P') {
     var text = child.textContent
@@ -256,6 +256,39 @@ Editor.Content.parseYoutubeURL = function(url) {
 }
 
 
+Editor.Content.soundsLikeSemanticClass = {
+  'avatar':    'avatar',
+  'timestamp': 'timestamp',
+  'datetime':  'timestamp',
+  'date':      'timestamp',
+  'time':      'timestamp',
+
+  'maybe-author': 'maybe-author',
+
+  'author' :   'author',
+  'user' :     'author',
+  'profile' :  'maybe-author',
+
+  'text-quote': 'text-quote',
+  'tweet-text': 'text-quote',
+
+  'source-url': 'source-url',
+  'permalink': 'source-url',
+
+  'source-via': 'source-via',
+  'tweet-context': 'source-via'
+}
+
+Editor.Content.soundsLikeSemanticClassList = Object.keys(Editor.Content.soundsLikeSemanticClass)
+Editor.Content.soundsLikeSemanticClassValues = {}
+Object.keys(Editor.Content.soundsLikeSemanticClass).filter(function(kls) {
+  Editor.Content.soundsLikeSemanticClassValues[Editor.Content.soundsLikeSemanticClass[kls]] = 1;
+})
+
+Editor.Content.soundsLikeUIClass = {
+  'UFIAddComment': 1, // fb add comment section
+  'UFILikeSentence': 1 // fb reactions section
+}
 Editor.Content.soundsLikeUIText = {
 '': 1,
 'likepage': 1,
@@ -275,20 +308,36 @@ Editor.Content.soundsLikeUIText = {
 'addfriend': 1,
 'addtofavorites': 1,
 'follow': 1,
+'share': 1,
+'shares': 1,
+'reactions': 1,
+'mentions': 1,
+'show': 1,
+'read': 1,
 'refresh': 1,
 'retweet': 1,
 'retweets': 1,
 'follows': 1,
+'comments': 1,
 '·': 1,
 '|': 1,
 '...': 1,
 
 // dangerous
+'write': 1,
+'page': 1,
+'suggested': 1,
+'post': 1,
+'sponsored': 1,
 'recommended': 1,
 'you': 1,
+'a': 1,
+'the': 1,
 'for': 1,
 'who': 1,
 'to': 1,
+'go': 1,
+'card': 1,
 'dismiss': 1,
 'this': 1,
 'user': 1,

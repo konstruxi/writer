@@ -225,7 +225,6 @@
 
 			onAttribute: function( context, element, name, value ) {
 				var rulesGroup = this.attributesRules[ name ];
-
 				if ( rulesGroup )
 					return rulesGroup.exec( context, value, element, this );
 				return value;

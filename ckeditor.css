@@ -40,6 +40,11 @@ body,html {
   vertical-align: top;
 }
 
+.content picture.avatar {
+  display: inline-block;
+  outline: 1px dashed red;
+}
+
 .content a.picture {
   display: block;
 }

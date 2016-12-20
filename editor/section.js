@@ -112,6 +112,11 @@ Editor.Section.analyze = function(node) {
   for (var i = 0; i < node.children.length; i++) {
     var child = node.children[i];
     switch (child.tagName) {
+      case 'HR':
+        node.classList.add('forced')
+        node.removeChild(child);
+        i--;
+        break;
       case 'H1': case 'H2':
         if (child.textContent.length)
           tags.push('has-title')
@@ -232,7 +237,8 @@ Editor.Section.getEditStart = function(section) {
 }
 
 Editor.Section.needsSplitterBetween = function(left, right) {
-  return (right.tagName == 'H1' && (!left || (left.tagName != 'IMG' && left.tagName != 'PICTURE') || (Editor.Section.getFirstChild(left.parentNode) != left))) 
+  return (right.tagName == 'HR')
+      || (right.tagName == 'H1' && (!left || (left.tagName != 'IMG' && left.tagName != 'PICTURE') || (Editor.Section.getFirstChild(left.parentNode) != left))) 
       || (right.tagName == 'H2' && (!left || (left.tagName != 'H1' && ((left.tagName != 'IMG' && left.tagName != 'PICTURE') || left.previousElementSibling))))
 }
 

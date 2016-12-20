@@ -224,8 +224,8 @@ Editor.Section.get = function(element) {
 
 Editor.Section.getFirstChild = function(section) {
   var first = section.firstElementChild;
-  if (first.classList.contains('toolbar'))
-    return first.nextElementSibling;
+  while (first.classList.contains('toolbar') || first.tagName == 'HR')
+    first = first.nextElementSibling;
   return first;
 }
 
@@ -238,8 +238,8 @@ Editor.Section.getEditStart = function(section) {
 
 Editor.Section.needsSplitterBetween = function(left, right) {
   return (right.tagName == 'HR')
-      || (right.tagName == 'H1' && (!left || (left.tagName != 'IMG' && left.tagName != 'PICTURE') || (Editor.Section.getFirstChild(left.parentNode) != left))) 
-      || (right.tagName == 'H2' && (!left || (left.tagName != 'H1' && ((left.tagName != 'IMG' && left.tagName != 'PICTURE') || left.previousElementSibling))))
+      || (right.tagName == 'H1' && (!left || !Editor.Content.isPicture(left) || (Editor.Section.getFirstChild(left.parentNode) != left))) 
+      || (right.tagName == 'H2' && (!left || (left.tagName != 'H1' && (!Editor.Content.isPicture(left) || (Editor.Section.getFirstChild(left.parentNode) != left)))))
 }
 
 

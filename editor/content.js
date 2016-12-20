@@ -142,10 +142,16 @@ Editor.Content.isBlock = function(element) {
        || element.tagName == 'H2'
        || element.tagName == 'H3'
        || element.tagName == 'SECTION'
+        
+       // special case picture inside A
        || (element.tagName == 'PICTURE' && element.parentNode.tagName != 'A')
        || (element.tagName == 'A' && element.firstElementChild && element.firstElementChild.tagName == 'PICTURE')
 }
 
+Editor.Content.isPicture = function(element) {
+  return (element.tagName == 'PICTURE')
+       || (element.tagName == 'A' && element.firstElementChild && element.firstElementChild.tagName == 'PICTURE')
+}
 Editor.Content.isParagraph = function(element) {
   switch (element.parentNode.tagName) {
     case 'SECTION': case 'OL': case 'UL': case 'BLOCKQUOTE':
@@ -262,6 +268,14 @@ Editor.Content.soundsLikeSemanticClass = {
   'datetime':  'timestamp',
   'date':      'timestamp',
   'time':      'timestamp',
+
+  'title':     'title',
+  'heading':   'title',
+  'subtitle':  'title',
+
+
+  'meta':      'meta',
+
 
   'maybe-author': 'maybe-author',
 

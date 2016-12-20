@@ -786,7 +786,7 @@
 			editor.fire( 'beforeUndoImage' );
 
 			// YAROSLAFF FEDIN HACK: Ignore style attribute changes
-			var contents = editor.getSnapshot().replace(/\b(?:style)="[^"]*?"/gi, '');;
+			var contents = editor.getSnapshot().replace(/\s(?:style)="[^"]*?"/gi, '');;
 
 			// In IE, we need to remove the expando attributes.
 			if ( CKEDITOR.env.ie && contents )

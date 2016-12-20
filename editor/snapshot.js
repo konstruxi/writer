@@ -434,10 +434,12 @@ Editor.Snapshot.prototype.invalidate = function(callback) {
   cancelAnimationFrame(this.reanimate)
   cancelAnimationFrame(this.timer)
   this.reanimate = requestAnimationFrame(function() {
+    that.editor.fire('lockSnapshot')
     that.dirty.forEach(function(callback) {
       callback(that)
     });
     that.dirty = []
     that.editor.snapshot = that.animate()
+    that.editor.fire('unlockSnapshot')
   });
 }

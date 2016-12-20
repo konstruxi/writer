@@ -6,6 +6,12 @@ Editor.DTD = function(editor) {
   // Remove them during filtering 
   editor.pasteFilter.allow( 'div span a * (*)[class,src,href,role,aria-role,title]{*}');
   editor.pasteFilter.allow( '* (*)[class,src,href,role,aria-role,title]{*}');
+
+  editor.on('toHtml', function(e) {
+    editor.fire('lockSnapshot');
+    Editor.DTD.processClasses(editor, e.data.dataValue)
+    editor.fire('unlockSnapshot');
+  })
   
   editor.dataProcessor.dataFilter.addRules(rules = {
     text: function(string, context) {
@@ -16,7 +22,7 @@ Editor.DTD = function(editor) {
       if (string.length < 50) {
         //for (var p = context; p  = p.parent;) {
         //  if (p.name == 'h1' || p.name == 'h2' || p.name == 'h3' || p.name == 'div') {
-            var tag = string.toLowerCase().replace(/[0-9.,]+k?|[·•|_.?!:#…-]/g, '');
+            var tag = string.toLowerCase().replace(/[0-9.,]+k?|[·•|_.?!:#…+-]/g, '');
 
             var bits = tag.split(/[\s\t\n]+/)
             for (var i = 0, bit; bit = bits[i++];)
@@ -62,6 +68,29 @@ Editor.DTD = function(editor) {
             new CKEDITOR.htmlParser.element('hr').insertAfter(element.children[element.children.length - 1])
           }
         }
+
+        // try to make image stick to content within shared ascendant
+        var picture = 0;
+        for (var i = 0; i < element.children.length; i++) {
+          if (Editor.DTD.isPicture(element.children[i])) {
+            if (!element.children[i].separating) {
+              var picture = element.children[i];
+              picture.separating = true;
+            }
+          } else if (element.children[i].name == 'hr') {
+            var hr = true;
+          } else {
+            var other = true;
+          }
+        }
+        if (picture && other) {
+          debugger
+          new CKEDITOR.htmlParser.element('hr', {class: 'soft'}).insertBefore(element.children[0])
+        }
+        return Editor.DTD.propagateClasses(element, true);
+      },
+
+      article: function (element) {
         return Editor.DTD.propagateClasses(element, true);
       },
 
@@ -76,7 +105,7 @@ Editor.DTD = function(editor) {
           return false;
 
 
-        if (element.attributes.class && !element.safeClasses) {
+        if (element.attributes.class && !element.attributes['original-class']) {
           // display original class for debugging purposes
           if (!element.attributes['original-class'])
             element.attributes['original-class'] = element.attributes.class;
@@ -107,13 +136,12 @@ Editor.DTD = function(editor) {
           })
           if (blocked) return false;
           if (!semantic.length) {
-            element.attributes.class = undefined
+            delete element.attributes.class
           } else {
             element.attributes.class = semantic.join(' ')
 
             // propagate image classes up
             if (element.parent && element.parent.children.length == 1) {
-              debugger
               element.parent.attributes.class += ' ' + semantic.join(' ')
             }
           }
@@ -483,6 +511,30 @@ Editor.DTD.propagateClasses = function(element, unwrap) {
   }
 
 
+}
+
+Editor.DTD.processClasses = function(editor, element, parent) {
+  for (var i = 0; i < element.children.length; i++) {
+    var child = element.children[i];
+    switch (child.name) {
+      case 'section':
+        // go deeper
+        Editor.DTD.processClasses(editor, child, element)
+        break
+
+      case 'a':
+        if (child.children[0] && child.children[0].name == 'picture') {
+          if (child.children[0].hasClass('avatar'))
+            child.addClass('avatar')
+          child.addClass('picture')
+        }
+        break;
+    }
+  }
+}  
+
+Editor.DTD.isPicture = function(element) {
+  return element.name == 'picture' || element.name == 'a' && element.children.length == 1 && element.children[0].name == 'picture'
 }
 
 // attempt to turn element with background image into an image by itself

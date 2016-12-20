@@ -6,6 +6,7 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded) {
     var file = image;
     var image = new Image;
   } 
+  editor.fire('lockSnapshot');
 
   if (!image.getAttribute('uid')) {
     image.setAttribute('uid', ++Editor.Image.uid);
@@ -32,6 +33,7 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded) {
 
   if (onImageLoaded)
     onImageLoaded.call(editor, image)
+  editor.fire('unlockSnapshot');
 
   return image;
 }
@@ -47,7 +49,9 @@ Editor.Image.proxy = function(editor, src, callback) {
   } else if (callback) {
     x.onload = function() {
       var blob = new Blob([x.response], {type: x.getResponseHeader('Content-Type')});
+      editor.fire('lockSnapshot');
       callback.src = URL.createObjectURL(blob);
+      editor.fire('unlockSnapshot');
     }
   }
 }
@@ -62,14 +66,16 @@ Editor.Image.onLoaded = function(editor, image, callback, file) {
   //image.style.height =  height + 'px';
 
 
-  
+  editor.fire('lockSnapshot');
   if (image.parentNode.classList.contains('added')) {
     editor.snapshot.invalidate(function() {
+  editor.fire('lockSnapshot');
       image.setAttribute('width', width);
       image.setAttribute('height', height);
       image.parentNode.classList.remove('loading');
       image.parentNode.style.maxWidth =  width + 'px';
       image.parentNode.style.maxHeight =  height + 'px';
+  editor.fire('unlockSnapshot');
     })
   } else {
 
@@ -80,6 +86,7 @@ Editor.Image.onLoaded = function(editor, image, callback, file) {
   }
   Editor.Image.schedule(editor, image, callback, file)
 
+  editor.fire('unlockSnapshot');
 }
 
 Editor.Image.schedule = function(editor, image, callback, file) {

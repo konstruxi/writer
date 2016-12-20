@@ -32,7 +32,6 @@ Editor.Clipboard = function(editor) {
 
     var html = e.data.dataTransfer.getData('text/html')
     console.error('beforepaste', html)
-    console.error('beforepaste', e.data.dataTransfer.getData('text/plain'))
     var data = e.data.dataTransfer.getData('text/plain');
     if (data.match(/^\s*(?:https?|mailto):\/\/[^\s]+\s*$/)) {
       var selection = editor.getSelection();

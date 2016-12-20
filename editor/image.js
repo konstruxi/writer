@@ -68,15 +68,15 @@ Editor.Image.onLoaded = function(editor, image, callback, file) {
       image.setAttribute('width', width);
       image.setAttribute('height', height);
       image.parentNode.classList.remove('loading');
-      image.parentNode.style.width =  width + 'px';
-      image.parentNode.style.height =  height + 'px';
+      image.parentNode.style.maxWidth =  width + 'px';
+      image.parentNode.style.maxHeight =  height + 'px';
     })
   } else {
 
     image.setAttribute('width', width);
     image.setAttribute('height', height);
-    image.parentNode.style.width =  width + 'px';
-    image.parentNode.style.height =  height + 'px';
+    image.parentNode.style.maxWidth =  width + 'px';
+    image.parentNode.style.maxHeight =  height + 'px';
   }
   Editor.Image.schedule(editor, image, callback, file)
 
@@ -130,8 +130,8 @@ Editor.Image.applyChanges = function(data, img) {
     var height = parseInt(image.getAttribute('height'));
     var min = Math.min(parseInt(image.getAttribute('width')), parseInt(image.getAttribute('height')));
     
-    image.style.maxWidth  = width + 'px';
-    image.style.maxHeight = height + 'px';
+    //image.style.width  = width + 'px';
+    //image.style.maxHeight = height + 'px';
     var ratio = width > height ? width / height : height / width;
     Editor.Image.style.textContent += result.toString('.content section.has-palette-' + image.getAttribute('uid'))
     Editor.Image.style.textContent += '.content section[pattern*="two-"] img[uid="' + image.getAttribute('uid') + '"] {' + 

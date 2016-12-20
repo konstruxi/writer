@@ -62,7 +62,9 @@ CKEDITOR.htmlParser.fragment = function() {
 			return false;
 
 		// Empty link is to be removed when empty but not anchor. (#7894)
-		return node.name == 'a' && node.attributes.href || CKEDITOR.dtd.$removeEmpty[ node.name ];
+
+		// YAROSLAFF FEDIN HACK: Let empty links be delete by filter
+		return /*node.name == 'a' && node.attributes.href || */CKEDITOR.dtd.$removeEmpty[ node.name ];
 	}
 
 	/**

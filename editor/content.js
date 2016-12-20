@@ -142,7 +142,7 @@ Editor.Content.isBlock = function(element) {
        || element.tagName == 'H2'
        || element.tagName == 'H3'
        || element.tagName == 'SECTION'
-       || element.tagName == 'PICTURE'
+       || (element.tagName == 'PICTURE' && element.parentNode.tagName != 'A')
        || (element.tagName == 'A' && element.firstElementChild && element.firstElementChild.tagName == 'PICTURE')
 }
 
@@ -257,8 +257,6 @@ Editor.Content.parseYoutubeURL = function(url) {
 
 
 Editor.Content.soundsLikeSemanticClass = {
-  'forced':    'forced',
-
   'avatar':    'avatar',
   'timestamp': 'timestamp',
   'datetime':  'timestamp',
@@ -278,7 +276,9 @@ Editor.Content.soundsLikeSemanticClass = {
   'permalink': 'source-url',
 
   'source-via': 'source-via',
-  'tweet-context': 'source-via'
+  'tweet-context': 'source-via',
+
+  'site-title': 'site-title'
 }
 
 Editor.Content.soundsLikeSemanticClassList = Object.keys(Editor.Content.soundsLikeSemanticClass)
@@ -312,7 +312,6 @@ Editor.Content.soundsLikeUIText = {
 'new': 1,
 'edit': 1,
 'delete': 1,
-'readmore': 1,
 'addfriend': 1,
 'addtofavorites': 1,
 'follow': 1,
@@ -340,13 +339,19 @@ Editor.Content.soundsLikeUIText = {
 'suggested': 1,
 'post': 1,
 'sponsored': 1,
+'promoted': 1,
 'recommended': 1,
+'next': 1,
+'previous': 1,
+'story': 1,
+'stories': 1,
 'you': 1,
 'a': 1,
 'the': 1,
 'for': 1,
 'who': 1,
 'to': 1,
+'by': 1,
 'go': 1,
 'card': 1,
 'dismiss': 1,

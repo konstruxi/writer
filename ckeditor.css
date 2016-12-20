@@ -41,7 +41,7 @@ body,html {
 }
 
 .content picture.avatar {
-  display: inline-block;
+  //display: inline-block;
   outline: 1px dashed red;
 }
 
@@ -53,7 +53,7 @@ body,html {
   max-width: 100%;
   height: auto !important;
 }
-
+/*
 .content picture:not(.processed) img {
   height: auto !important;
   width: 100%;
@@ -71,7 +71,7 @@ body,html {
 }
 .content section[pattern*="two-"] picture img{
   max-width: 400%;
-}
+}*/
 
 .content picture.added.loading {
   height: 2rem;
@@ -88,13 +88,13 @@ body,html {
 }
 
 .content section[pattern*="two-"] picture:not(.loading) {
-  padding-top: 100%;
+  /*padding-top: 100%;
 }
 .content section[pattern*="two-"] picture img{
   position: absolute;
   top: 0;
   left: 0;
-  transition: top 0.3s, left 0.3s;
+  transition: top 0.3s, left 0.3s;*/
 }
 
 

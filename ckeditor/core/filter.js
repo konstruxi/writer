@@ -1652,7 +1652,7 @@
 				// DACR we have now both properties true - status.allStyles and status.hadInvalidStyle.
 				// However unlike in the case when we only have '*' ACR, in which we can just copy original
 				// styles, in this case we must copy only those styles which were not removed by DACRs.
-				if ( status.allStyles || validStyles[ name ] )
+				if ( status.allStyles || validStyles[ name ])
 					stylesArr.push( name + ':' + styles[ name ] );
 				else
 					isModified = true;
@@ -1668,7 +1668,7 @@
 			for ( i = 0; i < classes.length; ++i ) {
 				// See comment for styles.
 				// YAROSLAFF FEDIN HACK: Allow all classes, filtered later
-				if ( status.allClasses || validClasses[ classes[ i ] ] || true)
+				if ( status.allClasses || validClasses[ classes[ i ] ])
 					classesArr.push( classes[ i ] );
 			}
 			if ( classesArr.length )
@@ -1688,8 +1688,9 @@
 		switch ( element.name ) {
 			case 'a':
 				// Code borrowed from htmlDataProcessor, so ACF does the same clean up.
-				if ( !( element.children.length || element.attributes.name || element.attributes.id ) )
-					return false;
+				// YAROSLAFF FEDIN HACK: Clean links later
+				//if ( !( element.children.length || element.attributes.name || element.attributes.id ) )
+				//	return false;
 				break;
 			case 'img':
 				if ( !element.attributes.src )

@@ -19,6 +19,8 @@ Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
         i -= 2;
         continue;
       }
+      if (snapshot.get(after) || this.get(before))
+        continue;
       var before = snapshot.selected[i];
       var beforeSize = snapshot.selected[i + 1];
 
@@ -28,6 +30,7 @@ Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
       var box = this.get(after);
       if (!box)
        continue;
+
       var old = snapshot.get(before)
       if (old) {
         old.fontSize = parseFloat(beforeSize);
@@ -75,8 +78,13 @@ Editor.Snapshot.prototype.animate = function(section) {
   var from = this;
   if (this.timer)
     cancelAnimationFrame(this.timer);
-  var onSingleFrame = function() {
+  if (this.reanimate)
+    cancelAnimationFrame(this.reanimate);
+  if (snapshot.timer)
     cancelAnimationFrame(snapshot.timer);
+  if (snapshot.reanimate)
+    cancelAnimationFrame(snapshot.reanimate)
+  var onSingleFrame = function() {
     var time = + new Date;
     var start = snapshot.startTime || time
     snapshot.morph(from, (start + Math.floor((time - start) / 1)), start)
@@ -132,13 +140,17 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
     var spring = to[springName];
   } else if (from[springName]) {
     var spring = to[springName] = from[springName];
+    from[springName] = undefined
   } else if (from[property] != to[property]) {
     if (property == 'width' || property == 'height') {
-      var spring = to[springName] = new Spring(74, 7);
+      if (element.classList.contains('added'))
+        var spring = to[springName] = new Spring(30, 12);
+      else
+        var spring = to[springName] = new Spring(74, 7);
     } else if (property == 'fontSize') {
-      var spring = to[springName] = new Spring(30, 8);
+      var spring = to[springName] = new Spring(20, 8);
     } else {
-      var spring = to[springName] = new Spring(30, 5);
+      var spring = to[springName] = new Spring(20, 5);
     }
   }
   if (spring) {
@@ -185,20 +197,20 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
       to.animated = true
 
       if (from) {
+
         to.currentTop    = this.transition(element, from, to, time, startTime, 'currentTop', 'top', 'topSpring');
         to.currentLeft   = this.transition(element, from, to, time, startTime, 'currentLeft', 'left', 'leftSpring');
         to.currentWidth  = this.transition(element, from, to, time, startTime, 'currentWidth', 'width', 'widthSpring');
         to.currentHeight = this.transition(element, from, to, time, startTime, 'currentHeight', 'height', 'heightSpring');
 
-        //if (to.parent == from.parent) {
-          var shiftX = 0;
-          var shiftY = 0;
-          if (to.up) {
-            shiftY += (to.up.currentTop || to.up.top) - to.up.top;
-            shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
-          }
-          to.currentX = to.x + (to.currentLeft - to.left);
-          to.currentY = to.y + (to.currentTop - to.top) - shiftY;
+        var shiftX = 0;
+        var shiftY = 0;
+        if (to.up) {
+          shiftY += (to.up.currentTop || to.up.top) - to.up.top;
+          shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
+        }
+        to.currentX = to.x + (to.currentLeft - to.left) - shiftX;
+        to.currentY = to.y + (to.currentTop - to.top) - shiftY;
 
 
       } else {
@@ -410,9 +422,7 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
   t.x = shiftX;
   t.y = shiftY;
 
-  if (repositioned) {
-    t.animated = true;
-  }
+  t.animated = repositioned;
 
   return repositioned || !!repos;
 }
@@ -422,11 +432,12 @@ Editor.Snapshot.prototype.invalidate = function(callback) {
   this.dirty.push(callback);
   var that = this;
   cancelAnimationFrame(this.reanimate)
-  this.reanimate = setTimeout(function() {
+  cancelAnimationFrame(this.timer)
+  this.reanimate = requestAnimationFrame(function() {
     that.dirty.forEach(function(callback) {
       callback(that)
     });
-    this.dirty = []
-    that.animate()
-  })
+    that.dirty = []
+    that.editor.snapshot = that.animate()
+  });
 }

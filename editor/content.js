@@ -257,6 +257,8 @@ Editor.Content.parseYoutubeURL = function(url) {
 
 
 Editor.Content.soundsLikeSemanticClass = {
+  'forced':    'forced',
+
   'avatar':    'avatar',
   'timestamp': 'timestamp',
   'datetime':  'timestamp',
@@ -285,6 +287,12 @@ Object.keys(Editor.Content.soundsLikeSemanticClass).filter(function(kls) {
   Editor.Content.soundsLikeSemanticClassValues[Editor.Content.soundsLikeSemanticClass[kls]] = 1;
 })
 
+Editor.Content.soundsLikeUIRole = {
+  'presentation': 1,
+  'menu': 1,
+  'navigation': 1,
+  'banner': 1
+}
 Editor.Content.soundsLikeUIClass = {
   'UFIAddComment': 1, // fb add comment section
   'UFILikeSentence': 1 // fb reactions section
@@ -319,11 +327,14 @@ Editor.Content.soundsLikeUIText = {
 'retweets': 1,
 'follows': 1,
 'comments': 1,
+'tweet': 1,
+'pin': 1,
 '·': 1,
 '|': 1,
 '...': 1,
 
 // dangerous
+'buffer': 1, // some kind of social app
 'write': 1,
 'page': 1,
 'suggested': 1,

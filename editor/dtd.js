@@ -61,17 +61,23 @@ Editor.DTD = function(editor) {
 
       // keep semantic classes
       $: function(element) {
+        // ignore presentational content
+        if (Editor.Content.soundsLikeUIRole[element.attributes['aria-role'] || element.attributes.role])
+          return false;
+
         if (element.attributes.class) {
+          // display original class for debugging purposes
           element.attributes['original-class'] = element.attributes.class;
           var semantic =  []
           var list =  Editor.Content.soundsLikeSemanticClassList;
           var blocked = false;
+          // Filter the classes:
           element.attributes.class.split(/\s+/).forEach(function(name) {
-            // should ignore completely?
+            // Should element be ignored completely?
             if (Editor.Content.soundsLikeUIClass[name])
               blocked = true;
 
-            // keep classes that sound semantic
+            // Is this class semantic?
             for (var i = 0; i < list.length; i++) {
               if (name.indexOf(list[i]) > -1 || name == 'forced') {
                 var replacement = Editor.Content.soundsLikeSemanticClass[list[i]] || 'forced';
@@ -307,26 +313,21 @@ Editor.DTD = function(editor) {
         // wrap images into pictures
         if (element.parent.name != 'picture') {
 
-          var kls = "loading added"
-
           // classify as avatar if img had avatar class in source html
-          if (element.attributes['class'] && element.attributes['class'].indexOf('avatar') > -1 ||
-            // or if a small picture
-            (element.attributes.width && parseInt(element.attributes.width ) <= 150 
-           && element.attributes.height && parseInt(element.attributes.height ) <= 150)) {
+          if (element.attributes.width && parseInt(element.attributes.width ) <= 150 
+           && element.attributes.height && parseInt(element.attributes.height ) <= 150) {
             
             // ignore tiny pix, they are probably icons
             if (element.attributes.width && parseInt(element.attributes.width ) < 40 
              && element.attributes.height && parseInt(element.attributes.height ) < 40)
               return false;
 
-            kls += ' maybe-avatar'
+            element.addClass('maybe-avatar')
           }
 
           var picture = new CKEDITOR.htmlParser.element('picture', {
-            class: kls
+            class: 'loading added'
           })
-          element.attributes['class'] = kls;
           element.replaceWith(picture)
           picture.add(element);
         }

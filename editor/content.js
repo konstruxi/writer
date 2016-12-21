@@ -276,15 +276,19 @@ Editor.Content.soundsLikeSemanticClass = {
 
   'meta':      'meta',
 
+  'label':     'maybe-category',
+  'category':  'maybe-category',
+  'tags':      'maybe-category',
 
   'maybe-author': 'maybe-author',
+  'g-hovercard': 'maybe-author', //youtube
 
   'author' :   'author',
   'user' :     'author',
   'profile' :  'maybe-author',
 
   'text-quote': 'text-quote',
-  'tweet-text': 'text-quote',
+  'tweet-text': 'text-quote', //twitter
 
   'source-url': 'source-url',
   'permalink': 'source-url',
@@ -292,7 +296,7 @@ Editor.Content.soundsLikeSemanticClass = {
   'source-via': 'source-via',
   'tweet-context': 'source-via',
 
-  'site-title': 'site-title'
+  'site-title': 'site-title' //wordpress
 }
 
 Editor.Content.soundsLikeSemanticClassList = Object.keys(Editor.Content.soundsLikeSemanticClass)

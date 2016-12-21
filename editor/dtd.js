@@ -7,13 +7,18 @@ Editor.DTD = function(editor) {
   editor.pasteFilter.allow( 'div span a * (*)[class,src,href,role,aria-role,title]{*}');
   editor.pasteFilter.allow( '* (*)[class,src,href,role,aria-role,title]{*}');
 
+  editor.on('paste', function(e) {
+    editor.isPasting = true;
+  })
+  editor.on('paste', function(e) {
+    editor.isPasting = false;
+  }, null, null, 10000)
   editor.on('toHtml', function(e) {
     editor.fire('lockSnapshot');
     Editor.DTD.processClasses(editor, e.data.dataValue)
     editor.fire('unlockSnapshot');
   })
-  
-  editor.dataProcessor.dataFilter.addRules(rules = {
+  rules = {
     text: function(string, context) {
       if (!context || !context.parent) return false;
 
@@ -23,7 +28,6 @@ Editor.DTD = function(editor) {
         //for (var p = context; p  = p.parent;) {
         //  if (p.name == 'h1' || p.name == 'h2' || p.name == 'h3' || p.name == 'div') {
             var tag = string.toLowerCase().replace(/[0-9.,]+k?|[·•|_.?!:#…+-]/g, '');
-
             var bits = tag.split(/[\s\t\n]+/)
             for (var i = 0, bit; bit = bits[i++];)
               if (!Editor.Content.soundsLikeUIText[bit || ''])
@@ -46,20 +50,21 @@ Editor.DTD = function(editor) {
       },
 
       // propagate semantic, classes, remove span
-      span: function(element) {
+      span: function(element, context) {
         if ((element.attributes['aria-role'] || element.attributes.role) == 'presentation')
           return false;
-        element.filterChildren(editor.dataProcessor.dataFilter)
+        element.filterChildren(context)
         return Editor.DTD.propagateClasses(element, true);
       },
 
       // propagate semantic classes, remove div
-      div: function(element) {
+      div: function(element, context) {
+        debugger
         if ((element.attributes['aria-role'] || element.attributes.role) == 'presentation')
           return false;
         
 
-        element.filterChildren(editor.dataProcessor.dataFilter)
+        element.filterChildren(context)
         if (!element.children.length)
           return Editor.DTD.scavengeForPicture(element, editor.dataProcessor.dataFilter);
         if ((element.attributes['aria-role'] || element.attributes.role) == 'article') {
@@ -95,7 +100,7 @@ Editor.DTD = function(editor) {
       },
 
       // keep semantic classes
-      $: function(element) {
+      $: function(element, context) {
         
         // !! Kill all style attributes
         delete element.attributes.style;
@@ -149,7 +154,7 @@ Editor.DTD = function(editor) {
 
         if (element.children[0] && element.children[0].name == 'br')
           element.children.shift()
-        if (element.children[0] && element.children[0].name == 'a' && rules.elements.a(element.children[0]) === false)
+        if (element.children[0] && element.children[0].name == 'a' && rules.elements.a(element.children[0], context) === false)
           return false;
         //if (element.attributes.hidden || element.attributes['data-hidden'])
         //  return false;
@@ -176,13 +181,13 @@ Editor.DTD = function(editor) {
         //element.replaceWith(new CKEDITOR.htmlParser.text('\n'))
 
       },
-      a: function(element) {
-        element.filterChildren(editor.dataProcessor.dataFilter)
+      a: function(element, context) {
+        element.filterChildren(context)
 
         if (!element.children.length) {
-          return Editor.DTD.scavengeForPicture(element, editor.dataProcessor.dataFilter);
+          return Editor.DTD.scavengeForPicture(element, context);
         }
-        Editor.DTD.scavengeForPicture(element, editor.dataProcessor.dataFilter);
+        Editor.DTD.scavengeForPicture(element, context);
 
         // split link if it wraps picture and text together
         var pictures = [];
@@ -203,8 +208,8 @@ Editor.DTD = function(editor) {
         return element;
       },
 
-      ul: function(element) {
-        element.filterChildren(editor.dataProcessor.dataFilter)
+      ul: function(element, context) {
+        element.filterChildren(context)
         // remove empty lists
         if (element.children.length == 0)
           return false;
@@ -240,8 +245,8 @@ Editor.DTD = function(editor) {
           return false;
         }
       },
-      ol: function(element) {
-        element.filterChildren(editor.dataProcessor.dataFilter)
+      ol: function(element, context) {
+        element.filterChildren(context)
         // remove empty lists
         if (element.children.length == 0)
           return false;
@@ -281,8 +286,8 @@ Editor.DTD = function(editor) {
       },
       // transform lists with multiple paragraphs within single list item
       // into separate sections
-      li: function(element) {
-        element.filterChildren(editor.dataProcessor.dataFilter)
+      li: function(element, context) {
+        element.filterChildren(context)
         if (!element.children.length) return false;
         var paragraph;
         for (var i = 0, child; child = element.children[i++];) {
@@ -298,8 +303,8 @@ Editor.DTD = function(editor) {
       },
 
       // remove empty pictures
-      picture: function(element) {
-        element.filterChildren(editor.dataProcessor.dataFilter)
+      picture: function(element, context) {
+        element.filterChildren(context)
         if (!element.children.length)
           return false;
         return element
@@ -334,8 +339,8 @@ Editor.DTD = function(editor) {
         return element;
       },
 
-      p: function(element) {
-        element.filterChildren(editor.dataProcessor.dataFilter)
+      p: function(element, context) {
+        element.filterChildren(context)
 
         // split paragraphs containing pictures, then unwrap pictures
         var wrapper = element;
@@ -409,7 +414,27 @@ Editor.DTD = function(editor) {
         return element;
       }
     }
-  }, { applyToAll: true })
+  }
+
+  // rules are only applicable to pasted content
+  var Rules = {
+    text: function() {
+      if (editor.isPasting)
+        return rules.text.apply(this, arguments)
+    },
+
+    elements: {}
+  }
+
+  Object.keys(rules.elements).forEach(function(key) {
+    Rules.elements[key] = function() {
+      // rules are only applicable to pasted content
+      if (editor.isPasting)
+        return rules.elements[key].apply(this, arguments)
+    }
+  })
+  editor.dataProcessor.dataFilter.addRules(Rules)
+
 
   CKEDITOR.dtd.$avoidNest = {
     p: 1,

@@ -69,13 +69,11 @@ Editor.Image.onLoaded = function(editor, image, callback, file) {
   editor.fire('lockSnapshot');
   if (image.parentNode.classList.contains('added')) {
     editor.snapshot.invalidate(function() {
-  editor.fire('lockSnapshot');
       image.setAttribute('width', width);
       image.setAttribute('height', height);
       image.parentNode.classList.remove('loading');
       image.parentNode.style.maxWidth =  width + 'px';
       image.parentNode.style.maxHeight =  height + 'px';
-  editor.fire('unlockSnapshot');
     })
   } else {
 

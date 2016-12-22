@@ -237,6 +237,8 @@ Editor.Section.getEditStart = function(section) {
 }
 
 Editor.Section.needsSplitterBetween = function(left, right) {
+  if (left && left.tagName == 'UL' && left.classList.contains('meta'))
+    return false;
   return (right.tagName == 'HR')
       || (right.tagName == 'H1' && (!left || !Editor.Content.isPicture(left) || (Editor.Section.getFirstChild(left.parentNode) != left))) 
       || (right.tagName == 'H2' && (!left || (left.tagName != 'H1' && (!Editor.Content.isPicture(left) || (Editor.Section.getFirstChild(left.parentNode) != left)))))

@@ -127,6 +127,8 @@ Editor.Content.getEditableAscender = function(element) {
                             || element.tagName == 'EM' 
                             || element.tagName == 'SPAN'
                             || element.tagName == 'A'
+                            || element.tagName == 'ABBR'
+                            || element.tagName == 'TIME'
                             || element.tagName == 'BR'))
     element = element.parentNode;
   return element;
@@ -263,29 +265,50 @@ Editor.Content.parseYoutubeURL = function(url) {
 
 
 Editor.Content.soundsLikeSemanticClass = {
+  'maybe-avatar': 'maybe-avatar',
+
   'avatar':    'avatar',
   'timestamp': 'timestamp',
   'datetime':  'timestamp',
-  'date':      'timestamp',
-  'time':      'timestamp',
+  'date':      'maybe-timestamp',
+  'time':      'maybe-timestamp',
 
   'title':     'title',
   'heading':   'title',
   'subtitle':  'title',
+  'header':    'title',
 
+  'maybe-ad':  'maybe-ad',
+  'banner':    'maybe-ad',
+  'advert':    'maybe-ad',
+  'brand':     'maybe-ad',
+  'sponsor':   'maybe-ad',
+  'tracking':  'maybe-ad',
+  'tracker':   'maybe-ad',
+  'beacon':    'maybe-ad',
+
+  'content':   'maybe-content',
+  'text':      'maybe-content',
 
   'meta':      'meta',
 
-  'label':     'maybe-category',
-  'category':  'maybe-category',
-  'tags':      'maybe-category',
+  'maybe-category': 'maybe-category',
+  'label':          'maybe-category',
+  'category':       'maybe-category',
+  'tags':           'maybe-category',
+  'rubric':         'maybe-category',
 
   'maybe-author': 'maybe-author',
   'g-hovercard': 'maybe-author', //youtube
 
   'author' :   'author',
-  'user' :     'author',
+  'user' :     'maybe-author',
   'profile' :  'maybe-author',
+  'actor':     'maybe-author',
+  'byline':    'maybe-author',
+
+  'excerpt' :   'excerpt',
+  'summary' :   'maybe-excerpt',
 
   'text-quote': 'text-quote',
   'tweet-text': 'text-quote', //twitter
@@ -295,6 +318,8 @@ Editor.Content.soundsLikeSemanticClass = {
 
   'source-via': 'source-via',
   'tweet-context': 'source-via',
+
+  'tweet-context': 'source-context',
 
   'site-title': 'site-title' //wordpress
 }
@@ -307,13 +332,17 @@ Object.keys(Editor.Content.soundsLikeSemanticClass).filter(function(kls) {
 
 Editor.Content.soundsLikeUIRole = {
   'presentation': 1,
+  'toolbar': 1,
+  'button': 1,
   'menu': 1,
   'navigation': 1,
   'banner': 1
 }
 Editor.Content.soundsLikeUIClass = {
-  'UFIAddComment': 1, // fb add comment section
-  'UFILikeSentence': 1 // fb reactions section
+  'ufiaddcomment': 1, // fb add comment section
+  'ufilikesentence': 1, // fb reactions section
+  'u-hiddenvisually': 1,//twitter class for hidden stuff
+  'shelf-annotation': 1 // youtube chrome text
 }
 Editor.Content.soundsLikeUIText = {
 '': 1,
@@ -330,8 +359,9 @@ Editor.Content.soundsLikeUIText = {
 'new': 1,
 'edit': 1,
 'delete': 1,
-'addfriend': 1,
-'addtofavorites': 1,
+'add': 1,
+'friend': 1,
+'favorites': 1,
 'follow': 1,
 'share': 1,
 'shares': 1,
@@ -339,6 +369,7 @@ Editor.Content.soundsLikeUIText = {
 'mentions': 1,
 'show': 1,
 'read': 1,
+'see': 1,
 'refresh': 1,
 'retweet': 1,
 'retweets': 1,
@@ -355,6 +386,7 @@ Editor.Content.soundsLikeUIText = {
 'write': 1,
 'page': 1,
 'suggested': 1,
+'subscribe': 1,
 'post': 1,
 'sponsored': 1,
 'promoted': 1,

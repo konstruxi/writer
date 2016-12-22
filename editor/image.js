@@ -116,7 +116,7 @@ Editor.Image.applyChanges = function(data, img) {
   for (var i = 0; i < images.length; i++) {
     var image = images[i];
     image.setAttribute('palette', data.palette);
-    console.error('crops', data)
+    //console.error('crops', data)
     if (!Editor.Image.style) {
       Editor.Chrome.update(this)
 

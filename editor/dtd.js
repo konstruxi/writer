@@ -1,11 +1,19 @@
+// Voodoo tricks to make content clean (again!)
 
 Editor.DTD = function(editor) {
   var rules;
 
   // allow pasted divs and spans to be scavenged for meaningful classes
   // Remove them during filtering 
-  editor.pasteFilter.allow( 'div span a * (*)[class,src,href,role,aria-role,title]{*}');
-  editor.pasteFilter.allow( '* (*)[class,src,href,role,aria-role,title]{*}');
+  editor.pasteFilter.allow( 'form div span a article time timestamp abbr * (*)[class,src,href,role,aria-role,title]{*}');
+  editor.pasteFilter.allow( '* (*)[class,src,href,role,aria-role,title,width,height]{*}');
+
+  editor.pasteFilter.addTransformations([
+      [
+          'img: sizeToAttribute',
+          'img{width,height}: sizeToStyle'
+      ]
+  ]);
 
   editor.on('paste', function(e) {
     editor.isPasting = true;
@@ -15,22 +23,65 @@ Editor.DTD = function(editor) {
   }, null, null, 10000)
   editor.on('toHtml', function(e) {
     editor.fire('lockSnapshot');
-    Editor.DTD.processClasses(editor, e.data.dataValue)
+    if (editor.isPasting) {
+      Editor.DTD.processClasses(editor, e.data.dataValue)
+      Editor.DTD.processMeta(editor, e.data.dataValue)
+      Editor.DTD.processBoundaries(editor, e.data.dataValue)
+    }
     editor.fire('unlockSnapshot');
   })
   rules = {
-    text: function(string, context) {
-      if (!context || !context.parent) return false;
+    attributes: {
+      class: function(string, element) {
+        if (!element.attributes['original-class'] && !element.safeClasses) {
+          string = string.toLowerCase()
+          // display original class for debugging purposes
+          if (!element.attributes['original-class'])
+            element.attributes['original-class'] = string;
+          var semantic =  []
+          var list =  Editor.Content.soundsLikeSemanticClassList;
+          var blocked = false;
+          // Filter the classes:
+          string.split(/\s+/).forEach(function(name) {
+            // Should element be ignored completely?
+            if (Editor.Content.soundsLikeUIClass[name])
+              blocked = true;
 
+            // Is this class semantic?
+            for (var i = 0; i < list.length; i++) {
+              if (name.indexOf(list[i]) > -1 || name == 'forced' || name == 'soft') {
+                var replacement = name.indexOf(list[i]) > -1 
+                                    ? Editor.Content.soundsLikeSemanticClass[list[i]]
+                                    : name;
+                if (semantic.indexOf(replacement) == -1) {
+                  semantic.push(replacement);
+                }
+                break;
+              }
+            }
+          })
+          if (blocked) element.invalid = true;
+          if (!semantic.length) {
+            return false;
+          } else {
+            return semantic.join(' ')
+          }
+        }
+      }
+    },
+    text: function(string, context) {
+      //if (!context || !context.parent) debugger;
       string = string.replace(/&nbsp;/g, ' ')
       // check if paragraph only consists of meaningless stuff like "1 retweet 2 likes 10 follows"
       if (string.length < 50) {
         //for (var p = context; p  = p.parent;) {
         //  if (p.name == 'h1' || p.name == 'h2' || p.name == 'h3' || p.name == 'div') {
-            var tag = string.toLowerCase().replace(/[0-9.,]+k?|[·•|_.?!:#…+-]/g, '');
+            var tag = string.toLowerCase().replace(/[0-9.,]+k?|[·•|_.?!#…+—]/g, '');
+            if (!tag.replace(/[-]/g, ''))
+              return false;
             var bits = tag.split(/[\s\t\n]+/)
-            for (var i = 0, bit; bit = bits[i++];)
-              if (!Editor.Content.soundsLikeUIText[bit || ''])
+            for (var i = 0; i < bits.length; i++)
+              if (!Editor.Content.soundsLikeUIText[bits[i]])
                 return;
             return false;
           //}
@@ -51,18 +102,16 @@ Editor.DTD = function(editor) {
 
       // propagate semantic, classes, remove span
       span: function(element, context) {
-        if ((element.attributes['aria-role'] || element.attributes.role) == 'presentation')
+        if (Editor.DTD.ignoreUIContent(element, context))
           return false;
         element.filterChildren(context)
-        return Editor.DTD.propagateClasses(element, true);
+        return Editor.DTD.propagateClasses(element);
       },
 
       // propagate semantic classes, remove div
       div: function(element, context) {
-        debugger
-        if ((element.attributes['aria-role'] || element.attributes.role) == 'presentation')
+        if (Editor.DTD.ignoreUIContent(element, context))
           return false;
-        
 
         element.filterChildren(context)
         if (!element.children.length)
@@ -80,7 +129,6 @@ Editor.DTD = function(editor) {
           if (Editor.DTD.isPicture(element.children[i])) {
             if (!element.children[i].separating) {
               var picture = element.children[i];
-              picture.separating = true;
             }
           } else if (element.children[i].name == 'hr') {
             var hr = true;
@@ -89,72 +137,40 @@ Editor.DTD = function(editor) {
           }
         }
         if (picture && other) {
-          debugger
+          picture.separating = true;
           new CKEDITOR.htmlParser.element('hr', {class: 'soft'}).insertBefore(element.children[0])
         }
-        return Editor.DTD.propagateClasses(element, true);
+        return Editor.DTD.propagateClasses(element);
       },
 
       article: function (element) {
-        return Editor.DTD.propagateClasses(element, true);
+        element.filterChildren(context)
+        new CKEDITOR.htmlParser.element('hr').insertBefore(element)
+        new CKEDITOR.htmlParser.element('hr').insertAfter(element)
+        return Editor.DTD.propagateClasses(element);
       },
 
       // keep semantic classes
       $: function(element, context) {
         
+        if (element.invalid)
+          return false;
+
         // !! Kill all style attributes
         delete element.attributes.style;
+        delete element.styles
 
         // ignore presentational content
         if (Editor.Content.soundsLikeUIRole[element.attributes['aria-role'] || element.attributes.role])
           return false;
 
 
-        if (element.attributes.class && !element.attributes['original-class']) {
-          // display original class for debugging purposes
-          if (!element.attributes['original-class'])
-            element.attributes['original-class'] = element.attributes.class;
-          else
-            debugger
-          var semantic =  []
-          var list =  Editor.Content.soundsLikeSemanticClassList;
-          var blocked = false;
-          // Filter the classes:
-          console.error(element.attributes.class)
-          element.attributes.class.split(/\s+/).forEach(function(name) {
-            // Should element be ignored completely?
-            if (Editor.Content.soundsLikeUIClass[name])
-              blocked = true;
-
-            // Is this class semantic?
-            for (var i = 0; i < list.length; i++) {
-              if (name.indexOf(list[i]) > -1 || name == 'forced') {
-                var replacement = name.indexOf(list[i]) > -1 
-                                    ? Editor.Content.soundsLikeSemanticClass[list[i]]
-                                    : name;
-                if (semantic.indexOf(replacement) == -1) {
-                  semantic.push(replacement);
-                }
-                break;
-              }
-            }
-          })
-          if (blocked) return false;
-          if (!semantic.length) {
-            delete element.attributes.class
-          } else {
-            element.attributes.class = semantic.join(' ')
-
-            // propagate image classes up
-            if (element.parent && element.parent.children.length == 1) {
-              element.parent.attributes.class += ' ' + semantic.join(' ')
-            }
-          }
-        }
-
+       
         if (element.children[0] && element.children[0].name == 'br')
           element.children.shift()
         if (element.children[0] && element.children[0].name == 'a' && rules.elements.a(element.children[0], context) === false)
+          return false;
+        if ((!element.children || !element.children[0]) && CKEDITOR.dtd.$removeEmpty[element.name])
           return false;
         //if (element.attributes.hidden || element.attributes['data-hidden'])
         //  return false;
@@ -190,22 +206,23 @@ Editor.DTD = function(editor) {
         Editor.DTD.scavengeForPicture(element, context);
 
         // split link if it wraps picture and text together
-        var pictures = [];
-        for (var i = element.children.length; i--;) {
-          var child = element.children[i];
-          if (child.name == 'picture') {
-            pictures.push(child);
-            if (element.children.length > 1) {
-              element.split(i + 1)
-              if (i) 
-                element.split(i)
-            }
-          }
-        }
+        //var pictures = [];
+        //for (var i = element.children.length; i--;) {
+        //  var child = element.children[i];
+        //  if (child.name == 'picture') {
+        //    pictures.push(child);
+        //    if (element.children.length > 1) {
+        //      debugger
+        //      element.split(i + 1)
+        //      if (i) 
+        //        element.split(i)
+        //    }
+        //  }
+        //}
         //pictures.forEach(function(picture) {
         //  picture.parentNode.addClass('picture')
         //});
-        return element;
+        return;
       },
 
       ul: function(element, context) {
@@ -216,11 +233,12 @@ Editor.DTD = function(editor) {
 
         // unwrap lists with single item
         if (element.children.length == 1) {
-          var node = element.children[0];
-          for ( var i = node.children.length - 1; i >= 0; i-- ) {
-            node.children[ i ].insertAfter( element );
-          }
-          return false;
+          // unwrap li
+          var first = element.children[0];
+          Editor.DTD.propagateClasses(first, true);
+          first.remove()
+          // unwrap ul
+          return Editor.DTD.propagateClasses(element, context);
         }
 
         // unwrap list if one of its item has become section
@@ -228,59 +246,21 @@ Editor.DTD = function(editor) {
           if (child.name == 'section')
             var sectionize = true;
         if (sectionize) {
-          //var index = element.parent && element.parent.children.indexOf(element);
-          //if (index > 0 && element.parent) {
-          //  element.parent.split(index)
-          //}
-
           new CKEDITOR.htmlParser.element('hr').insertAfter(element)
+          var hook = element;
           for (var child, i = 0; child = element.children[i++];) {
 
             child.name = 'section'; // sections will be stripped out by dtd, but not the hr
-            child.insertAfter(element);
-            new CKEDITOR.htmlParser.element('hr').insertAfter(element)
-            
+            child.insertAfter(hook);
+            hook = new CKEDITOR.htmlParser.element('hr')
+            hook.insertAfter(child)
             
           }
           return false;
         }
       },
       ol: function(element, context) {
-        element.filterChildren(context)
-        // remove empty lists
-        if (element.children.length == 0)
-          return false;
-
-        // unwrap lists with single item
-        if (element.children.length == 1) {
-          var node = element.children[0];
-          for ( var i = node.children.length - 1; i >= 0; i-- ) {
-            node.children[ i ].insertAfter( element );
-          }
-          return false;
-        }
-
-        // unwrap list if one of its item has become section
-        for (var child, i = 0; child = element.children[i++];)
-          if (child.name == 'section')
-            var sectionize = true;
-        if (sectionize) {
-          var index = element.parent && element.parent.children.indexOf(element);
-          if (index > 0 && element.parent.split) {
-            element.parent.split(index)
-          }
-
-          
-          new CKEDITOR.htmlParser.element('hr').insertAfter(element)
-          for (var child, i = 0; child = element.children[i++];) {
-
-            child.name = 'section'; // sections will be stripped out by dtd, but not the hr
-            child.insertAfter(element);
-            new CKEDITOR.htmlParser.element('hr').insertAfter(element)
-          }
-          
-          return false;
-        }
+        return rules.elements.ul(element, context)
 
 
       },
@@ -291,10 +271,14 @@ Editor.DTD = function(editor) {
         if (!element.children.length) return false;
         var paragraph;
         for (var i = 0, child; child = element.children[i++];) {
-          if (child.name && child.name != 'strong' && child.name != 'b'&& child.name != 'em' && child.name != 'i'
-            && (paragraph || child.name != 'a' || (child.children[0].name && child.children[0].name == 'picture'))) {
-            if (!paragraph)
+          if (child.name == 'ol' || child.name == 'ul') {
+            element.name = 'section'
+          }
+          if (child.name && child.name != 'strong' && child.name != 'b'&& child.name != 'em' && child.name != 'time' && child.name != 'attr' && child.name != 'i'
+            && (paragraph || child.name != 'a' || (child.children[0] && child.children[0].name && child.children[0].name == 'picture'))) {
+            if (!paragraph){
               var paragraph = child;
+            }
             else {
               element.name = 'section'
             }
@@ -307,7 +291,6 @@ Editor.DTD = function(editor) {
         element.filterChildren(context)
         if (!element.children.length)
           return false;
-        return element
       },
 
       // wrap blockquote contents into paragraphs
@@ -365,13 +348,18 @@ Editor.DTD = function(editor) {
         
         if (!element.children.length || element.children.length == 1 && element.children[0].name == 'br')
           return false;
-        return element;
+        //return element;
       },
 
       // wrap image, handle cors, filter out small images
       img: function (element) {
         if (!element.attributes.src || element.attributes.src.indexOf('data:') == 0)
           return false;
+        if ((element.attributes.class || '').toLowerCase().indexOf('emoji') > -1) {
+          if (element.attributes.alt && element.attributes.alt.length < 3) {
+            element.name = ''
+          }
+        }
         if (!element.attributes.uid) {
           var src = element.attributes.src;
           if (!src) return false;
@@ -391,8 +379,8 @@ Editor.DTD = function(editor) {
            && element.attributes.height && parseInt(element.attributes.height ) <= 150) {
             
             // ignore tiny pix, they are probably icons
-            if (element.attributes.width && parseInt(element.attributes.width ) < 40 
-             && element.attributes.height && parseInt(element.attributes.height ) < 40)
+            if (element.attributes.width && parseInt(element.attributes.width ) < 20 
+             && element.attributes.height && parseInt(element.attributes.height ) < 20)
               return false;
 
             element.addClass('maybe-avatar')
@@ -423,17 +411,26 @@ Editor.DTD = function(editor) {
         return rules.text.apply(this, arguments)
     },
 
+    attributes: {
+      class: function() {
+        if (editor.isPasting)
+          return rules.attributes.class.apply(this, arguments)
+      }
+    },
+
     elements: {}
   }
 
   Object.keys(rules.elements).forEach(function(key) {
-    Rules.elements[key] = function() {
+    Rules.elements[key] = function(element) {
       // rules are only applicable to pasted content
-      if (editor.isPasting)
+      if (editor.isPasting && (!element.analyzed || element.analyzed.indexOf(key) == -1)) {
+        (element.analyzed || (element.analyzed = [])).push(key);
         return rules.elements[key].apply(this, arguments)
+      }
     }
   })
-  editor.dataProcessor.dataFilter.addRules(Rules)
+  editor.dataProcessor.dataFilter.addRules(Rules, {priority: -200})
 
 
   CKEDITOR.dtd.$avoidNest = {
@@ -475,7 +472,7 @@ Editor.DTD = function(editor) {
   CKEDITOR.dtd.blockquote = {p: 1, a: 1, b: 1, strong: 1, span: 1, em: 1, i: 1};
   */
 
-  CKEDITOR.dtd.section = {hr: 1, p: 1, a: 1, ul: 1, ol: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, picture: 1, img: 1, blockquote: 1, span: 1};
+  CKEDITOR.dtd.section = {time: 1, abbr: 1, strong: 1, em: 1, i: 1, hr: 1, p: 1, a: 1, ul: 1, ol: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, picture: 1, img: 1, blockquote: 1, span: 1};
 
 
   CKEDITOR.dtd.a = Object.create(CKEDITOR.dtd.a)
@@ -489,11 +486,12 @@ Editor.DTD = function(editor) {
 
 
 // keep interesting classes, but remove element
-Editor.DTD.propagateClasses = function(element, unwrap) {
+Editor.DTD.propagateClasses = function(element, wrap) {
   if (element.attributes.class) {
+    var className = element.attributes.class.toLowerCase();
     var semantic = [];
     Editor.Content.soundsLikeSemanticClassList.forEach(function(kls) {
-      if (element.attributes.class.indexOf(kls) > -1) {
+      if (className.indexOf(kls) > -1) {
         semantic.push(Editor.Content.soundsLikeSemanticClass[kls]);
       }
     })
@@ -501,54 +499,126 @@ Editor.DTD.propagateClasses = function(element, unwrap) {
   if (semantic && semantic.length) {
 
     // attempt to propagate class to immediate children
-    var propagated = false;;
-    element.children.forEach(function(child) {
-      if (child.addClass)
+    var propagated = false;
+    if (element.children.length < 3)
+      element.children.forEach(function(child) {
+        if (child.addClass)
 
-      semantic.forEach(function(kls) {
-        propagated = true;
-        child.addClass(kls)
+        semantic.forEach(function(kls) {
+          propagated = true;
+          child.addClass(kls)
+        })
       })
-    })
 
     // otherwise proapgate to parent
     if (!propagated && element.parent && element.parent.addClass && element.children.length) {
       semantic.forEach(function(kls) {
-        if (kls == 'avatar')
-          debugger
         element.parent.addClass(kls)
       })
     }
   }
-  // unwrap
-  if (unwrap) {
-    for ( var i = element.children.length - 1; i >= 0; i-- ) {
-      if ((!element.parent || !element.parent.name) && 
-          (!Editor.DTD.isParagraph(element.children[i]))) {
-        var p = new CKEDITOR.htmlParser.element('p');
-        p.add(element.children[i])
-        p.insertAfter( element );
-      } else {
-        element.children[ i ].insertAfter( element );
+  // unwrap block, create paragraphs if needed
+
+
+  var currentParagraph;
+  var children = Array.prototype.slice.call(element.children)
+  var last = element;
+  for ( var i = 0; i < children.length; i++) {
+    var child = children[i];
+    if (!Editor.DTD.isParagraph(child) && (!element.parent || !element.parent.name || wrap)) {
+      if (!currentParagraph) {
+        var currentParagraph = new CKEDITOR.htmlParser.element('p');
+        currentParagraph.insertAfter(last)
       }
+      child.remove()
+
+      currentParagraph.add(child)
+    } else {
+      child.insertAfter(last)
+      last = child
+      currentParagraph = undefined;
     }
-    return false;
   }
+  return false;
 
 
 }
 
-Editor.DTD.processClasses = function(editor, element, parent) {
+Editor.DTD.addClasses = function(element, klasses) {
+  klasses.split(/\s/).forEach(function(kls) {
+    element.addClass(kls)
+  });
+  return element;
+}
+
+Editor.DTD.getLength = function(element) {
+  if (!element.name && element.value)
+    return element.value.length;
+
+  var length = 0;
+  if (element.children) {
+    for (var i = 0; i < element.children.length; i++) 
+      length += Editor.DTD.getLength(element.children[i])
+  }
+  return length;
+}
+Editor.DTD.processClasses = function(editor, element, parent, root) {
   for (var i = 0; i < element.children.length; i++) {
     var child = element.children[i];
+    var grand = child.children && child.children[0]
+
     switch (child.name) {
       case 'section':
         // go deeper
         Editor.DTD.processClasses(editor, child, element)
         break
 
+      case 'p': case 'li': case 'a': case 'picture':
+        // propagate link class to paragraph'
+            // <p><a class> -> <p class><a>
+            if (element.children && 
+                      child.children.length == 1 && 
+                      grand.children && grand.children.length == 1 && 
+                      grand.children[0].attributes && 
+                      grand.children[0].attributes.class) {
+              Editor.DTD.addClasses(child, grand.children[0].attributes.class)
+            // <p><a><strong class/></a><a><em class/></a> -> <p><a class><strong/></a><a class><em/></a>
+            }
+            if (child.children.length == 1 && grand.attributes && grand.attributes.class) {
+              Editor.DTD.addClasses(child, grand.attributes.class);
+            // <p><a><strong class> -> <p class><a><strong>
+            } else if (grand.children) {
+              for (var j = 0; j < grand.children.length; j++)
+                if (grand.children[j].attributes && 
+                    grand.children[j].attributes.class) {
+                  Editor.DTD.addClasses(grand, grand.children[j].attributes.class)
+                }
+            }
+            // check if its probably all meta inside
+            if (child.children && Editor.DTD.getLength(child) < 80) {
+              var hasNonMeta = false;
+              var hasMeta = false;
+              var hasText = false;
+              for (var j = 0; j < child.children.length; j++) {
+                var grand = child.children[j]
+                if (!grand.name) {
+                  var hasText = true;
+                } else if (!grand.attributes || !grand.attributes.class || !grand.attributes.class.match(/author|source|category|timestamp|avatar/)) {
+                  var hasNonMeta = true;
+                } else {
+                  var hasMeta = true;
+                }
+              }
+              if (hasMeta && !hasNonMeta) {
+                if (hasText) {
+                  child.addClass('meta')
+                }
+              }
+            } 
+        break;
+
       case 'a':
-        if (child.children[0] && child.children[0].name == 'picture') {
+        if (grand && grand.name == 'picture') {
           if (child.children[0].hasClass('avatar'))
             child.addClass('avatar')
           child.addClass('picture')
@@ -557,6 +627,193 @@ Editor.DTD.processClasses = function(editor, element, parent) {
     }
   }
 }  
+
+Editor.DTD.getElementByClassName = function(element, name, start) {
+  for (var i = start || 0; i < element.children.length; i++) {
+    var child = element.children[i];
+    if (start != null && child.name == 'hr')
+      return;
+
+    if (child.attributes && child.attributes.class)
+      if (child.hasClass(name))
+        return child;
+    if (child.attributes) {
+      var result = Editor.DTD.getElementByClassName(child, name)
+      if (result) return result;
+    }
+  }
+}
+
+var metaClasses = ['author', 'timestamp', 'source-url', 'source-via', 'source-context', 'meta', 'avatar']
+Editor.DTD.processMeta = function(editor, element, parent) {
+  var hadMeta = false;
+  var currentList;
+  var currentClasses;
+  for (var i = 0; i < element.children.length; i++) {
+    var child = element.children[i];
+    var prev = element.children[i - 1]
+    if (!currentClasses) currentClasses = metaClasses.map(function(kls) {
+      return Editor.DTD.getElementByClassName(element, kls, i)
+    })
+    switch (child.name) {
+      case 'section':
+        // go deeper
+        Editor.DTD.processMeta(editor, child, element)
+        break
+
+      case 'hr':
+        if (!child.hasClass('soft')) {
+          currentList = undefined;
+        //else if (prev && prev.hasClass('meta'))
+        //  element.children.splice(i--, 1);
+        } else {
+          currentList = undefined;
+          currentClasses = undefined
+        }
+        break;
+
+      case 'a': case 'p': 
+
+        // promote paragraphs and links with title class
+        for (var j = 0; j < metaClasses.length; j++) {
+          var maybe = child.hasClass('maybe-' + metaClasses[j]);
+
+          // if current section doesnt have definite class like "author"
+          // but has this "maybe-author" and doesnt have "maybe-content"
+          // treat it as if it was "author" instead.
+          if (child.hasClass(metaClasses[j]) ||
+             (!currentClasses[j] && maybe && (!child.hasClass('maybe-content')))) {
+            child.addClass(metaClasses[j])
+
+            // collect meta items into an unordered list
+            if (!currentList) {
+              currentList = new CKEDITOR.htmlParser.element('ul', {class: 'meta'});
+              currentList.insertAfter(child)
+              hadMeta = true;
+            }
+            child.name = 'li'
+            currentList.add(child)
+            element.children.splice(i--, 1);
+            break;
+          }
+          if (maybe)
+            child.removeClass('maybe-' + metaClasses[j])
+        }
+
+        if (child.hasClass('title')) {
+          if (child.name == 'p') {
+            child.name = 'h2';
+          } else if (child.name == 'a' && child.children[0] && child.children[0].name != 'picture') {
+            var heading = new CKEDITOR.htmlParser.element('h2');
+            child.replaceWith(heading)
+            heading.add(child)
+          }
+        }
+        if (child.hasClass('text-quote')) {
+          if (child.name == 'p') {
+            child.name = 'blockquote';
+          } else if (child.name == 'a' && child.children[0] && child.children[0].name != 'picture') {
+            var heading = new CKEDITOR.htmlParser.element('blockquote');
+            child.replaceWith(heading)
+            heading.add(child)
+          }
+        }
+        if (child.children[0] && child.children[0].name == 'picture') {
+          if (child.children[0].hasClass('avatar'))
+            child.addClass('avatar')
+          child.addClass('picture')
+        }
+        break;
+    }
+
+    // split <p>
+    //if (child.name == 'p' || child.name == 'li') {
+    //  var allMeta = false;
+    //  var length = 0;
+    //  for (var i = 0; i < element.children.length; i++) {
+    //    for (var )
+    //  }
+    //}
+  }
+
+  // split pasted content into its own sections
+  //if (hadMeta && element.children[0]) {
+  //  if (element.children[0].name != 'hr')
+  //    new CKEDITOR.htmlParser.element('hr').insertBefore(element.children[0])
+  //  if (element.children[element.children.length - 1].name != 'hr')
+  //    new CKEDITOR.htmlParser.element('hr').insertAfter(element.children[element.children.length - 1])
+  //}
+}
+
+Editor.DTD.processBoundaries = function(editor, element, hasHardBoundaries) {
+  var children = Array.prototype.slice.call(element.children)
+  for (var i = 0; i < children.length; i++) {
+    var child = children[i]
+    if (child.name == 'section' || (child.name == 'hr' && !child.hasClass('soft')))
+      hasHardBoundaries = true;
+    if (child.name == 'section') {
+      for (var grand; grand = child.children.pop();)
+        grand.insertAfter(child)
+      child.remove()
+    }
+  }
+
+  for (var i = 0; i < element.children.length; i++) {
+    // join meta blocks
+    var child = element.children[i]
+    var prev = element.children[i - 1]
+    if (child.name == 'ul' && child.hasClass('meta')) {
+      var hadMeta = true;
+      if (prev && prev.name == 'ul' && prev.hasClass('meta')) {
+        for (var grand; grand = child.children.shift();)
+          prev.add(grand);
+        element.children.splice(i--, 1)
+      }
+    }
+  }
+
+
+  if (hasHardBoundaries)
+    for (var i = 0; i < element.children.length; i++) {
+      var child = element.children[i];
+      if (child.name == 'section') {
+        Editor.DTD.processBoundaries(editor, child, hasHardBoundaries)
+      // remove soft boundaries
+      } else if (child.name == 'hr' && child.hasClass('soft')) {
+        element.children.splice(i--, 1)
+      }
+    }
+
+  if (hadMeta && element.children[0]) {
+    if (element.children[0].name != 'hr')
+      new CKEDITOR.htmlParser.element('hr').insertBefore(element.children[0])
+    else
+      element.children[0].removeClass('soft')
+    if (element.children[element.children.length - 1].name != 'hr')
+      new CKEDITOR.htmlParser.element('hr').insertAfter(element.children[element.children.length - 1])
+    else
+      element.children[element.children.length - 1].removeClass('soft')
+  }
+
+}
+
+Editor.DTD.ignoreUIContent = function(element) {
+  if (Editor.Content.soundsLikeUIRole[element.attributes['aria-role'] || element.attributes.role])
+    return true;
+
+  if (element.attributes.class) {
+    var className = element.attributes.class.toLowerCase();
+    var blocked = false;
+    className.split(/\s+/).forEach(function(name) {
+      // Should element be ignored completely?
+      if (Editor.Content.soundsLikeUIClass[name]) {
+        blocked = true;
+      }
+    });
+  }
+
+  return blocked;
+}
 
 Editor.DTD.isPicture = function(element) {
   return element.name == 'picture' || element.name == 'a' && element.children.length == 1 && element.children[0].name == 'picture'
@@ -582,6 +839,6 @@ Editor.DTD.scavengeForPicture = function(element, filter) {
   return false;
 }
 Editor.DTD.isParagraph = function(child) {
-  return (child.name && child.name != 'strong' && child.name != 'b'&& child.name != 'em' && child.name != 'i'
-       && (child.name != 'a' || (child.children[0].name && child.children[0].name == 'picture')))
+  return (child.name && child.name != 'strong' && child.name != 'b'&& child.name != 'abbr'&& child.name != 'time'&& child.name != 'em' && child.name != 'i'
+       && (child.name != 'a' || (child.children[0] && child.children[0].name && child.children[0].name == 'picture')))
 }

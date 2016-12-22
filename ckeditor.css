@@ -97,7 +97,10 @@ body,html {
   transition: top 0.3s, left 0.3s;*/
 }
 
-
+.meta picture {
+  width: 4rem;
+  height: 4rem;
+}
 
 #image-cropper {
   position: absolute;

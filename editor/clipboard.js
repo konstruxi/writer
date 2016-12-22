@@ -37,7 +37,7 @@ Editor.Clipboard = function(editor) {
       var selection = editor.getSelection();
       var range = selection.getRanges()[0];
       if (range) {
-        setLink(editor, data)
+        Editor.Commands.Link(editor, data)
         return false
       }
     }
@@ -49,7 +49,7 @@ Editor.Clipboard = function(editor) {
       var selection = editor.getSelection();
       var range = selection.getRanges()[0];
       if (range) {
-        setLink(editor, data)
+        Editor.Commands.Link(editor, data)
         return false
       }
     }

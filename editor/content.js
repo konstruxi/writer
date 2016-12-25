@@ -34,6 +34,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
   var snapshot = editor.stylesnapshot;
   editor.fire('lockSnapshot');
   var cleaned = [];
+      console.log(editor.doNotBlur)
   for (var i = 0; i < children.length; i++) {
     var inside = Editor.Content.isInside(selected, children[i]);
     if (selected && inside) {
@@ -46,7 +47,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
         Editor.Chrome.update(editor)
       }
     }
-    if (!selected || force || !inside) {
+    if ((!selected || force || !inside) && !editor.doNotBlur) {
       if (Editor.Content.isEmpty(children[i])) {
         //if (!snapshot) 
         //  snapshot = editor.stylesnapshot = snapshotStyles(editor)
@@ -90,7 +91,8 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
     }
   }
   for (var i = 0; i < cleaned.length; i++) {
-    cleaned[i].parentNode.removeChild(cleaned[i])
+    if (cleaned[i].parentNode)
+      cleaned[i].parentNode.removeChild(cleaned[i])
     //if (editor.snapshot)
     //  editor.snapshot.removeElement(cleaned[i])
   }

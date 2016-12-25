@@ -41,14 +41,16 @@ Editor.Selection = function(editor, content) {
   } );
 
   // select image on tap on mobile
-
-
   editor.pointer.on('tap', function(e) {
     for (var p = e.target; p; p = p.parentNode) {
       if (p.tagName == 'IMG') {
+        if (p.parentNode.parentNode.tagName == 'A')
+          editor.getSelection().selectElement(new CKEDITOR.dom.element(p.parentNode))
+        else
           editor.getSelection().selectElement(new CKEDITOR.dom.element(p))
+
         Editor.Selection.onChange(editor, true, true)
-        e.preventDefault();
+        //e.preventDefault();
         break;
       }
     }
@@ -131,11 +133,18 @@ Editor.Selection.moveToEditablePlace = function(editor, range) {
 
 // clean up empty content if it's not in currently focused section
 Editor.Selection.onChange = function(editor, force, blur) {
+  editor.fire('customSelectionChange')
+
   Editor.Chrome.update(editor)
   if (editor.clearcursor) return;
   editor.clearcursor = setTimeout(function() {
+    cancelAnimationFrame(editor.clearcursor)
     editor.clearcursor = requestAnimationFrame(function() {
       editor.clearcursor = null;
+
+      if (editor.doNotBlur)
+        return
+      
       Editor.Content.cleanEmpty(editor, force, blur)
     })
   }, 100)

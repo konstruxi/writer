@@ -20,7 +20,6 @@
 .cke_button {
   width: 36px;
   height: 36px;
-  background: inherit;
   border-radius: 50%;
   display: block;
   position: absolute;
@@ -28,8 +27,8 @@
   color: inherit;
 }
 
-.cke_button:hover {
-  background-color: #aaa;
+.cke_button input {
+  visibility: hidden;
 }
 
 .cke_button svg {

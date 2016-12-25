@@ -1,7 +1,7 @@
 
 
 
-Editor.Image = function(editor, image, onImageProcessed, onImageLoaded) {
+Editor.Image = function(editor, image, onImageProcessed, onImageLoaded, arg) {
   if (!image.tagName) {
     var file = image;
     var image = new Image;
@@ -32,7 +32,7 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded) {
   }
 
   if (onImageLoaded)
-    onImageLoaded.call(editor, image)
+    onImageLoaded.call(editor, image, arg)
   editor.fire('unlockSnapshot');
 
   return image;
@@ -138,7 +138,7 @@ Editor.Image.applyChanges = function(data, img) {
     //image.style.width  = width + 'px';
     //image.style.maxHeight = height + 'px';
     var ratio = width > height ? width / height : height / width;
-    Editor.Image.style.textContent += result.toString('.content section.has-palette-' + image.getAttribute('uid'))
+    Editor.Image.style.textContent += result.toString('.has-palette-' + image.getAttribute('uid'))
     Editor.Image.style.textContent += '.content section[pattern*="two-"] img[uid="' + image.getAttribute('uid') + '"] {' + 
       'left: -' + data.square.x / width * ratio * 100 + '%; ' +
       'top: -' + data.square.y / height * ratio * 100 + '%; ' +
@@ -160,7 +160,7 @@ Editor.Image.register = function(editor, image) {
   Editor.Image(editor, image, Editor.Image.applyChanges)
 }
 
-Editor.Image.insert = function(image) {
+Editor.Image.insert = function(image, hard) {
   this.fire('lockSnapshot')
   if (!image.parentNode || image.parentNode.tagName != 'PICTURE') {
     var picture = document.createElement('picture');
@@ -178,15 +178,28 @@ Editor.Image.insert = function(image) {
     var container = this.getSelection().getRanges()[0].startContainer.$;
     while (container.parentNode.tagName != 'SECTION')
       container = container.parentNode;
-    if (container.tagName == 'H1' || container.tagName == 'H2')
-      container.parentNode.insertBefore(picture, container.nextSibling)
-    else
-      container.parentNode.insertBefore(picture, container)
+    if (hard) {
+      hard = container.parentNode.getElementsByTagName('picture')[0];
+    }
 
+    if (container.tagName == 'H1' || container.tagName == 'H2')
+      var next = container.nextElementSibling
+    else
+      var next = container;
+
+    while (next && (next.tagName == 'HR' || Editor.Content.isPicture(next)))
+      next = next.nextElementSibling;
+
+    container.parentNode.insertBefore(picture, next)
+
+    if (hard) {
+      var hr = document.createElement('hr');
+      container.parentNode.insertBefore(hr, picture)
+    }    
   }
-  var section = Editor.Section.get(image);
-  if (section) {
-    Editor.Section.analyze(section)
-  }
+  //var section = Editor.Section.get(image);
+  //if (section) {
+  //  Editor.Section.analyze(section)
+  //}
   this.fire('unlockSnapshot')
 }

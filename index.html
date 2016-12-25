@@ -1,9 +1,9 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="./ckeditor.css" charset="utf-8" />
+    <link rel="stylesheet" href="./content.css" charset="utf-8" />
     <link rel="stylesheet" href="./flexbox.css" />
-    <link rel="stylesheet" href="./picker.css" />
+    <link rel="stylesheet" href="./chrome.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
@@ -22,6 +22,10 @@
   <path d="M24,5 C14.06,5 6,13.06 6,23 C6,32.94 14.06,41 24,41 C25.66,41 27,39.66 27,38 C27,37.22 26.7,36.52 26.22,35.98 C25.76,35.46 25.46,34.76 25.46,34 C25.46,32.34 26.8,31 28.46,31 L32,31 C37.52,31 42,26.52 42,21 C42,12.16 33.94,5 24,5 Z M13,23 C11.34,23 10,21.66 10,20 C10,18.34 11.34,17 13,17 C14.66,17 16,18.34 16,20 C16,21.66 14.66,23 13,23 Z M19,15 C17.34,15 16,13.66 16,12 C16,10.34 17.34,9 19,9 C20.66,9 22,10.34 22,12 C22,13.66 20.66,15 19,15 Z M29,15 C27.34,15 26,13.66 26,12 C26,10.34 27.34,9 29,9 C30.66,9 32,10.34 32,12 C32,13.66 30.66,15 29,15 Z M35,23 C33.34,23 32,21.66 32,20 C32,18.34 33.34,17 35,17 C36.66,17 38,18.34 38,20 C38,21.66 36.66,23 35,23 Z"></path>
 </g>
 
+<g id="settings-icon">
+  <path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+</g>
+
 </defs></svg>
 
   <div class="picker" style="display:none">
@@ -30,16 +34,8 @@
 
 
 <style id="formattingStyle"></style>
-<div id="formatting" hidden>
-  <div class="more cke_button">
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 -2 54 54">
-    <path d="M44 6H14c-1.38 0-2.47.7-3.19 1.76L0 23.99l10.81 16.23c.72 1.06 1.94 1.78 3.32 1.78H44c2.21 0 4-1.79 4-4V10c0-2.21-1.79-4-4-4zM18 27c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm10 0c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm10 0c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>
-  </div>
-  <div class="add cke_button">
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M33 12v23c0 4.42-3.58 8-8 8s-8-3.58-8-8V10c0-2.76 2.24-5 5-5s5 2.24 5 5v21c0 1.1-.89 2-2 2-1.11 0-2-.9-2-2V12h-3v19c0 2.76 2.24 5 5 5s5-2.24 5-5V10c0-4.42-3.58-8-8-8s-8 3.58-8 8v25c0 6.08 4.93 11 11 11s11-4.92 11-11V12h-3z"  transform="translate(25.000000, 24.000000) rotate(-270.000000) translate(-25.000000, -24.000000) "/></svg>
-    <path d="M18 32h12V20h8L24 6 10 20h8zm-8 4h28v4H10z"/></svg>
-  </div>
-</div>
+<div id="formatting" hidden></div>
+<div id="formatting-shadow"></div>
 
 <div class="content matrix" hidden>
 
@@ -128,6 +124,8 @@
 
 
   <script src="./ckeditor/ckeditor.js"></script>
+
+  <script src="colors/iq.js"></script>
   <script src="colors/rgbquant.js"></script>
   <script src="colors/quantize.js"></script>
   <script src="colors/vibrant.js"></script>

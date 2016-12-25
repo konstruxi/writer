@@ -91,7 +91,7 @@ Editor.Snapshot.prototype.animate = function(section) {
 
     if (!migrated) {
       migrated = true;
-      //snapshot.migrateSelectedElements(from)
+      snapshot.migrateSelectedElements(from)
     }
 
     if (!snapshot.startTime)

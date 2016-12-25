@@ -1,0 +1,61 @@
+<html>
+
+<script src="colors/iq.js"></script>
+<script src="colors/rgbquant.js"></script>
+<script src="colors/quantize.js"></script>
+<script src="colors/vibrant.js"></script>
+<script src="colors/pallete.js"></script>
+<script src="colors/resize.js"></script>
+<script src="colors/unsharp.js"></script>
+<script src="colors/crop.js"></script>
+<script>
+
+
+
+Samples = function(path) {
+  var img;
+  img = document.createElement('img');
+  img.setAttribute('src', path);
+  return img.onload = function() {
+    var Generator, cell, hr, index, j, k, l, len, len1, list, row, scheme;
+    Generator = Palette(img);
+    hr = document.createElement('hr');
+    hr.style.clear = 'both';
+    document.body.appendChild(hr);
+    //scheme = Schemes.dark;
+    list = Generator.debug();
+    img.style.maxWidth = '400px';
+    img.style.float = 'left';
+    img.style.maxHeight = '250px';
+    document.body.appendChild(img);
+    document.body.appendChild(list);
+    hr = document.createElement('hr');
+    hr.style.clear = 'both';
+    hr.style.visibility = 'hidden';
+    document.body.appendChild(hr);
+    for (index = k = 0, len = Space.length; k < len; index = ++k) {
+      row = Space[index];
+      for (j = l = 0, len1 = row.length; l < len1; j = ++l) {
+        cell = row[j];
+        if (j < 7) {
+          try {
+            document.body.appendChild(Palette.example(Generator(cell), j + 1));
+          } catch (undefined) {}
+        }
+      }
+    }
+    hr = document.createElement('hr');
+    hr.style.clear = 'both';
+    hr.style.visibility = 'hidden';
+    return document.body.appendChild(hr);
+  };
+};
+
+
+  var i, k, results;
+  results = [];
+  for (i = k = 25; k < 50; i = ++k) {
+    results.push(Samples('../rams/images/' + i + '.jpg'));
+  }
+</script>
+</html>

@@ -451,7 +451,6 @@
             for (var j = i + 1; j < len; j++) {
               var pxj = idxrgb[j], i32j = idxi32[j];
               if (!pxj) continue;
-
               var dist = this.colorDist(pxi, pxj);
 
               if (dist < thold) {

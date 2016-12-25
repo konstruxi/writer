@@ -25,6 +25,14 @@ Editor.Section = function(editor, mutation, observer) {
   editor.fire( 'unlockSnapshot' );
 }
 
+Editor.Section.toggleSize = function(section) {
+  if (section.classList.contains('small'))
+    section.classList.remove('small')
+  else
+    section.classList.add('small')
+  Editor.Section(editor)
+}
+
 Editor.Section.setActive = function(editor, target, force) {
   for (; target; target = target.parentNode) {
     if (target.tagName == 'SECTION') {
@@ -173,8 +181,8 @@ Editor.Section.analyze = function(node) {
 
 var patterns = {
   'two-images': [
-    {'has-image': true, 'has-long-text': false},
-    {'has-image': true, 'has-long-text': false}
+    {'small': true, 'has-long-text': false},
+    {'small': true, 'has-long-text': false}
   ],
   'one-quote': [
     {'has-quote': true, 'has-text': false}
@@ -249,26 +257,7 @@ Editor.Section.build = function(editor, section) {
   if (!section)
     section = document.createElement('section');
   
-  if (!section.getElementsByClassName('toolbar')[0]) {
-                
-    var toolbar = document.createElement('div');
-    toolbar.className = 'toolbar'
-    toolbar.setAttribute('unselectable', 'on')
-    //toolbar.setAttribute('contenteditable', 'false')
-
-    toolbar.innerHTML = '<x-button class="styles">' +
-                  '<svg viewBox="-1 2 50 50" class="pick palette icon"><use xlink:href="#palette-icon"></use></svg>' +
-                '</x-button>' + 
-                '<x-button class="handle">' +
-                  '<svg viewBox="0 0 48 48" class="resize handler icon"><use xlink:href="#resize-section-icon"></use></svg>' +
-                  '<svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>' +
-                '</x-button>' + 
-                '<x-button class="zoom">' +
-                  '<svg viewBox="-4 2 48 48" class="shrink zoomer icon"><use xlink:href="#zoom-out-icon"></use></svg>' +
-                  '<svg viewBox="-4 2 48 48" class="enlarge zoomer icon"><use xlink:href="#zoom-in-icon"></use></svg>' +
-                '</x-button>'
-    section.insertBefore(toolbar, section.firstChild)
-  }
+  Editor.Chrome.Toolbar(editor, section)
 
   return section
 }

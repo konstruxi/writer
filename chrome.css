@@ -67,56 +67,80 @@ body.dragging .picker li {
   opacity: 1;
   z-index: 2200;
   transition: opacity 0.3s;
+  pointer-events: none;
 }
 #formatting .cke_button {
-  position: absolute;
-  background: #fff;
+  pointer-events: all;
 }
 #formatting[hidden] {
   display: block;
   opacity: 0;
 }
 
-#formatting .add {
+#formatting .objects {
   position: absolute;
+  top: 4.5rem;
+  z-index: 22;
+  background: none;
+}
+
+#formatting .objects svg {
+  opacity: 0.6;
+}
+#formatting .metas {
+  z-index: 22;
+  background: none;
+  position: absolute;
+  top: 0;
+}
+#formatting .formatting {
   top: 2.25rem;
-  z-index: 22;
-  background: none;
+  position: absolute;
+  overflow: hidden;
+  height: 36px;
+  width: 36px;
+  clip: rect(0, 30px, 36px, 0);
+}
+#formatting:hover  .formatting{
+  clip: inherit;
 }
 
-#formatting .add svg {
+#formatting {
+  border-radius: 1.125rem;
+  background: #fafafa;
+  color: #000;
+}
+
+#formatting .metas svg {
   opacity: 0.6;
 }
-#formatting .more {
-  position: absolute;
+#formatting .objects.open .cke_button{
+  display: block !important;
+}
+#formatting .objects.open .cke_button__link {
+  top: -4.5rem;
+  left: 0;
+  border-radius: 50%;
+}
+#formatting .objects.open .cke_button__upload {
+  top: 0rem;
+  left: 0;
+  border-radius: 50%;
+}
+#formatting .objects .cke_button:not(.cke_button__object) {
+  display: none;
+}
+#formatting .objects.open .cke_button {
+  display: block;
+}
+#formatting .objects.open .cke_button__upload input[type=file]{
+  visibility: hidden;
+  position: absolute;;
+}
+#formatting .objects.open .cke_button__upload {
   top: -2.25rem;
-  z-index: 22;
-  background: none;
-}
-
-#formatting .more {
-  position: absolute;
-  top: -2.25rem;
-  z-index: 22;
-  background: none;
-}
-#formatting .more svg {
-  opacity: 0.6;
-
-}
-#formatting .cke_button__link {
-  position: absolute;
-  top: 2.25rem;
-  background: none;
-}
-#formatting .cke_button__link.actual {
-  z-index: 2000;
-}
-#formatting .cke_button__link svg {
-  opacity: 0.6;
-}
-#formatting .cke_button__link svg path {
-  fill: currentColor;
+  left: 0;
+  border-radius: 50%;
 }
 
 #formatting svg {
@@ -124,7 +148,6 @@ body.dragging .picker li {
 }
 #formatting svg path {
   fill: currentColor;
-  transition: fill 0.4s;
 }
 .matrix .wrapper:hover {
   box-shadow: 0 0 20px #ccc;
@@ -156,6 +179,117 @@ section:hover {
   z-index: 222;
   margin-top: -12rem;
   margin-left: -12rem;
+}
+
+.content section > .toolbar {
+  position: absolute;
+  top: -1.275rem;
+  left: 0;
+  width: 100%;
+  height: 2rem;
+  cursor: row-resize;
+  z-index: 2000;
+  width: 100%;
+}
+
+section .toolbar .handle {
+  width: 3rem;
+  height: 3rem;
+  display: block;
+  margin: 0 auto;
+}
+
+.content section x-toolbar {
+  text-align: center;
+  display: block;
+  white-space: nowrap;
+  position: absolute;
+  left: 50%;
+  width: 7.2rem;
+  margin-left: -3.6rem;
+}
+.content section x-toolbar:hover {
+  overflow: visible;;
+}
+
+x-toolbar x-panel.top {
+  visibility: hidden;
+}
+x-toolbar x-panel.bottom {
+  width: 2.4rem;
+  margin: 0 auto;
+}
+x-toolbar:hover x-panel.top {
+  visibility: visible;
+}
+x-toolbar:hover x-panel.bottom {
+  width: auto;
+}
+
+.content section x-panel {
+  display: block;
+  border-radius: 1.25rem 1.25rem 0 0;
+  height: 1.85rem;
+  overflow: hidden;
+}
+.content section x-panel:hover {
+  overflow: visible;
+  position: relative;;
+  z-index: 1;
+}
+.content x-panel.top {
+  width: 4.8rem;
+  margin: -2.64rem auto 0;
+}
+
+.content section .toolbar x-toolbar:hover x-panel {
+}
+.toolbar  x-panel{
+  background-color: #fff;
+
+}
+section .toolbar svg {
+  display: inline-block;
+  height: 2.4rem;
+  width: 2.4rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 0.2rem solid transparent;
+}
+.toolbar svg.handler {
+  background-color: inherit;
+}
+
+section .toolbar .zoomer, section .toolbar .palette {
+  display: none;
+}
+section .toolbar x-toolbar:hover .zoomer, 
+section .toolbar x-toolbar:hover .palette {
+  display: inline-block;
+}
+section .toolbar svg.palette {
+  z-index: 20;
+}
+section .toolbar svg{
+  fill: currentColor;
+}
+
+section .toolbar svg.split {
+  display: none;
+}
+
+section .toolbar x-toolbar:hover svg.split {
+  display: inline-block;
+}
+section .toolbar x-toolbar:hover svg.resize {
+  display: none;
+}
+
+
+
+.toolbar svg {
+  cursor: pointer;
 }
 
 
@@ -233,17 +367,28 @@ section:hover {
 #formatting {
   top: 0;
   left: 0;
+  height: 6.75rem;
+  width: 2.25rem;
   position: absolute;
   margin-left: -1.25rem;
-  margin-top: -1.15rem;
+  margin-top: -3.40rem;
 }
-#formatting[hidden] {
+#formatting-shadow {
+  top: 0;
+  left: 0;
+  height: 6.75rem;
+  width: 2.25rem;
+  box-sizing: content-box;
+  position: absolute;
+  margin-left: -1.3rem;
+  margin-top: -3.46rem;
+  border: 1px solid #aaa;
+  z-index: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  border-radius: 1.2rem;
+  overflow: hidden;
+}
+#formatting[hidden], #formatting[hidden] + #formatting-shadow {
   opacity: 0;
 }
-
-@media (max-width: 640px) {
-  #formatting {
-    margin-left: -1.25rem;
-  }
-}
-

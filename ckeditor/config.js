@@ -17,7 +17,10 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// The toolbar groups arrangement, optimized for a single toolbar row.
 	config.toolbarGroups = [
-		{ name: 'paragraph',   groups: [ 'basicstyles', 'links', 'cleanup' , 'structural', 'blocks', 'list', 'indent' ] },
+		{ name: 'metas',  		 groups: [ 'meta'] },
+		{ name: 'foormatting', groups: [ 'basicstyles', 'cleanup' , 'structural', 'blocks', 'list', 'indent' ] },
+		{ name: 'objects',     groups: [ 'objects', 'links' ] }
+		
 	];
 
 	// The default plugins included in the basic setup define some buttons that

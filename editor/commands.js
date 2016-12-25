@@ -2,22 +2,36 @@
 Editor.Commands = function(editor) {
 
 
-  Editor.Commands.Button(editor, 'title', 'structural', { element: 'h1'}, ['h1'])
-  Editor.Commands.Button(editor, 'subtitle', 'structural', { element: 'h2'}, ['h2'])
-  Editor.Commands.Button(editor, 'heading', 'structural', { element: 'h3'}, ['h3'])
-  Editor.Commands.Button(editor, 'paragraph', 'structural', { element: 'p'}, ['p'])
-  Editor.Commands.Button(editor, 'link', 'structural', function(e) {
-    Editor.Commands.Link(editor, null)
-  })
-  Editor.Commands.Button(editor, 'clear', 'basicstyles', function() {
+  Editor.Commands.Button(editor, 'Make it a main title', 'title', 'structural', { element: 'h1'}, ['h1'])
+  Editor.Commands.Button(editor, 'Make it a subtitle', 'subtitle', 'structural', { element: 'h2'}, ['h2'])
+  Editor.Commands.Button(editor, 'Make it a heading', 'heading', 'structural', { element: 'h3'}, ['h3'])
+  Editor.Commands.Button(editor, 'Make it a paragraph', 'paragraph', 'structural', { element: 'p'}, ['p'])
+  Editor.Commands.Button(editor, 'Clear styles', 'clear', 'basicstyles', function() {
 
     if (editor.commands.italic.state == 1)
       editor.ui.instances.Italic.click(editor)
     if (editor.commands.bold.state == 1)
       editor.ui.instances.Bold.click(editor)
   })
-  Editor.Commands.Button(editor, 'filters', 'basicstyles', function() {
+  Editor.Commands.Button(editor, 'Set image filters', 'filters', 'basicstyles', function() {
     alert('set up filters')
+  })
+  Editor.Commands.Button(editor, 'Link the text', 'link', 'links', function(e) {
+    Editor.Commands.Link(editor, null)
+  })
+  Editor.Commands.Button(editor, 'Upload a file', 'upload', 'objects', function(e) {
+    // while file dialog is open, avoid registering selection change event
+    editor.doNotBlur = true;
+    setTimeout(function() {
+      editor.doNotBlur = false;
+    }, 2000)
+  })
+  Editor.Commands.Button(editor, 'Add an object', 'object', 'objects', function(e) {
+    Editor.Chrome.openMenu(editor, document.querySelector('#formatting .objects'))
+    //Editor.Commands.Link(editor, null)
+  })
+  Editor.Commands.Button(editor, 'Add meta data', 'meta', 'metas', function(e) {
+    //Editor.Commands.Link(editor, null)
   })
 
   editor.on('instanceReady', function() {
@@ -72,10 +86,10 @@ Editor.Commands = function(editor) {
 
 }
 
-Editor.Commands.Button = function (editor, commandName, toolbar, styles, forms) {
+Editor.Commands.Button = function (editor, title, commandName, toolbar, styles, forms) {
   editor.ui.addButton(commandName, { // add new button and bind our command
       label: 'Add ' + commandName,
-      title: commandName,
+      title: title,
       command: commandName,
       toolbar: toolbar,
       click: typeof styles == 'function' && styles || undefined
@@ -110,7 +124,7 @@ Editor.Commands.Link = function (editor, url) {
   if (paragraph && !text)
     var img = paragraph.$.getElementsByTagName('img')[0]
 
-  if ( !element || element.getName() != 'a'  || !text) {
+  if ( !element || element.getName() != 'a') {
     if (!url)
       url = prompt('Enter url:')
     element = editor.document.createElement( 'a' );

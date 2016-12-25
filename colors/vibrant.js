@@ -1,4 +1,195 @@
+
+function DegToRad(degrees) {
+    return degrees * Math.PI / 180;
+}
+
+function ciede94(c1,c2) {
+    var kl = 1;
+    var kc = 1;
+    var kh = 1;
+
+    var k1 = 0.045;
+    var k2 = 0.015;
+    var C1  = Math.sqrt(c1[4] * c1[4] + c1[5] * c1[5]);
+    var C2 = Math.sqrt(c2[4] * c2[4] + c2[5] * c2[5]);
+
+    var deltaA = c1[4] - c2[4];
+    var deltaB = c1[5] - c2[5];
+    var deltaC = C1 - C2;
+    var deltaH = Math.sqrt(deltaA * deltaA + deltaB * deltaB - deltaC * deltaC);
+    var deltaL = c1[3] - c2[3];
+
+    var sl = number = 1;
+    var sc = number = 1 + k1 * C1;
+    var sh = number = 1 + k2 * C2;
+
+    var firstTerm  = deltaL / (kl * sl);
+    var secondTerm = deltaC / (kc * sc);
+    var thirdTerm = deltaH / (kh * sh);
+
+    return Math.sqrt(firstTerm * firstTerm + secondTerm * secondTerm + thirdTerm * thirdTerm);
+}
+function ciede2000(c1, c2) {
+  //Set weighting factors to 1
+  var k_L = 1.0;
+  var k_C = 1.0;
+  var k_H = 1.0;
+
+  //Change Color Space to L*a*b:
+  //Lab lab1 = c1.To<Lab>();
+  //Lab lab2 = c2.To<Lab>();
+
+  //Calculate Cprime1, Cprime2, Cabbar
+  var c_star_1_ab = Math.sqrt(c1[4] * c1[4] + c1[5] * c1[5]);
+  var c_star_2_ab = Math.sqrt(c2[4] * c2[4] + c2[5] * c2[5]);
+  var c_star_average_ab = (c_star_1_ab + c_star_2_ab) / 2;
+
+  var c_star_average_ab_pot7 = c_star_average_ab * c_star_average_ab * c_star_average_ab;
+  c_star_average_ab_pot7 *= c_star_average_ab_pot7 * c_star_average_ab;
+
+  var G = 0.5 * (1 - Math.sqrt(c_star_average_ab_pot7 / (c_star_average_ab_pot7 + 6103515625))); //25^7
+  var a1_prime = (1 + G) * c1[4];
+  var a2_prime = (1 + G) * c2[4];
+
+  var C_prime_1 = Math.sqrt(a1_prime * a1_prime + c1[5] * c1[5]);
+  var C_prime_2 = Math.sqrt(a2_prime * a2_prime + c2[5] * c2[5]);
+  //Angles in Degree.
+  var h_prime_1 = ((Math.atan2(c1[5], a1_prime) * 180 / Math.PI) + 360) % 360;
+  var h_prime_2 = ((Math.atan2(c2[5], a2_prime) * 180 / Math.PI) + 360) % 360;
+
+  var delta_L_prime = c2[3] - c1[3];
+  var delta_C_prime = C_prime_2 - C_prime_1;
+
+  var h_bar = Math.abs(h_prime_1 - h_prime_2);
+  var delta_h_prime;
+  if ((C_prime_1 * C_prime_2) === 0) delta_h_prime = 0;
+  else {
+      if (h_bar <= 180) {
+          delta_h_prime = h_prime_2 - h_prime_1;
+      } else if (h_bar > 180 && h_prime_2 <= h_prime_1) {
+          delta_h_prime = h_prime_2 - h_prime_1 + 360.0;
+      } else {
+          delta_h_prime = h_prime_2 - h_prime_1 - 360.0;
+      }
+  }
+  var delta_H_prime = 2 * Math.sqrt(C_prime_1 * C_prime_2) * Math.sin(delta_h_prime * Math.PI / 360);
+
+  // Calculate CIEDE2000
+  var L_prime_average = (c1[3] + c2[3]) / 2;
+  var C_prime_average = (C_prime_1 + C_prime_2) / 2;
+
+  //Calculate h_prime_average
+
+  var h_prime_average;
+  if ((C_prime_1 * C_prime_2) === 0) h_prime_average = 0;
+  else {
+      if (h_bar <= 180) {
+          h_prime_average = (h_prime_1 + h_prime_2) / 2;
+      } else if (h_bar > 180 && (h_prime_1 + h_prime_2) < 360) {
+          h_prime_average = (h_prime_1 + h_prime_2 + 360) / 2;
+      } else {
+          h_prime_average = (h_prime_1 + h_prime_2 - 360) / 2;
+      }
+  }
+  var L_prime_average_minus_50_square = (L_prime_average - 50);
+  L_prime_average_minus_50_square *= L_prime_average_minus_50_square;
+
+  var S_L = 1 + ((0.015 * L_prime_average_minus_50_square) / Math.sqrt(20 + L_prime_average_minus_50_square));
+  var S_C = 1 + 0.045 * C_prime_average;
+  var T = 1 - .17 * Math.cos(DegToRad(h_prime_average - 30)) + .24 * Math.cos(DegToRad(h_prime_average * 2)) + .32 * Math.cos(DegToRad(h_prime_average * 3 + 6)) - .2 * Math.cos(DegToRad(h_prime_average * 4 - 63));
+  var S_H = 1 + .015 * T * C_prime_average;
+  var h_prime_average_minus_275_div_25_square = (h_prime_average - 275) / (25);
+  h_prime_average_minus_275_div_25_square *= h_prime_average_minus_275_div_25_square;
+  var delta_theta = 30 * Math.exp(-h_prime_average_minus_275_div_25_square);
+
+  var C_prime_average_pot_7 = C_prime_average * C_prime_average * C_prime_average;
+  C_prime_average_pot_7 *= C_prime_average_pot_7 * C_prime_average;
+  var R_C = 2 * Math.sqrt(C_prime_average_pot_7 / (C_prime_average_pot_7 + 6103515625));
+
+  var R_T = -Math.sin(DegToRad(2 * delta_theta)) * R_C;
+
+  var delta_L_prime_div_k_L_S_L = delta_L_prime / (S_L * k_L);
+  var delta_C_prime_div_k_C_S_C = delta_C_prime / (S_C * k_C);
+  var delta_H_prime_div_k_H_S_H = delta_H_prime / (S_H * k_H);
+
+  var CIEDE2000 = Math.sqrt(
+  delta_L_prime_div_k_L_S_L * delta_L_prime_div_k_L_S_L + delta_C_prime_div_k_C_S_C * delta_C_prime_div_k_C_S_C + delta_H_prime_div_k_H_S_H * delta_H_prime_div_k_H_S_H + R_T * delta_C_prime_div_k_C_S_C * delta_H_prime_div_k_H_S_H);
+
+  return CIEDE2000;
+};
+
 (function(global) {
+  function isSkin (r, g, b) {
+
+    // classify based on RGB
+    var rgbClassifier = ((r > 95) && (g > 40 && g < 100) && (b > 20) && ((Math.max(r, g, b) - Math.min(r, g, b)) > 15) && (Math.abs(r - g) > 15) && (r > g) && (r > b));
+
+    // classify based on normalized RGB
+    var sum = r + g + b;
+    var nr = (r / sum),
+      ng = (g / sum),
+      nb = (b / sum),
+      normRgbClassifier = (((nr / ng) > 1.185) && (((r * b) / (Math.pow(r + g + b, 2))) > 0.107) && (((r * g) / (Math.pow(r + g + b, 2))) > 0.112));
+
+    // classify based on hue
+    var h = 0,
+      mx = Math.max(r, g, b),
+      mn = Math.min(r, g, b),
+      dif = mx - mn;
+
+    if (mx == r) {
+      h = (g - b) / dif;
+    } else if (mx == g) {
+      h = 2 + ((g - r) / dif)
+    } else {
+      h = 4 + ((r - g) / dif);
+    }
+    h = h * 60;
+    if (h < 0) {
+      h = h + 360;
+    }
+    var s = 1 - (3 * ((Math.min(r, g, b)) / (r + g + b)));
+    var hsvClassifier = (h > 0 && h < 35 && s > 0.23 && s < 0.68);
+
+    // match either of the classifiers
+    return (rgbClassifier || normRgbClassifier || hsvClassifier); // 
+  }
+
+  function rgb2lab(rgb) {
+
+    var r = rgb[0] / 255,
+        g = rgb[1] / 255,
+        b = rgb[2] / 255;
+
+    // assume sRGB
+    r = r > 0.04045 ? Math.pow(((r + 0.055) / 1.055), 2.4) : (r / 12.92);
+    g = g > 0.04045 ? Math.pow(((g + 0.055) / 1.055), 2.4) : (g / 12.92);
+    b = b > 0.04045 ? Math.pow(((b + 0.055) / 1.055), 2.4) : (b / 12.92);
+    
+    var x = (r * 0.4124) + (g * 0.3576) + (b * 0.1805);
+    var y = (r * 0.2126) + (g * 0.7152) + (b * 0.0722);
+    var z = (r * 0.0193) + (g * 0.1192) + (b * 0.9505);
+
+
+    var l, a, b;
+
+    x /= 95.047;
+    y /= 100;
+    z /= 108.883;
+
+    x = x > 0.008856 ? Math.pow(x, 1/3) : (7.787 * x) + (16 / 116);
+    y = y > 0.008856 ? Math.pow(y, 1/3) : (7.787 * y) + (16 / 116);
+    z = z > 0.008856 ? Math.pow(z, 1/3) : (7.787 * z) + (16 / 116);
+
+    l = (116 * y) - 16;
+    a = 500 * (x - y);
+    b = 200 * (y - z);
+    
+    rgb[3] = l
+    rgb[4] = a
+    rgb[5] = b
+
+  }
 
 /*
   Vibrant.js
@@ -23,7 +214,7 @@ global.Swatch = Swatch = (function() {
   Swatch.yiq = 0;
 
   function Swatch(rgb, population) {
-    this.rgb = rgb.map(function(value) {
+    this.rgb = rgb.slice(0, 3).map(function(value) {
       return Math.floor(value);
     });
     this.population = population;
@@ -34,6 +225,17 @@ global.Swatch = Swatch = (function() {
       return this.hsl = Vibrant.rgbToHsl(this.rgb[0], this.rgb[1], this.rgb[2]);
     } else {
       return this.hsl;
+    }
+  };
+  Swatch.prototype.getLab = function() {
+    if (!this.lab) {
+      var rgb = this.rgb.slice()
+      rgb2lab(rgb)
+      this.lab = rgb.slice(3)
+      this.lab.fromRgb = rgb;
+      return this.lab
+    } else {
+      return this.lab;
     }
   };
 
@@ -53,30 +255,6 @@ global.Swatch = Swatch = (function() {
     return "#" + ((1 << 24) + (this.rgb[0] << 16) + (this.rgb[1] << 8) + this.rgb[2]).toString(16).slice(1, 7);
   };
 
-  Swatch.prototype.getTitleTextColor = function() {
-    this._ensureTextColors();
-    if (this.yiq < 200) {
-      return "#fff";
-    } else {
-      return "#000";
-    }
-  };
-
-  Swatch.prototype.getBodyTextColor = function() {
-    this._ensureTextColors();
-    if (this.yiq < 150) {
-      return "#fff";
-    } else {
-      return "#000";
-    }
-  };
-
-  Swatch.prototype._ensureTextColors = function() {
-    if (!this.yiq) {
-      return this.yiq = (this.rgb[0] * 299 + this.rgb[1] * 587 + this.rgb[2] * 114) / 1000;
-    }
-  };
-
   return Swatch;
 
 })();
@@ -85,34 +263,31 @@ global.Vibrant = Vibrant = (function() {
   Vibrant.prototype.quantize = MMCQ;
 
   Vibrant.prototype.rgbquant = RgbQuant;
+  Vibrant.prototype.iq = global.iq;
 
   Vibrant.prototype._swatches = [];
 
-  Vibrant.prototype.TARGET_DARK_LUMA = 0.26;
 
-  Vibrant.prototype.MAX_DARK_LUMA = 0.45;
 
-  Vibrant.prototype.MIN_LIGHT_LUMA = 0.55;
-
-  Vibrant.prototype.TARGET_LIGHT_LUMA = 0.74;
-
-  Vibrant.prototype.MIN_NORMAL_LUMA = 0.3;
-
-  Vibrant.prototype.TARGET_NORMAL_LUMA = 0.5;
-
-  Vibrant.prototype.MAX_NORMAL_LUMA = 0.7;
-
-  Vibrant.prototype.TARGET_MUTED_SATURATION = 0.3;
+  //Vibrant.prototype.MAX_DARK_LUMA = 0.45;
+  Vibrant.prototype.MAX_DARK_LUMA = 0.07;
+  Vibrant.prototype.MIN_NORMAL_LUMA = 0.07;
+  Vibrant.prototype.MAX_NORMAL_LUMA = 0.35;
+  Vibrant.prototype.MIN_LIGHT_LUMA = 0.35;
 
   Vibrant.prototype.MAX_MUTED_SATURATION = 0.4;
+  Vibrant.prototype.MIN_VIBRANT_SATURATION = 0.4;
 
-  Vibrant.prototype.TARGET_VIBRANT_SATURATION = 1;
+  Vibrant.prototype.TARGET_DARK_LUMA = 0.0;
+  Vibrant.prototype.TARGET_LIGHT_LUMA = 0.6;
+  Vibrant.prototype.TARGET_NORMAL_LUMA = 0.2;
+  Vibrant.prototype.TARGET_MUTED_SATURATION = 0.4;
+  Vibrant.prototype.TARGET_VIBRANT_SATURATION = 0.8;
 
-  Vibrant.prototype.MIN_VIBRANT_SATURATION = 0.35;
 
-  Vibrant.prototype.WEIGHT_SATURATION = 5;
+  Vibrant.prototype.WEIGHT_SATURATION = 4;
 
-  Vibrant.prototype.WEIGHT_LUMA = 6;
+  Vibrant.prototype.WEIGHT_LUMA = 3;
 
   Vibrant.prototype.WEIGHT_POPULATION = 1;
 
@@ -130,39 +305,58 @@ global.Vibrant = Vibrant = (function() {
 
   Vibrant.prototype.HighestPopulation = 0;
 
+
   function Vibrant(sourceImage, colorCount, quality) {
     this.swatches = bind(this.swatches, this);
-    var a, allPixels, b, cmap, g, i, image, imageData, offset, opts, pallete, pixelCount, pixels, q, r;
+    var a, allPixels, b, cmap, g, i, image, imageData, offset, opts, palette, pixelCount, pixels, q, r;
     if (typeof colorCount === 'undefined') {
       colorCount = 64;
     }
     if (typeof quality === 'undefined') {
       quality = 5;
     }
-    try {
       if (this.rgbquant) {
         opts = {
-          colors: 96,
+          colors: 48,
           method: 2,
-          boxSize: [32, 32],
+          boxSize: [4, 4],
           boxPxls: 2,
-          initColors: 4096,
-          minHueCols: 256,
-          dithKern: null,
-          dithDelta: 0,
-          dithSerp: false,
-          palette: [],
-          reIndex: false,
-          useCache: true,
-          cacheFreq: 10,
-          colorDist: "euclidean"
+          initColors: 4096
         };
         q = new this.rgbquant(opts);
+        q.initDist = 0.15;
+        q.distIncr = 0.2;
+        q.colorDist = function(rgb1, rgb2) {
+          if (rgb1.length == 3) {
+            rgb2lab(rgb1)
+          }
+          if (rgb2.length == 3) {
+            rgb2lab(rgb2)
+          }
+
+          return ciede94(rgb1, rgb2)
+          
+          var sum  = 0;
+
+
+          sum += Math.pow(rgb1[3] - rgb2[3], 2);
+          sum += Math.pow(rgb1[4] - rgb2[4], 2);
+          sum += Math.pow(rgb1[5] - rgb2[5], 2);
+
+          return Math.max(Math.min(Math.sqrt(sum), 100), 0)
+        }
+//        q.method = 1;
+  //      q.sample(sourceImage);
+        q.method = 2;
+
         q.sample(sourceImage);
-        pallete = q.palette(true, true);
-        this._swatches = pallete.slice(0, 64).map((function(_this) {
+        palette = q.palette(true, true);
+
+        //q.sortPal()
+
+        this._swatches = palette.map((function(_this) {
           return function(color, index) {
-            return new Swatch(color, pallete.length - index);
+            return new Swatch(color, palette.length - index);
           };
         })(this));
       } else {
@@ -191,14 +385,11 @@ global.Vibrant = Vibrant = (function() {
             return new Swatch(vbox.color, vbox.vbox.count());
           };
         })(this));
+        image.removeCanvas();
       }
       this.maxPopulation = this.findMaxPopulation();
       this.generateVarationColors();
-    } finally {
-      if (image != null) {
-        image.removeCanvas();
-      }
-    }
+      //this.generateEmptySwatches()
   }
 
   Vibrant.prototype.NotYellow = function(hsl) {
@@ -215,12 +406,16 @@ global.Vibrant = Vibrant = (function() {
       if (i === 1) {
         i = '';
       }
-      this['LightVibrantSwatch' + i] = this.findColorVariation(this.TARGET_LIGHT_LUMA, this.MIN_LIGHT_LUMA, 1, this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION, 1, 'LightVibrantSwatch');
-      this['VibrantSwatch' + i] = this.findColorVariation(this.TARGET_NORMAL_LUMA, this.MIN_NORMAL_LUMA, this.MAX_NORMAL_LUMA, this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION, 1, 'VibrantSwatch', this.NotYellow);
+      this['LightVibrantSwatch' + i] = this.findColorVariation(
+                                          this.TARGET_LIGHT_LUMA, this.MIN_LIGHT_LUMA, 1, 
+                                          this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION, 1, 
+                                          'LightVibrantSwatch');
       this['DarkVibrantSwatch' + i] = this.findColorVariation(this.TARGET_DARK_LUMA, 0, this.MAX_DARK_LUMA, this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION, 1, 'DarkVibrantSwatch', this.NotYellow);
       this['LightMutedSwatch' + i] = this.findColorVariation(this.TARGET_LIGHT_LUMA, this.MIN_LIGHT_LUMA, 1, this.TARGET_MUTED_SATURATION, 0, this.MAX_MUTED_SATURATION, 'LightMutedSwatch');
       this['MutedSwatch' + i] = this.findColorVariation(this.TARGET_NORMAL_LUMA, this.MIN_NORMAL_LUMA, this.MAX_NORMAL_LUMA, this.TARGET_MUTED_SATURATION, 0, this.MAX_MUTED_SATURATION, 'MutedSwatch', this.NotYellow);
       results.push(this['DarkMutedSwatch' + i] = this.findColorVariation(this.TARGET_DARK_LUMA, 0, this.MAX_DARK_LUMA, this.TARGET_MUTED_SATURATION, 0, this.MAX_MUTED_SATURATION, 'DarkMutedSwatch'));
+      this['VibrantSwatch' + i] = this.findColorVariation(this.TARGET_NORMAL_LUMA, this.MIN_NORMAL_LUMA / 2, this.MIN_NORMAL_LUMA / 2 + this.MAX_NORMAL_LUMA, this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION, 1, 'VibrantSwatch', this.NotYellow);
+      
     }
     return results;
   };
@@ -230,20 +425,20 @@ global.Vibrant = Vibrant = (function() {
     results = [];
     for (Target in this) {
       value = this[Target];
-      if (Target.indexOf('Swatch') > -1 && Target.indexOf(3) === -1) {
+      if (Target.indexOf('Swatch') > -1 && Target.indexOf(3) === -1 && Target.indexOf('Vibrant') == -1) {
         if (value == null) {
           if (Target.indexOf('Light') > -1) {
-            lights = ['Dark', 'Regular', 'Light'];
+            lights = ['Regular', 'Dark', 'Light'];
             luma = this.TARGET_LIGHT_LUMA;
           } else if (Target.indexOf('Dark') > -1) {
             lights = ['Regular', 'Light', 'Dark'];
             luma = this.TARGET_DARK_LUMA;
           } else {
-            lights = ['Light', 'Dark', 'Regular'];
+            lights = ['Dark', 'Light', 'Regular'];
             luma = this.TARGET_NORMAL_LUMA;
           }
           if (Target.indexOf('Muted') > -1) {
-            vibrances = ['Vibrant', 'Muted'];
+            vibrances = ['Muted', 'Vibrant'];
             saturation = this.TARGET_MUTED_SATURATION;
           } else {
             vibrances = ['Muted', 'Vibrant'];
@@ -324,7 +519,7 @@ global.Vibrant = Vibrant = (function() {
       swatch = ref[j];
       hue = swatch.getHsl()[0];
       sat = swatch.getHsl()[1];
-      luma = swatch.getHsl()[2];
+      luma = swatch.getLab()[0] / 10;
       if (filter) {
         if (filter.call(this, hue) === false) {
           continue;
@@ -336,16 +531,16 @@ global.Vibrant = Vibrant = (function() {
         if (label) {
           for (name in this) {
             other = this[name];
-            if (other && name.indexOf(label) > -1) {
+            if (other && name.indexOf(label) == 0) {
               total++;
               hueDiff += Math.abs(other.getHsl()[0] - hue);
             }
           }
         }
         if (total) {
-          hueDiff /= total;
+          hueDiff /= (total / 2);
         }
-        value = this.createComparisonValue(sat, targetSaturation, luma, targetLuma, hueDiff, swatch.getPopulation(), this.maxPopulation);
+        value = this.createComparisonValue(swatch.getRgb(), sat, targetSaturation, luma, targetLuma, hueDiff, swatch.getPopulation(), this.maxPopulation);
         if (max === void 0 || value > maxValue) {
           max = swatch;
           maxValue = value;
@@ -358,8 +553,13 @@ global.Vibrant = Vibrant = (function() {
     return max;
   };
 
-  Vibrant.prototype.createComparisonValue = function(saturation, targetSaturation, luma, targetLuma, hueDiff, population, maxPopulation) {
-    return this.weightedMean(this.invertDiff(saturation, targetSaturation), this.WEIGHT_SATURATION, this.invertDiff(luma, targetLuma), this.WEIGHT_LUMA, population / maxPopulation, this.WEIGHT_POPULATION, hueDiff, 1);
+
+  Vibrant.prototype.createComparisonValue = function(rgb, saturation, targetSaturation, luma, targetLuma, hueDiff, population, maxPopulation) {
+    return this.weightedMean(this.invertDiff(saturation, targetSaturation), this.WEIGHT_SATURATION, 
+      this.invertDiff(luma, targetLuma), this.WEIGHT_LUMA, 
+      population / maxPopulation, 
+      this.WEIGHT_POPULATION, hueDiff, 30,
+      isSkin.apply(null, rgb), -20);
   };
 
   Vibrant.prototype.invertDiff = function(value, targetValue) {

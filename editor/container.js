@@ -21,9 +21,9 @@ Editor.Container.onResize = function(editor) {
   if (editor.snapshot)
     editor.snapshot.updateVisibility()
   editor.stylesheet.textContent = '#' + editor.element.$.id + ' section:after{' + 
-    'border-left-width: calc(' + (editor.offsetLeft + 16) + 'px + 1rem); ' +
+    'border-left-width: calc(' + (editor.offsetLeft + 16) + 'px + 1.06rem); ' +
     'left: calc(-' + (editor.offsetLeft + 16) + 'px - 1rem); ' +
-    'border-right-width: calc(' + (window.innerWidth - editor.offsetLeft - editor.offsetWidth) + 'px + 1rem); ' +
+    'border-right-width: calc(' + (window.innerWidth - editor.offsetLeft - editor.offsetWidth) + 'px + 1.06rem); ' +
     'right: calc(-' + (window.innerWidth - editor.offsetLeft - editor.offsetWidth) + 'px - 1rem); ' +
   '}'
   Editor.Chrome.update(editor, true)

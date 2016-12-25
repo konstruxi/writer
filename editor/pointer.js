@@ -1,8 +1,19 @@
+
+
 Editor.Pointer = function(editor, content) {
   delete Hammer.defaults.cssProps.userSelect;
 
   editor.pointer = new Hammer(content, {
+    
+  })
 
+  editor.pointer.on('tap', function(e) {
+    for (var p = e.target; p; p = p.parentNode)
+      if (p.classList) 
+        if (p.classList.contains('zoom')) {
+          var section = Editor.Section.get(p);
+          Editor.Section.toggleSize(section);
+        }
   })
 
   editor.dragging = null;

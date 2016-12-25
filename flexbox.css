@@ -85,6 +85,16 @@ section[pattern="two-images"][index="1"] {
   margin-right: 0;
 }
 
+article > section.small {
+  width: auto;
+  flex-basis: auto;
+  flex-grow: 0;
+  flex-shrink: 1;
+  min-width: 40%;
+  flex-basis: calc(50% - 1rem);
+}
+
+
 
 
 

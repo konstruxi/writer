@@ -137,6 +137,10 @@ Adjust = function(colors) {
 };
 
 Contrast = function(c1, c2) {
+  return ciede2000(c1.getLab().fromRgb, c2.getLab().fromRgb)
+};
+
+RGBContrast = function(c1, c2) {
   var l1 = Luminance(c1);
   var l2 = Luminance(c2);
   if (l1 > l2) {
@@ -144,7 +148,6 @@ Contrast = function(c1, c2) {
   }
   return (l2 + 0.05) / (l1 + 0.05);
 };
-
 Luminance = function(color) {
   var rgba = color.rgb.slice();
 
@@ -165,27 +168,28 @@ YIQ = function(color) {
 };
 
 Row = function(name, bg, text) {
-  var adjusted, b, contrast, t, yiq;
-  contrast = Contrast(bg, text);
+  var b, contrast, t, yiq;
+  contrast = RGBContrast(bg, text);
   t = text.getHsl();
   b = bg.getHsl();
   yiq = YIQ(bg);
-  if (contrast < 4 || (yiq < 100 && contrast < 8)) {
-    if (contrast > 2.6 && yiq > 100) {
-      if (t[2] > b[2]) {
-        adjusted = new Swatch(Vibrant.hslToRgb(t[0], t[1], (b[2] + 0.05) * 7));
-      } else {
-        adjusted = new Swatch(Vibrant.hslToRgb(t[0], t[1], (b[2] + 0.05) / 7));
-      }
-    } else {
+  if (contrast < 7) {
+
       if (yiq < 150) {
-        adjusted = new Swatch([255, 255, 255], 0);
+        var aaa = new Swatch([255, 255, 255], 0);
       } else {
-        adjusted = new Swatch([0, 0, 0], 0);
+        var aaa = new Swatch([0, 0, 0], 0);
       }
-    }
   }
-  return [text, contrast, adjusted];
+  if (contrast < 4) {
+
+      if (yiq < 150) {
+        var aa = new Swatch([255, 255, 255], 0);
+      } else {
+        var aa = new Swatch([0, 0, 0], 0);
+      }
+  }
+  return [text, contrast, aa, aaa];
 };
 
 Matrix = function(swatches) {
@@ -281,12 +285,12 @@ PaletteResult = function(swatches, matrix, luma, saturation, preset) {
     }
     if (property === 'foreground') {
       colors = Find(swatches, order, luma, saturation, result, function(a) {
-        return Contrast(result.background, a) > 1.1;
+        return Contrast(result.background, a) > 0.2;
       }, fallback);
     } else if (property === 'accent') {
       colors = Find(swatches, order, luma, saturation, result, function(a) {
         return Contrast(result.background, a) > 1 &&
-               Contrast(result.foreground, a) > 1.8;
+               Contrast(result.foreground, a) > 2;
       }, function(a, b) {
         return (Contrast(result.background, b) + Contrast(result.foreground, b)) - 
                (Contrast(result.background, a) + Contrast(result.foreground, a))
@@ -301,14 +305,21 @@ PaletteResult = function(swatches, matrix, luma, saturation, preset) {
         color = colors;
       }
       result[property] = color;
-      result[property + 'AAA'] = matrix[color][0][2] || matrix[color][0][0];
-      result[property + 'AA'] = matrix[color][1][2] || matrix[color][1][0];
+
+
+      result[property + 'AAA'] = matrix[color][1][3] || matrix[color][1][2] || matrix[color][1][0];
+      if (YIQ(matrix[color][0][0]) > 50 && YIQ(matrix[color][0][0]) < 800)
+        result[property + 'AA'] = matrix[color][0][2] || matrix[color][0][0];
+      else if (YIQ(matrix[color][1][0]) > 50 && YIQ(matrix[color][1][0]) < 800)
+        result[property + 'AA'] = matrix[color][1][2] || matrix[color][1][0];
+      else
+        result[property + 'AA'] = matrix[color][2][2] || matrix[color][2][0];
     }
   }
   return result;
 };
 
-Space = ("DM+DM DM+LM DV+M  DV+V DV+LV\n"+ 
+global.Space = Space = ("DM+DM DM+LM DV+M  DV+V DV+LV\n"+ 
         "DM+M  M+DM  M+DV  M+V  V+M\n" + 
         "DM+V   M+LV  M+LM  V+DM V+LV\n"+ 
         "LM+V  LM+DM LM+M  LV+M V+V\n"+ 
@@ -453,30 +464,39 @@ Palette.example = function(colors, level) {
 
 CSS = function(prefix) {
   return (
-prefix + " {\n" +
+"body" + prefix + " #formatting," +
+"body" + prefix + " #formatting .cke_button {\n" +
+"  background-color: " + this.foreground + ";\n" +
+"  color: " + this.accent + ";\n" +
+"}\n" +
+"body" + prefix + " #formatting-shadow {\n" +
+"  border-color: " + this.accent + ";\n" +
+"}\n" +
+"body" + prefix + " #formatting .cke_button:hover {\n" +
+"  color: " + this.foreground + ";\n" +
+"  background-color: " + this.accent + ";\n" +
+"}\n" +
+".content section" + prefix + " {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
 "  outline-color: " + this.accent + ";\n" +
 "}\n" +
-prefix + " .toolbar svg {\n" +
+".content section" + prefix + " .toolbar x-panel {\n" +
 "  background-color: " + this.background + ";\n" +
 "  border-color: " + this.background + ";\n" +
-"}\n" +
-prefix + " .toolbar {\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
-prefix + " h1,\n" +
-prefix + " h2,\n" +
-prefix + " h3 {\n" +
-"  color: " + this.foregroundAA + ";\n" +
-"}\n" +
-prefix + " img:before {\n" +
+".content section" + prefix + " .toolbar svg:hover {\n" +
+"  border-color: " + this.accent + ";\n" +
+"  background-color: " + this.accent + ";\n" +
 "  color: " + this.background + ";\n" +
 "}\n" +
-prefix + " img:after {\n" +
-"  color: " + this.foreground + ";\n" +
+".content section" + prefix + " h1,\n" +
+".content section" + prefix + " h2,\n" +
+".content section" + prefix + " h3 {\n" +
+"  color: " + this.foregroundAA + ";\n" +
 "}\n" +
-prefix + " a, " + prefix + ":after {\n" +
+".content section" + prefix + " a, .content section" + prefix + ":after {\n" +
 "  color: " + this.accent + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +

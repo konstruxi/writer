@@ -59,8 +59,8 @@ article > section {
       -ms-flex-direction: column;
           flex-direction: column;
   -webkit-box-flex: 1;
-      -ms-flex: 1 0 100%;
-          flex: 1 0 100%;
+      -ms-flex: 1 1 100%;
+          flex: 1 1 100%;
   width: 100%;
 }
 
@@ -94,6 +94,26 @@ article > section.small {
   flex-basis: calc(50% - 1rem);
 }
 
+
+article > section.large {
+  flex-basis: calc(100vw - 2rem);
+  left: calc(50% - 50vw + 1rem)
+}
+
+article > section > p,
+article > section > h1,
+article > section > h2,
+article > section > h3,
+article > section > blockquote,
+article > section > ul,
+article > section > ol {
+  max-width: calc(800px - 2rem);
+  width: 100%;
+}
+article > section > * {
+  margin-left: auto;
+  margin-right: auto;
+}
 
 
 

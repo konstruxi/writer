@@ -65,14 +65,17 @@ Editor.Chrome.Toolbar = function(editor, section) {
     toolbar.innerHTML = 
                 '<x-toolbar>' +
                 '<x-panel class="top">' +
-                '<svg viewBox="-1 2 50 50" class="pick palette icon"><use xlink:href="#palette-icon"></use></svg>' +
-                '<svg viewBox="-1 2 50 50" class="pick settings icon"><use xlink:href="#settings-icon"></use></svg>' +
-                '</x-panel>' +
-                '<x-panel class="bottom">' +
-                '<svg viewBox="-4 2 48 48" class="shrink zoomer icon"><use xlink:href="#zoom-out-icon"></use></svg>' +
+                '<svg viewBox="-2 0 48 48" class="star icon"><use xlink:href="#star-icon"></use></svg>' +
+                '</x-panel>' + 
+                '<x-panel class="middle">' +
+                '<svg viewBox="-1 0 50 50" class="pick palette icon"><use xlink:href="#palette-icon"></use></svg>' +
                 '<svg viewBox="0 0 48 48" class="resize handler icon"><use xlink:href="#resize-section-icon"></use></svg>' +
                 '<svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>' +
-                '<svg viewBox="-4 2 48 48" class="enlarge zoomer icon"><use xlink:href="#zoom-in-icon"></use></svg>' +
+                '<svg viewBox="-1 0 50 50" class="pick settings icon"><use xlink:href="#settings-icon"></use></svg>' +
+                '</x-panel>' +
+                '<x-panel class="bottom">' +
+                '<svg viewBox="-2 2 48 48" class="shrink zoomer icon"><use xlink:href="#zoom-out-icon"></use></svg>' +
+                '<svg viewBox="-2 2 48 48" class="enlarge zoomer icon"><use xlink:href="#zoom-in-icon"></use></svg>' +
                 '</x-panel>' + 
                 '</x-toolbar>'
     section.insertBefore(toolbar, section.firstChild)

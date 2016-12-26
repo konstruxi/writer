@@ -2,14 +2,13 @@ div.picker {
   position: absolute;
   z-index: 22;
   white-space: nowrap;
-  top: -2.25rem;
+  top: -2.35rem;
 }
 
 #formatting div.picker svg {
   margin: -1px;
   height: 38px;
   width: 38px;
-  opacity: 0.6;
 }
 /*body:not(.dragging) #formatting * {
   transition: fill 0.3s, background-color 0.3s;
@@ -84,9 +83,6 @@ body.dragging .picker li {
   background: none;
 }
 
-#formatting .objects svg {
-  opacity: 0.6;
-}
 #formatting .metas {
   z-index: 22;
   background: none;
@@ -111,9 +107,6 @@ body.dragging .picker li {
   color: #000;
 }
 
-#formatting .metas svg {
-  opacity: 0.6;
-}
 #formatting .objects.open .cke_button{
   display: block !important;
 }
@@ -183,7 +176,7 @@ section:hover {
 
 .content section > .toolbar {
   position: absolute;
-  top: -1.275rem;
+  top: -1.44rem;
   left: 0;
   width: 100%;
   height: 2rem;
@@ -215,38 +208,58 @@ section .toolbar .handle {
 x-toolbar x-panel.top {
   visibility: hidden;
 }
-x-toolbar x-panel.bottom {
+x-toolbar x-panel.middle,
+x-toolbar x-panel.top {
   width: 2.4rem;
   margin: 0 auto;
 }
 x-toolbar:hover x-panel.top {
   visibility: visible;
 }
-x-toolbar:hover x-panel.bottom {
+x-toolbar:hover x-panel.middle {
   width: auto;
+}
+.content section x-toolbar x-panel.bottom {
+  display: none;
+}
+.content section x-toolbar:hover x-panel.bottom {
+  display: block;
+  height: auto;
+  border-radius: 50%;
 }
 
 .content section x-panel {
   display: block;
-  border-radius: 1.25rem 1.25rem 0 0;
   height: 1.85rem;
-  overflow: hidden;
 }
-.content section x-panel:hover {
+.content section x-panel svg:hover {
   overflow: visible;
   position: relative;;
-  z-index: 1;
+  z-index: 200;
 }
 .content x-panel.top {
-  width: 4.8rem;
-  margin: -2.64rem auto 0;
+  width: 4.5rem;
+  margin: -2.4rem auto 0;
+}
+.content .toolbar .pick {
+  position: relative;
+  top: -0.34rem;
 }
 
-.content section .toolbar x-toolbar:hover x-panel {
+.content .toolbar .bottom svg + svg {
+  margin-left: -0.07rem;
 }
-.toolbar  x-panel{
-  background-color: #fff;
 
+
+.content .toolbar .settings{
+  margin-left: -0.45rem;
+}
+.content .toolbar .palette  {
+  margin-right: -0.45rem;
+}
+
+.toolbar  x-toolbar:not(:hover) x-panel{
+  overflow: hidden;
 }
 section .toolbar svg {
   display: inline-block;
@@ -257,15 +270,20 @@ section .toolbar svg {
   border-radius: 50%;
   border: 0.2rem solid transparent;
 }
+section .toolbar .enlarge {
+  background: inherit
+}
 .toolbar svg.handler {
   background-color: inherit;
 }
 
-section .toolbar .zoomer, section .toolbar .palette {
+section .toolbar svg {
   display: none;
 }
-section .toolbar x-toolbar:hover .zoomer, 
-section .toolbar x-toolbar:hover .palette {
+section .toolbar svg.resize {
+  display: inline-block;
+}
+section .toolbar x-toolbar:hover svg {
   display: inline-block;
 }
 section .toolbar svg.palette {
@@ -274,7 +292,6 @@ section .toolbar svg.palette {
 section .toolbar svg{
   fill: currentColor;
 }
-
 section .toolbar svg.split {
   display: none;
 }

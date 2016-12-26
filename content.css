@@ -83,6 +83,14 @@ body,html {
   visibility: hidden;
 }
 
+.content ul, .content ol, .content blockquote {
+  padding-left: 2rem;
+}
+
+.content picture {
+  width: 100%;
+}
+
 .content > a {
   display: block;
 }

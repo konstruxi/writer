@@ -203,6 +203,9 @@ function ciede2000(c1, c2) {
 var CanvasImage, Swatch, Vibrant,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   slice = [].slice;
+var YIQ = function(color) {
+  return (color.rgb[0] * 299 + color.rgb[1] * 587 + color.rgb[2] * 114) / 1000;
+};
 
 global.Swatch = Swatch = (function() {
   Swatch.prototype.hsl = void 0;
@@ -272,11 +275,11 @@ global.Vibrant = Vibrant = (function() {
   //Vibrant.prototype.MAX_DARK_LUMA = 0.45;
   Vibrant.prototype.MAX_DARK_LUMA = 0.07;
   Vibrant.prototype.MIN_NORMAL_LUMA = 0.07;
-  Vibrant.prototype.MAX_NORMAL_LUMA = 0.35;
-  Vibrant.prototype.MIN_LIGHT_LUMA = 0.35;
+  Vibrant.prototype.MAX_NORMAL_LUMA = 0.45;
+  Vibrant.prototype.MIN_LIGHT_LUMA = 0.45;
 
-  Vibrant.prototype.MAX_MUTED_SATURATION = 0.4;
-  Vibrant.prototype.MIN_VIBRANT_SATURATION = 0.4;
+  Vibrant.prototype.MAX_MUTED_SATURATION = 0.45;
+  Vibrant.prototype.MIN_VIBRANT_SATURATION = 0.45;
 
   Vibrant.prototype.TARGET_DARK_LUMA = 0.0;
   Vibrant.prototype.TARGET_LIGHT_LUMA = 0.6;
@@ -285,7 +288,7 @@ global.Vibrant = Vibrant = (function() {
   Vibrant.prototype.TARGET_VIBRANT_SATURATION = 0.8;
 
 
-  Vibrant.prototype.WEIGHT_SATURATION = 4;
+  Vibrant.prototype.WEIGHT_SATURATION = 7;
 
   Vibrant.prototype.WEIGHT_LUMA = 3;
 
@@ -317,7 +320,7 @@ global.Vibrant = Vibrant = (function() {
     }
       if (this.rgbquant) {
         opts = {
-          colors: 48,
+          colors: 80,
           method: 2,
           boxSize: [4, 4],
           boxPxls: 2,
@@ -389,7 +392,7 @@ global.Vibrant = Vibrant = (function() {
       }
       this.maxPopulation = this.findMaxPopulation();
       this.generateVarationColors();
-      //this.generateEmptySwatches()
+      this.generateEmptySwatches()
   }
 
   Vibrant.prototype.NotYellow = function(hsl) {
@@ -400,8 +403,7 @@ global.Vibrant = Vibrant = (function() {
   };
 
   Vibrant.prototype.generateVarationColors = function() {
-    var i, j, results;
-    results = [];
+    var i, j;
     for (i = j = 1; j < 4; i = ++j) {
       if (i === 1) {
         i = '';
@@ -410,38 +412,41 @@ global.Vibrant = Vibrant = (function() {
                                           this.TARGET_LIGHT_LUMA, this.MIN_LIGHT_LUMA, 1, 
                                           this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION, 1, 
                                           'LightVibrantSwatch');
-      this['DarkVibrantSwatch' + i] = this.findColorVariation(this.TARGET_DARK_LUMA, 0, this.MAX_DARK_LUMA, this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION, 1, 'DarkVibrantSwatch', this.NotYellow);
+      this['MutedSwatch' + i] = this.findColorVariation(this.TARGET_NORMAL_LUMA, this.MIN_NORMAL_LUMA, this.MAX_NORMAL_LUMA, 
+                                           this.TARGET_MUTED_SATURATION, 0, this.MAX_MUTED_SATURATION - 0.1, 'MutedSwatch');
+      this['DarkMutedSwatch' + i] = this.findColorVariation(this.TARGET_DARK_LUMA, 0, this.MAX_DARK_LUMA, this.TARGET_MUTED_SATURATION, 0, this.MAX_MUTED_SATURATION, 'DarkMutedSwatch');
+      this['DarkVibrantSwatch' + i] = this.findColorVariation(this.TARGET_DARK_LUMA, 0.02, this.MAX_DARK_LUMA, this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION, 1, 'DarkVibrantSwatch');
       this['LightMutedSwatch' + i] = this.findColorVariation(this.TARGET_LIGHT_LUMA, this.MIN_LIGHT_LUMA, 1, this.TARGET_MUTED_SATURATION, 0, this.MAX_MUTED_SATURATION, 'LightMutedSwatch');
-      this['MutedSwatch' + i] = this.findColorVariation(this.TARGET_NORMAL_LUMA, this.MIN_NORMAL_LUMA, this.MAX_NORMAL_LUMA, this.TARGET_MUTED_SATURATION, 0, this.MAX_MUTED_SATURATION, 'MutedSwatch', this.NotYellow);
-      results.push(this['DarkMutedSwatch' + i] = this.findColorVariation(this.TARGET_DARK_LUMA, 0, this.MAX_DARK_LUMA, this.TARGET_MUTED_SATURATION, 0, this.MAX_MUTED_SATURATION, 'DarkMutedSwatch'));
-      this['VibrantSwatch' + i] = this.findColorVariation(this.TARGET_NORMAL_LUMA, this.MIN_NORMAL_LUMA / 2, this.MIN_NORMAL_LUMA / 2 + this.MAX_NORMAL_LUMA, this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION, 1, 'VibrantSwatch', this.NotYellow);
+      this['VibrantSwatch' + i] = this.findColorVariation(this.TARGET_NORMAL_LUMA, this.MIN_NORMAL_LUMA / 1.5, this.MIN_NORMAL_LUMA / 3 + this.MAX_NORMAL_LUMA, this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION + 0.15, 1, 'VibrantSwatch')
+                              ||  this.findColorVariation(this.TARGET_NORMAL_LUMA, this.MIN_NORMAL_LUMA / 1.5, this.MIN_NORMAL_LUMA / 3 + this.MAX_NORMAL_LUMA, this.TARGET_VIBRANT_SATURATION, this.MIN_VIBRANT_SATURATION, 1, 'VibrantSwatch')
       
     }
-    return results;
   };
 
   Vibrant.prototype.generateEmptySwatches = function() {
-    var Source, Target, hsl, light, lights, luma, number, numbers, results, saturation, value, vibrance, vibrances;
-    results = [];
+    var Source, Target, hsl, light, lights, luma, number, numbers, saturation, value, vibrance, vibrances;
     for (Target in this) {
       value = this[Target];
-      if (Target.indexOf('Swatch') > -1 && Target.indexOf(3) === -1 && Target.indexOf('Vibrant') == -1) {
+      if (Target.indexOf('Swatch') > -1 && Target.indexOf(3) === -1) {
         if (value == null) {
           if (Target.indexOf('Light') > -1) {
             lights = ['Regular', 'Dark', 'Light'];
             luma = this.TARGET_LIGHT_LUMA;
           } else if (Target.indexOf('Dark') > -1) {
             lights = ['Regular', 'Light', 'Dark'];
-            luma = this.TARGET_DARK_LUMA;
+            luma = 0.15;
           } else {
-            lights = ['Dark', 'Light', 'Regular'];
-            luma = this.TARGET_NORMAL_LUMA;
+            lights = ['Light', 'Dark', 'Regular'];
+            luma = 0.6;
           }
           if (Target.indexOf('Muted') > -1) {
-            vibrances = ['Muted', 'Vibrant'];
+            if (Target.indexOf('Dark') > -1 || Target.indexOf('Light') > -1) 
+              vibrances = ['Vibrant', 'Muted'];
+            else
+              vibrances = ['Muted', 'Vibrant']
             saturation = this.TARGET_MUTED_SATURATION;
           } else {
-            vibrances = ['Muted', 'Vibrant'];
+            vibrances = ['Vibrant'];
             saturation = this.TARGET_VIBRANT_SATURATION;
           }
           if (Target.indexOf('2') > -1) {
@@ -449,54 +454,39 @@ global.Vibrant = Vibrant = (function() {
           } else {
             numbers = [1, 2];
           }
-          results.push((function() {
-            var j, len, results1;
-            results1 = [];
-            for (j = 0, len = numbers.length; j < len; j++) {
-              number = numbers[j];
-              results1.push((function() {
-                var k, len1, results2;
-                results2 = [];
-                for (k = 0, len1 = lights.length; k < len1; k++) {
-                  light = lights[k];
-                  results2.push((function() {
-                    var len2, m, ref, results3;
-                    results3 = [];
-                    for (m = 0, len2 = vibrances.length; m < len2; m++) {
-                      vibrance = vibrances[m];
-                      Source = (light !== 'Regular' && light || '') + (vibrance + 'Swatch') + (number === 2 && '2' || '');
-                      if (this[Source]) {
-                        hsl = (ref = this[Source].getHsl()) != null ? ref.slice() : void 0;
-                        if (light === 'Regular') {
-                          if (Target.match(/Light|Dark/)) {
-                            hsl[2] = luma;
-                          }
-                        } else if (Target.indexOf(light) === -1) {
-                          hsl[2] = luma;
-                        }
-                        hsl[1] = saturation;
-                        this[Target] = new Swatch(Vibrant.hslToRgb(hsl[0], hsl[1], hsl[2]), 0);
-                        break;
-                      } else {
-                        results3.push(void 0);
-                      }
+          var j, len ;
+          swatches: for (j = 0, len = numbers.length; j < len; j++) {
+            number = numbers[j];
+            var k, len1;
+            for (k = 0, len1 = lights.length; k < len1; k++) {
+              light = lights[k];
+              var len2, m, ref;
+              for (m = 0, len2 = vibrances.length; m < len2; m++) {
+                vibrance = vibrances[m];
+                Source = (light !== 'Regular' && light || '') + (vibrance + 'Swatch') + (number === 2 && '2' || '');
+                if (this[Source] && YIQ(this[Source]) > 100) {
+                  hsl = (ref = this[Source].getHsl()) != null ? ref.slice() : void 0;
+                  if (light === 'Regular') {
+                    if (Target.match(/Light|Dark/)) {
+                      hsl[2] = luma;
                     }
-                    return results3;
-                  }).call(this));
+                  } else if (Target.indexOf(light) === -1) {
+                    hsl[2] = luma;
+                  }
+                  hsl[1] = saturation;
+                  var composed = new Swatch(Vibrant.hslToRgb(hsl[0], hsl[1], hsl[2]), 0);
+                  if (Target.indexOf('2') > -1)
+                    if (ciede94(composed.getLab().fromRgb, this[Target.replace('2', '')].getLab().fromRgb) < 0.3)
+                      continue
+                  this[Target] = composed;
+                  break swatches;
                 }
-                return results2;
-              }).call(this));
+              }
             }
-            return results1;
-          }).call(this));
-        } else {
-          results.push(void 0);
+          }
         }
-      } else {
-        results.push(void 0);
       }
     }
-    return results;
   };
 
   Vibrant.prototype.findMaxPopulation = function() {
@@ -519,7 +509,7 @@ global.Vibrant = Vibrant = (function() {
       swatch = ref[j];
       hue = swatch.getHsl()[0];
       sat = swatch.getHsl()[1];
-      luma = swatch.getLab()[0] / 10;
+      luma = swatch.getLab()[0] / 8;
       if (filter) {
         if (filter.call(this, hue) === false) {
           continue;
@@ -533,12 +523,9 @@ global.Vibrant = Vibrant = (function() {
             other = this[name];
             if (other && name.indexOf(label) == 0) {
               total++;
-              hueDiff += Math.abs(other.getHsl()[0] - hue);
+              hueDiff += Math.abs(other.getHsl()[0] - hue) % 0.5;
             }
           }
-        }
-        if (total) {
-          hueDiff /= (total / 2);
         }
         value = this.createComparisonValue(swatch.getRgb(), sat, targetSaturation, luma, targetLuma, hueDiff, swatch.getPopulation(), this.maxPopulation);
         if (max === void 0 || value > maxValue) {
@@ -557,9 +544,9 @@ global.Vibrant = Vibrant = (function() {
   Vibrant.prototype.createComparisonValue = function(rgb, saturation, targetSaturation, luma, targetLuma, hueDiff, population, maxPopulation) {
     return this.weightedMean(this.invertDiff(saturation, targetSaturation), this.WEIGHT_SATURATION, 
       this.invertDiff(luma, targetLuma), this.WEIGHT_LUMA, 
-      population / maxPopulation, 
-      this.WEIGHT_POPULATION, hueDiff, 30,
-      isSkin.apply(null, rgb), -20);
+      population / maxPopulation, this.WEIGHT_POPULATION, 
+      hueDiff, 55,
+      isSkin.apply(null, rgb), -5);
   };
 
   Vibrant.prototype.invertDiff = function(value, targetValue) {

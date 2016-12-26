@@ -25,9 +25,18 @@ Editor.Section = function(editor, mutation, observer) {
   editor.fire( 'unlockSnapshot' );
 }
 
-Editor.Section.toggleSize = function(section) {
+Editor.Section.enlarge = function(editor, section) {
+  
   if (section.classList.contains('small'))
     section.classList.remove('small')
+  else
+    section.classList.add('large')
+  Editor.Section(editor)
+}
+
+Editor.Section.shrink = function(editor, section) {
+  if (section.classList.contains('large'))
+    section.classList.remove('large')
   else
     section.classList.add('small')
   Editor.Section(editor)
@@ -145,6 +154,9 @@ Editor.Section.analyze = function(node) {
         var img = child.getElementsByTagName('img')[0]
         if (img) {
           tags.push('has-image', 'has-palette-' + img.getAttribute('uid'))
+          if (img.width) {
+            node.style.flexBasis = 'calc(2em + ' + img.naturalWidth + 'px)'
+          }
         } else if (child.textContent.length) {
           texts += child.textContent.length;
           tags.push('has-text')
@@ -153,7 +165,9 @@ Editor.Section.analyze = function(node) {
 
       case 'IMG': 
         tags.push('has-image', 'has-palette-' + child.getAttribute('uid'))
-
+        if (child.width) {
+          node.style.flexBasis = 'calc(-2em + ' + node.naturalWidth + 'px)'
+        }
 
 
     }

@@ -97,7 +97,7 @@ Editor.Selection = function(editor, content) {
 Editor.Selection.moveToParagraphAfter = function(editor, range) {
 
    if (!range) range = editor.getSelection().getRanges()[0]
-  var ascender = range.startContainer.getAscendant('picture', true);
+  var ascender = range.startContainer.getAscendant('picture', true) || range.startContainer;
   ascender = ascender.getAscendant('a') || ascender;
 
   var paragraph = new CKEDITOR.dom.element('p')
@@ -121,7 +121,7 @@ Editor.Selection.moveToNextParagraph = function(editor, range) {
 Editor.Selection.moveToEditablePlace = function(editor, range) {
  if (!range) range = editor.getSelection().getRanges()[0]
   // if typing within picture, move cursor to newly created paragraph next
-  if (range.startContainer.getAscendant('picture', true)) {
+  if (range.startContainer.getAscendant('picture', true) || Editor.Content.isPicture(range.startContainer.$)) {
     return Editor.Selection.moveToParagraphAfter(editor, range)
   // if pasting within block-level content, move cursor after
   } else {

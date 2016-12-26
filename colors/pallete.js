@@ -181,7 +181,7 @@ Row = function(name, bg, text) {
         var aaa = new Swatch([0, 0, 0], 0);
       }
   }
-  if (contrast < 4) {
+  if (contrast < 2.5) {
 
       if (yiq < 150) {
         var aa = new Swatch([255, 255, 255], 0);
@@ -285,12 +285,12 @@ PaletteResult = function(swatches, matrix, luma, saturation, preset) {
     }
     if (property === 'foreground') {
       colors = Find(swatches, order, luma, saturation, result, function(a) {
-        return Contrast(result.background, a) > 0.2;
+        return RGBContrast(result.background, a) > 1.4;
       }, fallback);
     } else if (property === 'accent') {
       colors = Find(swatches, order, luma, saturation, result, function(a) {
-        return Contrast(result.background, a) > 1 &&
-               Contrast(result.foreground, a) > 2;
+        return RGBContrast(result.background, a) > 1.1 &&
+               RGBContrast(result.foreground, a) > 1.4;
       }, function(a, b) {
         return (Contrast(result.background, b) + Contrast(result.foreground, b)) - 
                (Contrast(result.background, a) + Contrast(result.foreground, a))
@@ -481,7 +481,7 @@ CSS = function(prefix) {
 "  color: " + this.foregroundAAA + ";\n" +
 "  outline-color: " + this.accent + ";\n" +
 "}\n" +
-".content section" + prefix + " .toolbar x-panel {\n" +
+".content section" + prefix + " .toolbar svg {\n" +
 "  background-color: " + this.background + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  color: " + this.accent + ";\n" +

@@ -10,9 +10,16 @@ Editor.Pointer = function(editor, content) {
   editor.pointer.on('tap', function(e) {
     for (var p = e.target; p; p = p.parentNode)
       if (p.classList) 
-        if (p.classList.contains('zoom')) {
+        if (p.classList.contains('enlarge')) {
           var section = Editor.Section.get(p);
-          Editor.Section.toggleSize(section);
+          Editor.Section.enlarge(editor, section);
+          e.preventDefault()
+          return
+        } else if (p.classList.contains('shrink')) {
+          var section = Editor.Section.get(p);
+          Editor.Section.shrink(editor, section);
+          e.preventDefault()
+          return
         }
   })
 

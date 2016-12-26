@@ -119,10 +119,21 @@ Editor.Commands.Link = function (editor, url) {
   }
 
   var text = selection.getSelectedText();
-  var iterator = selection.getRanges()[0].createIterator()
-  var paragraph = iterator.getNextParagraph();
-  if (paragraph && !text)
-    var img = paragraph.$.getElementsByTagName('img')[0]
+  var start = selection.getStartElement()
+  if (!text) {
+    if (start.$.tagName == 'IMG') {
+      var img = start.$;
+    } else if (Editor.Content.isPicture(start.$)) {
+      var img = start.$.getElementsByTagName('img')[0]
+    }
+    if (!img) {
+      var iterator = selection.getRanges()[0].createIterator()
+      var paragraph = iterator.getNextParagraph();
+      if (paragraph)
+        var img = paragraph.$.getElementsByTagName('img')[0] 
+    }
+  }
+
 
   if ( !element || element.getName() != 'a') {
     if (!url)
@@ -154,8 +165,10 @@ Editor.Commands.Link = function (editor, url) {
     } else if (!text) {
       text = url.split('://')[1];
     }
-    if (text)
+    if (text && !img)
       element.$.textContent = text
+    else 
+      element.$.appendChild(img.parentNode)
     element.setAttribute("target","_blank")
     if (!deferred)
       editor.insertElement(element)

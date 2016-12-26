@@ -142,15 +142,22 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
     var spring = to[springName] = from[springName];
     from[springName] = undefined
   } else if (from[property] != to[property]) {
-    if (property == 'width' || property == 'height') {
+    if (property == 'height') {
       if (element.classList.contains('added'))
         var spring = to[springName] = new Spring(30, 12);
       else
-        var spring = to[springName] = new Spring(74, 7);
+        var spring = to[springName] = new Spring(74, 9);
+    } else if (property == 'height') {
+      if (element.classList.contains('added'))
+        var spring = to[springName] = new Spring(30, 15);
+      else
+        var spring = to[springName] = new Spring(74, 22);
     } else if (property == 'fontSize') {
       var spring = to[springName] = new Spring(20, 8);
+    } else if (property == 'top') {
+      var spring = to[springName] = new Spring(20, 6);
     } else {
-      var spring = to[springName] = new Spring(20, 5);
+      var spring = to[springName] = new Spring(80, 22);
     }
   }
   if (spring) {

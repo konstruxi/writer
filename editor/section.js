@@ -154,9 +154,6 @@ Editor.Section.analyze = function(node) {
         var img = child.getElementsByTagName('img')[0]
         if (img) {
           tags.push('has-image', 'has-palette-' + img.getAttribute('uid'))
-          if (img.width) {
-            node.style.flexBasis = 'calc(2em + ' + img.naturalWidth + 'px)'
-          }
         } else if (child.textContent.length) {
           texts += child.textContent.length;
           tags.push('has-text')
@@ -165,9 +162,6 @@ Editor.Section.analyze = function(node) {
 
       case 'IMG': 
         tags.push('has-image', 'has-palette-' + child.getAttribute('uid'))
-        if (child.width) {
-          node.style.flexBasis = 'calc(-2em + ' + node.naturalWidth + 'px)'
-        }
 
 
     }

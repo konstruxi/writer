@@ -477,9 +477,8 @@ CSS = function(prefix) {
 "  background-color: " + this.accent + ";\n" +
 "}\n" +
 ".content section" + prefix + " {\n" +
-"  background-color: " + this.foreground + ";\n" +
+"  background-color: " + this.background + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
-"  outline-color: " + this.accent + ";\n" +
 "}\n" +
 ".content section" + prefix + " .toolbar svg {\n" +
 "  background-color: " + this.background + ";\n" +
@@ -496,10 +495,14 @@ CSS = function(prefix) {
 ".content section" + prefix + " h3 {\n" +
 "  color: " + this.foregroundAA + ";\n" +
 "}\n" +
-".content section" + prefix + " a, .content section" + prefix + ":after {\n" +
+".content section" + prefix + " a {\n" +
 "  color: " + this.accent + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
+"}\n" +
+".content section" + prefix + ":after {\n" +
+"  background-color: " + this.foreground + ";\n" +
+"  outline-color: " + this.accent + ";\n" +
 "}")
 };
 

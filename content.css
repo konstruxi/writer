@@ -1,7 +1,5 @@
 @charset "UTF-8";
-body {
-  max-width: 800px;
-}
+
 
 body,html {
   padding: 0;
@@ -10,7 +8,7 @@ body,html {
 
 
 .content {
-  padding: 2rem 1rem;
+  padding: 4rem 0 2rem 0;
   box-sizing: border-box;
   transition: filter 0.6s;
 }
@@ -28,7 +26,6 @@ body,html {
 }*/
 
 .content section, .matrix section {
-  padding: 1em;
   background: #fafafa;
 }
 
@@ -38,6 +35,7 @@ body,html {
   max-width: 100%;
   position: relative;
   vertical-align: top;
+  margin: 0 auto;
 }
 
 .content picture.avatar {
@@ -51,17 +49,22 @@ body,html {
 
 .content picture img {
   max-width: 100%;
+  margin: 0 auto;
   height: auto !important;
 }
-/*
 .content picture:not(.processed) img {
   height: auto !important;
   width: 100%;
   max-width: 100%;
 }
+.content section[pattern*="two-"] picture.processed {
+  padding-top: 100%;
+}
+.content section[pattern*="two-"] picture.processed img {
+  position: absolute;;
+}
 
 .content section[pattern*="two-"] picture:not(.processed) img {
-
   min-height: 100%;
   min-width: 100%;
   max-height: 150%;
@@ -71,7 +74,7 @@ body,html {
 }
 .content section[pattern*="two-"] picture img{
   max-width: 400%;
-}*/
+}
 
 .content picture.added.loading {
   height: 2rem;
@@ -92,6 +95,7 @@ body,html {
 }
 
 .content > a {
+  max-width: 100%;
   display: block;
 }
 
@@ -114,11 +118,9 @@ body,html {
   position: absolute;
   background: rgba(0,50,0,0.5);
 }
-.content section {
-  margin-top: 2rem;
-}
 
 section {
+  padding: 3rem 2rem;
   position: relative;
 }
 
@@ -139,7 +141,6 @@ section[pattern="two-images"][index="0"]:before {
   left: 100%;
   margin-left: 6px;
 }
-
 section[pattern="two-images"][index="1"]:before {
   left: 0;
   margin-left: -19px;
@@ -165,15 +166,15 @@ section.forced:after {
 }
 .content h1 {
   font-size: 2em;
-  margin: 0;
+  margin: 0 auto;
 }
 .content h2 {
   font-size: 1.5em;
-  margin: 0;
+  margin: 0 auto;
 }
 .content h3 {
   font-size: 1.25em;
-  margin: 0;
+  margin: 0 auto;
 }
 .content p {
   margin-top: 0;
@@ -226,8 +227,11 @@ section > a + * {
   top: -50px;
   pointer-events: none;
 }
-section.focused, section.focused:hover {
+section.focused:after, section.focused:hover:after {
   outline: 1px solid #aaa;
+}
+section:hover:after {
+  outline: 1px solid #ccc;
 }
 
 section.clone {
@@ -301,42 +305,76 @@ section:first-child:not([pattern*=two]) {
 }
 
 section[pattern="one-quote"] {
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
   font-size: 1.5em;
 }
 
+section[pattern="one-quote"] > *:not(.toolbar) {
+  max-width: 500px;
+}
 
-section[pattern="two-images"][index="0"]:after {
-  right: -1rem !important;
-  border-right-width: 1rem !important;
-}
-section[pattern="two-images"][index="1"]:after {
-  left: -1rem !important;
-  border-left-width: 1rem !important;
-}
-section[index="0"], section:not([index]) {
-  clear: both;
-}
 
 .content section:after {
   content: '';
   pointer-events: none;
   z-index: -1;
   position: absolute;
+  transition: max-width 0.2s, left 0.6s;
 
 
-  top: -1rem;
-  bottom: -1rem;
-  left: -1rem;
-  right: -1rem;
-  border: 1.06rem solid transparent;
-  transition: border-left-width 0.3s, border-right-width 0.3s;
+  top: 2rem;
+  bottom: 2rem;
+  max-width: calc(800px + 2rem);
+  left: calc(50% - 400px - 1rem);
+  right: 1rem;
+  z-index: 0;
+}
+
+.content section.small:after {
+  max-width: 400px;
+  left: calc(50% - 200px);
+}
+
+.content section[pattern*="two-"][index="0"]:after {
+  left: calc(100% - 400px - 1rem);
+}
+.content section[pattern*="two-"][index="1"]:after {
+  left: 1rem;
+}
+
+.content section > * {
+  position: relative;
+  z-index: 1;
 }
 
 
 .content .was-moving {
   will-change: transform;
   transform: translateZ(0);
+}
+
+
+
+article > section > *:not(a):not(picture) {
+  max-width: 800px;
+  width: 100%;
+}
+article > section > * {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+article.content > section.small > * {
+  width: calc(400px - 2rem);
+}
+article > section:not(.large):not(.small) > picture,
+article > section:not(.large):not(.small) > a {
+  width: 800px;
+}
+
+@media (max-width: 830px) {
+
+  article > section:not(.large):not(.small) > picture,
+  article > section:not(.large):not(.small) > a {
+    width: 100%;
+  }
 }

@@ -125,6 +125,7 @@ Editor.Chrome.update = function(editor, force) {
     var indexS = editor.snapshot.elements.indexOf(startSection);
     if (index > -1 && indexS > -1) {
       var offsetHeight = editor.snapshot.dimensions[index].height;
+      var sectionOffsetWidth = editor.snapshot.dimensions[indexS].width;
       var sectionOffsetTop = editor.snapshot.dimensions[indexS].top;
       var offsetTop = editor.snapshot.dimensions[index].top + editor.offsetTop;
       var offsetLeft = editor.snapshot.dimensions[indexS].left + editor.offsetLeft;
@@ -134,6 +135,7 @@ Editor.Chrome.update = function(editor, force) {
   // place at currently selected element mid-point
   } else {
     var offsetHeight = start.offsetHeight
+    var sectionOffsetWidth = startSection.offsetWidth
     var offsetTop = 0;
     var offsetLeft = 0;
     var sectionOffsetTop = 0;
@@ -199,15 +201,12 @@ Editor.Chrome.update = function(editor, force) {
                             Math.min( offsetTop + offsetHeight,
                               Math.max(editor.scrollY + 54, offsetTop + offsetHeight / 2)))) + 'px';
 
-  var left = offsetLeft + 'px';
+  var width = startSection.classList.contains('small') ? 400 : 800;
+  var left = offsetLeft + Math.ceil((editor.offsetWidth - Math.min(window.innerWidth, width)) / 2) + 'px';
   
-  window['formatting-shadow'].style.display =
   formatting.style.display = 'block';
-  window['formatting-shadow'].style.position =
   formatting.style.position  = 'absolute' 
-  window['formatting-shadow'].style.left =
   formatting.style.left = left;
-  window['formatting-shadow'].style.top =
   formatting.style.top = top;
 
   //if (force && button == editor.currentButton) return;

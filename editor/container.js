@@ -8,11 +8,11 @@ Editor.Container = function(editor) {
   editor.on('contentDom', function() {
     Editor.Container.measure(editor);
   })
-  Editor.Container.onResize(editor)
+  Editor.Container.onResize(editor, true)
   Editor.Container.onScroll(editor)
 }
 
-Editor.Container.onResize = function(editor) {
+Editor.Container.onResize = function(editor, soft) {
   if (!editor.stylesheet) {
     editor.stylesheet = document.createElement('style');
     document.body.appendChild(editor.stylesheet)
@@ -20,13 +20,10 @@ Editor.Container.onResize = function(editor) {
   Editor.Container.measure(editor)
   if (editor.snapshot)
     editor.snapshot.updateVisibility()
-  editor.stylesheet.textContent = '#' + editor.element.$.id + ' section:after{' + 
-    'border-left-width: calc(' + (editor.offsetLeft + 16) + 'px + 1.06rem); ' +
-    'left: calc(-' + (editor.offsetLeft + 16) + 'px - 1rem); ' +
-    'border-right-width: calc(' + (window.innerWidth - editor.offsetLeft - editor.offsetWidth) + 'px + 1.06rem); ' +
-    'right: calc(-' + (window.innerWidth - editor.offsetLeft - editor.offsetWidth) + 'px - 1rem); ' +
-  '}'
   Editor.Chrome.update(editor, true)
+  if (!soft) {
+    editor.snapshot = editor.snapshot.animate()
+  }
 }
 
 Editor.Container.onScroll = function(editor) {

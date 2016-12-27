@@ -114,6 +114,11 @@ svg.kx.toolbar {
   pointer-events: all;
 }
 
+svg.kx.toolbar.dragging {
+  pointer-events: none;
+
+}
+
 
 #sectionizer svg {
   background: #f1f1f1;

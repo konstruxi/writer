@@ -158,11 +158,11 @@ section > .kx.toolbar {
   margin-bottom: 0;
 }
 .content * + p {
-  margin-top: 1rem;
+  margin-top: 0.8rem;
 }
 
 .content * + h1, .content * + h2, .content * + h3, .content * + blockquote, .content * + picture, .content * + a {
-  margin-top: 1rem;
+  margin-top: 0.8rem;
 }
 
 .content .kx + * {
@@ -303,9 +303,36 @@ section[pattern="one-quote"] > *:not(.toolbar) {
   height: calc(100% - 4rem);
   max-width: calc(800px + 2rem);
   left: calc(50% - 400px - 1rem);
-  z-index: 0;
+  z-index: 1;
 }
 
+
+section.large.has-long-text {
+  display: block;
+  columns: 2 calc(400px - 2rem);
+  -moz-columns: 2 calc(400px - 2rem);
+  -webkit-columns: 2 calc(400px - 2rem);
+  column-gap: 4rem;
+  -moz-column-gap: 4rem;
+  -webkit-column-gap: 4rem;
+
+  padding-left: calc(50vw - 400px);
+  padding-right: calc(50vw - 400px);
+}
+section.large.has-long-text > *:not(.kx) {
+  -webkit-column-break-inside: avoid; /* Chrome, Safari */
+  page-break-inside: avoid;           /* Theoretically FF 20+ */
+  break-inside: avoid-column;         /* IE 11 */
+  width: 100%;
+  margin: 0;
+  padding: 0 0 0.8rem 0;
+}
+section.large.has-long-text > h1,
+section.large.has-long-text > h2,
+section.large.has-long-text > h3 {
+  column-span: all;
+  -webkit-column-span: all;
+}
 @media(max-width: 800px) {
   .content section > .kx.foreground {
     left: 0;
@@ -345,9 +372,12 @@ section[pattern="one-quote"] > *:not(.toolbar) {
 }
 .content section > * {
   position: relative;
-  z-index: 1;
+  z-index: 3;
 }
 
+body.dragging article section:not(.above-the-fold):not(.below-the-fold) {
+  z-index: 10;
+}
 
 .content .was-moving {
   will-change: transform;

@@ -69,7 +69,7 @@ Editor.Section.setActive = function(editor, target, force) {
 }
 
 Editor.Section.insertBefore = function(editor, section) {
-  
+
   var a = Editor.Section.getFirstChild(section);
   var b = editor.currentToolbar.previousElementSibling 
        && Editor.Section.getFirstChild(section.previousElementSibling);
@@ -375,7 +375,7 @@ Editor.Section.observe = function(editor) {
         if (m.target != editor.element.$
             && ((m.attributeName == 'class'
               && ((m.oldValue 
-                && (m.oldValue.indexOf('forced') > -1) != (m.target.className.indexOf('forced') > -1)))))) {
+                && (m.oldValue.indexOf('forced') > -1) != (m.target.classList.toString().indexOf('forced') > -1)))))) {
           var reason = mutations[i];
         }
       }

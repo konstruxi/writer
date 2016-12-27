@@ -1093,21 +1093,22 @@
 
 				// Gecko/Webkit need some help when selecting control type elements. (#3448)
 				// We apply same behavior for IE Edge. (#13386)
-				if ( !CKEDITOR.env.ie || CKEDITOR.env.edge ) {
-					this.attachListener( this, 'mousedown', function( ev ) {
-						var control = ev.data.getTarget();
-						// #11727. Note: htmlDP assures that input/textarea/select have contenteditable=false
-						// attributes. However, they also have data-cke-editable attribute, so isReadOnly() returns false,
-						// and therefore those elements are correctly selected by this code.
-						if ( control.is( 'img', 'hr', 'input', 'textarea', 'select' ) && !control.isReadOnly() ) {
-							editor.getSelection().selectElement( control );
-
-							// Prevent focus from stealing from the editable. (#9515)
-							if ( control.is( 'input', 'textarea', 'select' ) )
-								ev.data.preventDefault();
-						}
-					} );
-				}
+				// YAROSLAFF FEDIN HACK: handle image clicks elsewhere
+				//if ( !CKEDITOR.env.ie || CKEDITOR.env.edge ) {
+				//	this.attachListener( this, 'mousedown', function( ev ) {
+				//		var control = ev.data.getTarget();
+				//		// #11727. Note: htmlDP assures that input/textarea/select have contenteditable=false
+				//		// attributes. However, they also have data-cke-editable attribute, so isReadOnly() returns false,
+				//		// and therefore those elements are correctly selected by this code.
+				//		if ( control.is( 'img', 'hr', 'input', 'textarea', 'select' ) && !control.isReadOnly() ) {
+				//			editor.getSelection().selectElement( control );
+//
+				//			// Prevent focus from stealing from the editable. (#9515)
+				//			if ( control.is( 'input', 'textarea', 'select' ) )
+				//				ev.data.preventDefault();
+				//		}
+				//	} );
+				//}
 
 				// For some reason, after click event is done, IE Edge loses focus on the selected element. (#13386)
 				if ( CKEDITOR.env.edge ) {

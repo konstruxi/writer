@@ -62,9 +62,10 @@ Editor.Snapshot.prototype.removeElement = function(element) {
     }
   }
 }
-Editor.Snapshot.prototype.animate = function(section) {
+Editor.Snapshot.prototype.animate = function(section, callback) {
   var snapshot = Editor.Snapshot.take(this.editor, true);
-
+  if (callback)
+    callback(snapshot)
   snapshot.animating = (this.animating || [])
 
   //snapshot.locked = true;
@@ -298,6 +299,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
   }
 
 
+
 //  Editor.measure(editor);
   for (var i = 0; i < elements.length; i++) {
     var box = {top: 0, left: 0, 
@@ -412,6 +414,7 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
   }
 
   if (f) {
+    var diffSize = Math.abs(t.width - f.width) + Math.abs(t.height - f.height);
     diffX = (diffX || 0) + t.left - f.left;
     diffY = (diffY || 0) + t.top - f.top;
   } else {
@@ -424,12 +427,13 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
   var shiftX = t.left - (p ? p.left : 0) ;
   var shiftY = t.top - (p ? p.top : 0);
   var repos = false;
-  for (var i = 0; i < element.children.length; i++) {
-    repos = this.normalize(element.children[i], from, repos, - diffX, - diffY, t)
-  }
+  if (element.children)
+    for (var i = 0; i < element.children.length; i++) {
+      repos = this.normalize(element.children[i], from, repos, - diffX, - diffY, t)
+    }
 
-  if (Editor.Content.isParagraph(element) || Editor.Content.isPicture(element) || element.tagName == 'IMG')
-    if (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5))
+  if (Editor.Content.isParagraph(element) || Editor.Content.isPicture(element) || element.tagName == 'IMG' || element.tagName == 'svg')
+    if (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5) || diffSize > 5)
       repositioned = 1;
 
   t.x = shiftX;

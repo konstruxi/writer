@@ -471,7 +471,7 @@ Editor.DTD = function(editor) {
   CKEDITOR.dtd.blockquote = {p: 1, a: 1, b: 1, strong: 1, span: 1, em: 1, i: 1};
   */
 
-  CKEDITOR.dtd.section = {div: 1, time: 1, abbr: 1, strong: 1, em: 1, i: 1, hr: 1, p: 1, a: 1, ul: 1, ol: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, picture: 1, img: 1, blockquote: 1, span: 1};
+  CKEDITOR.dtd.section = {/*'x-div': 1, */div: 1, time: 1, abbr: 1, strong: 1, em: 1, i: 1, hr: 1, p: 1, a: 1, ul: 1, ol: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, picture: 1, img: 1, blockquote: 1, span: 1};
 
 
   CKEDITOR.dtd.a = Object.create(CKEDITOR.dtd.a)

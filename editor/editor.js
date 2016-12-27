@@ -6,6 +6,8 @@ document.documentElement.className +=
 
 
 function Editor(content) {
+  CKEDITOR.dom.domObject.prototype.is = function() { return false}
+  CKEDITOR.dom.domObject.prototype.getParent = function() { return null}
   // Turn off automatic editor creation first.
   CKEDITOR.disableAutoInline = true;
   var editor = CKEDITOR.inline(content, {

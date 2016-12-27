@@ -6,7 +6,7 @@ CKEDITOR.dom.elementPath.prototype.isContextFor = function() {
 
 Editor.Content = function(editor) {
   var root = editor.element.$;
-  var elements = Array.prototype.slice.call(root.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", '*'));
+  var elements = Array.prototype.slice.call(root.getElementsByTagName('*'));
   var result = []
   loop: for (var i = 0; i < elements.length; i++) {
     //for (var parent = elements[i]; parent; parent = parent.parentNode) {

@@ -41,7 +41,7 @@ Editor.Selection = function(editor, content) {
   } );
 
   // select image on tap on mobile
-  editor.pointer.on('tap', function(e) {
+  editor.gestures.on('tap', function(e) {
     for (var p = e.target; p; p = p.parentNode) {
       if (p.tagName == 'IMG') {
         if (p.parentNode.parentNode.tagName == 'A')

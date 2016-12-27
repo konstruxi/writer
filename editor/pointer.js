@@ -3,9 +3,16 @@
 Editor.Pointer = function(editor, content) {
   delete Hammer.defaults.cssProps.userSelect;
 
-  editor.pointer = new Hammer(document.body, {
-    
-  })
+
+  editor.gestures = new Hammer.Manager(document.body);
+
+  editor.gestures.add(new Hammer.Pan({ threshold: 5, pointers: 1 }));
+
+  editor.gestures.add(new Hammer.Tap({ event: 'doubletap', taps: 2 }));
+  editor.gestures.add(new Hammer.Tap());
+
+  //editor.gestures.add(new Hammer.Rotate({ threshold: 0 })).recognizeWith(editor.gestures.get('pan'));
+  //editor.gestures.add(new Hammer.Pinch({ threshold: 0 })).recognizeWith([editor.gestures.get('pan'), editor.gestures.get('rotate')]);
 
   document.body.addEventListener('mousedown', function(e) {
     if (!e.target.nodeType || e.target.tagName == 'svg' || e.target.tagName == 'use') {
@@ -14,7 +21,131 @@ Editor.Pointer = function(editor, content) {
     }
   }, true)
 
-  editor.pointer.on('tap', function(e) {
+  editor.gestures.current = null;
+
+  editor.gestures.on('panstart', function(e) {
+    editor.fire('lockSnapshot')
+    if (e.target.classList && e.target.classList.contains('toolbar')) {
+      e.preventDefault();
+      var style = window.getComputedStyle(e.target);
+      var section = Editor.Section.get(e.target);
+      e.target.classList.add('dragging')
+      document.body.classList.add('dragging')
+      var foreground = section.getElementsByClassName('foreground')[0];
+      var foregroundBox = editor.snapshot.get(foreground);
+      var before = section.previousElementSibling;
+      var box = editor.snapshot.get(section)
+      while (before) {
+        var bbox = editor.snapshot.get(before)
+        if (bbox.top > box.top || Math.abs(bbox.top - box.top) < 30) {
+          before = before.previousElementSibling;
+        } else {
+          break;
+        }
+      }
+      if (before) {
+        var beforeForeground = before.getElementsByClassName('foreground')[0];
+        var beforeBox = editor.snapshot.get(beforeForeground);
+        before.classList.add('above-the-fold')
+      }
+      section.classList.add('below-the-fold')
+      editor.gestures.current = {
+        before: before,
+        beforeForeground: beforeForeground,
+        beforeForegroundTop: before &&  beforeBox.y,
+        beforeForegroundHeight: before && beforeBox.height,
+        beforeForegroundDistance: before && beforeBox.top + beforeBox.height - foregroundBox.top,
+        section: section,
+        foreground: foreground,
+        foregroundTop: foregroundBox.y,
+        foregroundHeight: foregroundBox.height,
+        button: e.target,
+        buttonLeft: parseFloat(style.left) || 0,
+        buttonTop:  parseFloat(style.top) || 0
+      }
+    }
+    editor.fire('unlockSnapshot')
+  })
+  editor.gestures.on('pan', function(e) {
+    var gesture = editor.gestures.current;
+    if (!gesture) return;
+    if (gesture.deltaY == null) {
+      gesture.deltaY = e.deltaY
+      gesture.deltaX = e.deltaX
+    }
+
+
+
+    editor.fire('lockSnapshot')
+
+    var x = e.deltaX - gesture.deltaX
+    var y = e.deltaY - gesture.deltaY
+
+    gesture.button.style.left = gesture.buttonLeft + x + 'px'
+    gesture.button.style.top  = gesture.buttonTop + y + 'px'
+
+    if (gesture.beforeForeground) {
+      if (y < 0) {
+        if (y < gesture.beforeForegroundDistance + 10) {
+          gesture.beforeForeground.style.height = gesture.beforeForegroundHeight - gesture.beforeForegroundDistance - 10 + y + 'px'
+        } else {
+          gesture.beforeForeground.style.height = gesture.beforeForegroundHeight + 'px';
+        }
+        gesture.foreground.style.top = gesture.foregroundTop + y + 'px'
+        gesture.foreground.style.height = gesture.foregroundHeight - y + 'px'
+      } else {
+        if (y > - gesture.beforeForegroundDistance - 10) {
+          gesture.foreground.style.top = gesture.foregroundTop + gesture.beforeForegroundDistance + 10 + y + 'px'
+          gesture.foreground.style.height = gesture.foregroundHeight - gesture.beforeForegroundDistance - 10 - y + 'px'
+        } else {
+          gesture.foreground.style.top = gesture.foregroundTop + 'px';
+          gesture.foreground.style.height = gesture.foregroundHeight + 'px';
+        }
+        gesture.beforeForeground.style.height = gesture.beforeForegroundHeight + y + 'px';
+      }
+    }
+
+
+
+    editor.fire('unlockSnapshot')
+  })
+  editor.gestures.on('panend', function(e) {
+    var gesture = editor.gestures.current;
+    if (!gesture) return;
+    gesture.section.classList.remove('below-the-fold')
+    editor.gestures.current = null;
+    gesture.button.classList.remove('dragging')
+    document.body.classList.remove('dragging')
+    var x = e.deltaX - gesture.deltaX
+    var y = e.deltaY - gesture.deltaY
+
+    var box = editor.snapshot.get(gesture.foreground);
+
+    if (gesture.beforeForegroundDistance) {
+      var beforeBox = editor.snapshot.get(gesture.beforeForeground);
+      gesture.before.classList.remove('below-the-fold')
+      if (y < 0) {
+        box.top += y;
+        box.y += y;
+        box.height -= y;
+
+        debugger
+        if (y < gesture.beforeForegroundDistance + 10) {
+          beforeBox.height -= gesture.beforeForegroundDistance + 10 - y
+        }
+      } else {
+        if (y > - gesture.beforeForegroundDistance - 10) {
+          box.y += gesture.beforeForegroundDistance + 10 + y
+          box.top += gesture.beforeForegroundDistance + 10 + y
+          box.height -= gesture.beforeForegroundDistance + 10 + y
+        }
+        beforeBox.height += y  
+      }
+    }
+    editor.snapshot = editor.snapshot.animate()
+  })
+
+  editor.gestures.on('tap', function(e) {
     var target = e.srcEvent.target.correspondingUseElement || 
                  e.srcEvent.target.correspondingElement || 
                  e.srcEvent.target;
@@ -42,39 +173,6 @@ Editor.Pointer = function(editor, content) {
           return
         }
   })
-
-
-  editor.dragging = null;
-  editor.dragstart = null;
-  editor.dragged = null
-  editor.dragzone = document.createElement('div')
-  editor.dragzone.id = 'dragzone'
-
-  editor.handleEvent = function(e) {
-    if (e.type)
-    switch (e.type) {
-      case 'touchstart': case 'mousedown':
-        editor.dragstarted = onDragStart(editor, e);
-        if (editor.dragstarted) {
-          content.addEventListener('ontouchstart' in document.documentElement ? 'touchmove' : 'mousemove', editor)
-          document.addEventListener('ontouchstart' in document.documentElement ? 'touchend' : 'mouseup', editor)
-        }
-        break;
-      case 'touchmove': case 'mousemove':
-        if (onDrag(editor, e)) {
-          editor.dragtime = null
-        }
-        break;
-      case 'touchend': case 'mouseup':
-        editor.dragstarted = null;
-        document.body.classList.remove('dragging');
-        content.removeEventListener('ontouchstart' in document.documentElement ? 'touchmove' : 'mousemove', editor)
-        document.removeEventListener('ontouchstart' in document.documentElement ? 'touchend' : 'mouseup', editor)
-        onDragEnd(editor, e)
-        break;
-    }
-  }
-  content.addEventListener('ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown', editor)
 
   editor.on('drop', function(e) {
     // disallow pasting block content into paragraphs and headers
@@ -129,175 +227,3 @@ function getElementsAffectedByDrag(editor, e) {
 
 
 
-
-onDragStart = function(editor, e) {
-  var target = e.target;
-  while (target && target.tagName != 'DIV')
-    target = target.parentNode;
-  if (target && target.classList.contains('toolbar'))
-    target = target.parentNode;
-  else
-    return;
-  if (target.tagName == 'SECTION') {
-    var top = 0;
-    var left = 0;
-
-    for (var t = target; t; t = t.offsetParent) {
-      left += t.offsetLeft;
-      top += t.offsetTop;
-    }
-    // dragging
-    //if (top > e.pageY) {
-      document.body.classList.add('dragging');
-      editor.fire('saveSnapshot')
-      //editor.stylesnapshot = snapshotStyles(editor)
-      editor.dragbookmark = editor.getSelection().createBookmarks();
-      editor.dragging = target;
-      editor.dragtop = top;
-      editor.dragstart = e.pageY;
-      editor.dragtime = new Date()
-      editor.dragblocked = undefined
-      editor.dragzone.style.width = editor.dragging.offsetWidth;
-      editor.dragzone.style.left = left + 'px'
-      editor.dragzone.style.height = 10 + 'px';
-      document.body.appendChild(editor.dragzone)
-      if (e.type != 'touchstart')
-        e.preventDefault()
-      e.stopPropagation()
-
-
-      return true;
-    //}
-  }
-}
-onDrag = function(editor, e) {
-  var y = editor.dragstart - e.pageY;
-  if (editor.dragtime) {
-    // let touch scroll first
-    if ((new Date - editor.dragtime) < (e.type == 'touchmove' ? 100 : 0)) {
-     editor.dragblocked = true;
-    } else {
-
-      // focus editor initially
-      var selection = editor.getSelection();
-      if (!selection.getRanges()[0]) {
-        var range = editor.createRange()
-        var focus = Editor.Section.getEditStart(editor.dragging);
-        range.moveToElementEditStart(new CKEDITOR.dom.element(focus));
-        range.select()
-      }
-    }
-    editor.dragtime = null
-     
-  }
-  if (editor.dragblocked) {
-    return false;
-  }
-  if (Math.abs(y) < 3) {
-    e.preventDefault()
-    return false;
-  }
-
-  if (y > 0) {
-    editor.dragzone.style.top = Math.max(
-      editor.dragging.previousSibling ? editor.dragstart - 7 - editor.dragging.previousSibling.offsetHeight : 0,
-      editor.dragstart - y - 5
-    ) + 'px'
-  } else {
-    editor.dragzone.style.top = Math.min(
-      editor.dragstart + editor.dragging.offsetHeight,
-      editor.dragstart - y - 5
-    ) + 'px'
-  }
-
-  var elements = getElementsAffectedByDrag(editor, e);
-  for (var i = 0; i < elements.length; i++)
-    elements[i].classList.add('moved')
-  if (editor.dragged)
-    for (var i = 0; i < editor.dragged.length; i++)
-      if (elements.indexOf(editor.dragged[i]) == -1)
-        editor.dragged[i].classList.remove('moved')
-  editor.dragged = elements;
-  e.preventDefault()
-  e.stopPropagation()
-
-}
-
-onDragEnd = function(editor, e) {
-  if (!editor.dragblocked)
-  if (editor.dragged && (Math.abs(editor.dragstart - e.pageY) > 3)) {
-    var dragging = editor.dragging;
-    var dragged = editor.dragged;
-    var dragstart = editor.dragstart
-
-    var section = Editor.Section.build(editor)
-
-    if (dragstart - e.pageY > 0) {
-      dragging.classList.remove('forced')
-      section.classList.add('forced');
-      if (dragged.length)
-        dragging.parentNode.insertBefore(section, dragging)
-
-      for (var i = 0; i < dragged.length; i++) {
-        section.appendChild(dragged[i])
-        dragged[i].classList.remove('moved')
-      }
-      editor.justdropped = section.previousSibling
-    } else {
-
-      for (var i = 0; i < dragged.length; i++) {
-        dragged[i].classList.remove('moved')
-      }
-      var children = Array.prototype.slice.call(dragging.children)
-      if (children.length === dragged.length + 1) {
-        var target = dragging.previousSibling;
-      }
-      else {
-        editor.justdropped = dragging
-        var target = section
-      }
-      for (var i = 0; i < children.length; i++) {
-        if ((dragged.indexOf(children[i]) == -1 || target != section) && !children[i].classList.contains('toolbar'))
-          target.appendChild(children[i])
-      }
-      //dragging.classList.add('forced')
-      target.classList.add('forced');
-      dragging.parentNode.insertBefore(section, dragging.nextSibling)
-    }
-    var focused = dragged[dragged.length - 1];
-    editor.fire('saveSnapshot')
-  } else {
-    /*
-    var bookmark = editor.dragbookmark[0];
-    if (bookmark && bookmark.startNode.$.parentNode)
-      bookmark.startNode.$.parentNode.removeChild(editor.dragbookmark[0].startNode.$)
-    editor.dragbookmark = undefined;
-    */
-    var target = e.target;
-    while (target && target.tagName != 'svg')
-      target = target.parentNode;
-
-  }
-
-  editor.justdragged = dragging;
-  editor.refocusing = focused;
-  Editor.Content.cleanEmpty(editor)
-
-  setTimeout(function() {
-    editor.justdragged = undefined;
-    editor.justdropped = undefined;
-    editor.dragbookmark = undefined;
-    editor.refocusing = undefined;
-  }, 50)
-
-  editor.dragzone.style.height = '';
-  editor.dragzone.style.top = '';
-      
-  editor.dragging = undefined;
-  editor.dragged = undefined
-  editor.dragblocked = undefined;
-  editor.dragtime = undefined;
-  e.preventDefault()
-  e.stopPropagation()
-
-}

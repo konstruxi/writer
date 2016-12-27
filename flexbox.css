@@ -50,7 +50,7 @@ article > section {
   -ms-flex-align: end;
   align-items: flex-end;
 }
-article > section > *:not(.toolbar){
+article > section > *:not(.kx){
   -webkit-order: 0;
   -ms-flex-order: 0;
   order: 0;
@@ -63,19 +63,21 @@ article > section > *:not(.toolbar){
 }
 
 
-section[pattern="two-images"] {
-  flex-basis: 50%;
-  -webkit-align-self: stretch;
-  -ms-flex-item-align: stretch;
-  align-self: stretch;
-}
-.content section[pattern="two-images"][index="0"] > *,
-.content section[pattern="two-images"][index="0"]:after {
-  margin-right: 0;
-}
-.content section[pattern="two-images"][index="1"] > *,
-.content section[pattern="two-images"][index="1"]:after{
-  margin-left: 0;
+@media (min-width: 800px) {
+  section[pattern="two-images"] {
+    flex-basis: 50%;
+    -webkit-align-self: stretch;
+    -ms-flex-item-align: stretch;
+    align-self: stretch;
+  }
+  .content section[pattern="two-images"][index="0"] > *,
+  .content section[pattern="two-images"][index="0"] > .kx.foreground {
+    margin-right: 0;
+  }
+  .content section[pattern="two-images"][index="1"] > *,
+  .content section[pattern="two-images"][index="1"] > .kx.foreground{
+    margin-left: 0;
+  }
 }
   
 

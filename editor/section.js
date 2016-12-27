@@ -94,7 +94,7 @@ Editor.Section.split = function(editor, root) {
           grandchildren[j].parentNode.removeChild(grandchildren[j]);
           continue
         }
-        if (!grandchildren[j].classList || !grandchildren[j].classList.contains('toolbar')) {
+        if (!grandchildren[j].classList || !grandchildren[j].classList.contains('kx')) {
           last = Editor.Section.place(editor, last, prev, grandchildren[j], current, root, selected, context)
           if (last === current) {
             Editor.Section.build(editor, current)
@@ -240,7 +240,7 @@ Editor.Section.get = function(element) {
 
 Editor.Section.getFirstChild = function(section) {
   var first = section.firstElementChild;
-  while (first.classList.contains('toolbar') || first.tagName == 'HR')
+  while (first.classList.contains('kx') || first.tagName == 'HR')
     first = first.nextElementSibling;
   return first;
 }
@@ -314,8 +314,8 @@ Editor.Section.observe = function(editor) {
           if (m.removedNodes[j].nodeType == 1 &&
               m.removedNodes[j].tagName != 'SPAN' &&
               m.removedNodes[j].tagName != 'DIV' &&
-              (!m.removedNodes[j].classList || !m.removedNodes[j].classList.contains('toolbar')) &&
-              (!m.target.classList || !m.target.classList.contains('toolbar'))) {
+              (!m.removedNodes[j].classList || !m.removedNodes[j].classList.contains('kx')) &&
+              (!m.target.classList || !m.target.classList.contains('kx'))) {
             var reason = mutations[i];
           }
           removed.push(m.removedNodes[j]);
@@ -329,8 +329,8 @@ Editor.Section.observe = function(editor) {
           if (m.addedNodes[j].nodeType == 1 &&
               m.addedNodes[j].tagName != 'SPAN' &&
               m.addedNodes[j].tagName != 'DIV' &&
-              (!m.addedNodes[j].classList || !m.addedNodes[j].classList.contains('toolbar')) &&
-              (!m.target.classList || !m.target.classList.contains('toolbar'))) {
+              (!m.addedNodes[j].classList || !m.addedNodes[j].classList.contains('kx')) &&
+              (!m.target.classList || !m.target.classList.contains('kx'))) {
             var reason = mutations[i];
           }
           var k = removed.indexOf(m.addedNodes[j]);

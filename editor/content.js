@@ -13,7 +13,7 @@ Editor.Content = function(editor) {
       //if ((parent.classList && parent.classList.contains('toolbar')) 
       //  ||(parent.className && parent.className.indexOf && parent.className.indexOf('cke_') > -1))
       //  continue loop;
-      if (Editor.Content.isBlock(elements[i])) {
+      if (Editor.Content.isBlock(elements[i]) || elements[i].classList.contains('foreground')) {
         result.push(elements[i])
       }
     //}
@@ -65,7 +65,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
         var els = []
         var grandchildren = children[i].children;
         for (var j = 0; j < grandchildren.length; j++) {
-          if (grandchildren[j].classList.contains('toolbar'))
+          if (grandchildren[j].classList.contains('kx'))
             continue;
           var grands = grandchildren[j].getElementsByTagName('*');
           els.push(grandchildren[j])
@@ -174,7 +174,7 @@ Editor.Content.isInside = function(element, another) {
 }
 
 Editor.Content.isEmpty = function(child) {
-  if (child.tagName == 'IMG' || child.tagName == 'HR' || child.tagName == 'PICTURE' ||child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('toolbar')))
+  if (child.tagName == 'IMG' || child.tagName == 'HR' || child.tagName == 'PICTURE' ||child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('kx')))
     return false;
   //if (child.tagName == 'P') {
     var text = child.textContent

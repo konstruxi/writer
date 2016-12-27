@@ -500,7 +500,7 @@ CSS = function(prefix) {
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
-".content section" + prefix + ":after {\n" +
+".content section" + prefix + " > .foreground {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "  outline-color: " + this.accent + ";\n" +
 "}")

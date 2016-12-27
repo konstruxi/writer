@@ -69,6 +69,7 @@ Editor.Image.onLoaded = function(editor, image, callback, file) {
   editor.fire('lockSnapshot');
   if (image.parentNode.classList.contains('added')) {
     editor.snapshot.invalidate(function() {
+      image.parentNode.setAttribute('uid', image.getAttribute('uid'));
       image.setAttribute('width', width);
       image.setAttribute('height', height);
       image.parentNode.classList.remove('loading');
@@ -76,7 +77,7 @@ Editor.Image.onLoaded = function(editor, image, callback, file) {
       image.parentNode.style.maxHeight =  height + 'px';
     })
   } else {
-
+    image.parentNode.setAttribute('uid', image.getAttribute('uid'));
     image.setAttribute('width', width);
     image.setAttribute('height', height);
     image.parentNode.style.maxWidth =  width + 'px';
@@ -143,7 +144,8 @@ Editor.Image.applyChanges = function(data, img) {
       'left: -' + data.square.x / width * ratio * 100 + '%; ' +
       'top: -' + data.square.y / height * ratio * 100 + '%; ' +
       'width: ' + (height < width ? ratio : 1) * 100 + '%; ' +
-    '}'
+    '}\n picture[uid="' + image.getAttribute('uid') + '"]:before {\n' +
+    'padding-top: ' + parseFloat(((height / width) * 100).toFixed(3)) + '%; }\n' 
   }
   Editor.Chrome.update(this)
   this.fire('unlockSnapshot')

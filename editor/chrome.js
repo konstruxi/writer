@@ -55,10 +55,18 @@ Editor.Chrome = function(editor, content) {
 }
 
 Editor.Chrome.Toolbar = function(editor, section) {
+  if (!section.getElementsByClassName('foreground')[0]) {
+    var bg = document.createElement('div');
+    var icon = document.createElement('x-icon');
+    bg.appendChild(icon)
+    bg.className = 'kx foreground'
+    bg.setAttribute('unselectable', 'on')
+    section.insertBefore(bg, section.firstChild)
+  }
   if (!section.getElementsByClassName('toolbar')[0]) {
                 
     var toolbar = document.createElement('div');
-    toolbar.className = 'toolbar'
+    toolbar.className = 'kx toolbar'
     toolbar.setAttribute('unselectable', 'on')
     //toolbar.setAttribute('contenteditable', 'false')
 

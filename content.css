@@ -51,26 +51,7 @@ body,html {
   max-width: 100%;
   margin: 0 auto;
   height: auto !important;
-}
-.content picture:not(.processed) img {
-  height: auto !important;
-  width: 100%;
-  max-width: 100%;
-}
-.content section[pattern*="two-"] picture.processed {
-  padding-top: 100%;
-}
-.content section[pattern*="two-"] picture.processed img {
-  position: absolute;;
-}
-
-.content section[pattern*="two-"] picture:not(.processed) img {
-  min-height: 100%;
-  min-width: 100%;
-  max-height: 150%;
-  max-width: 150%;
-  height: auto;
-  width: auto;
+  transition: width 0.4s, top 0.6s, left 0.4s;
 }
 .content section[pattern*="two-"] picture img{
   max-width: 400%;
@@ -120,8 +101,15 @@ body,html {
 }
 
 section {
-  padding: 3rem 2rem;
+  padding: 3rem 0;
   position: relative;
+}
+
+section picture img{
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
 }
 
 .toolbar:hover {
@@ -137,27 +125,12 @@ section .toolbar {
 
 }
 
-section[pattern="two-images"][index="0"]:before {
-  left: 100%;
-  margin-left: 6px;
-}
-section[pattern="two-images"][index="1"]:before {
-  left: 0;
-  margin-left: -19px;
-  margin-top: -10px;
-  top: 50%;
-  border: 0;
-  border-left: 2px solid #dfdfdf;
-  width: 2px;
-  height: 20px;
-  border-right: 2px solid #dfdfdf;
-}
-
 section.forced:before {
   border-color: #aaa;
 }
-section.forced:after {
+section.forced > .kx.foreground {
   border-color: #aaa;
+  background: #eaeaea;
 }
 
 .content * {
@@ -189,7 +162,7 @@ section.forced:after {
   margin-top: 1rem;
 }
 
-.content .toolbar + * {
+.content .kx + * {
   margin-top: 0;
 }
 article h1 + * {
@@ -227,10 +200,10 @@ section > a + * {
   top: -50px;
   pointer-events: none;
 }
-section.focused:after, section.focused:hover:after {
+section.focused > .kx.foreground, section.focused:hover > .kx.foreground {
   outline: 1px solid #aaa;
 }
-section:hover:after {
+section:hover > .kx.foreground {
   outline: 1px solid #ccc;
 }
 
@@ -313,34 +286,50 @@ section[pattern="one-quote"] > *:not(.toolbar) {
 }
 
 
-.content section:after {
+.content section > .kx.foreground {
   content: '';
   pointer-events: none;
   z-index: -1;
   position: absolute;
-  transition: max-width 0.2s, left 0.6s;
-
+  width: 100vw;
 
   top: 2rem;
   bottom: 2rem;
   max-width: calc(800px + 2rem);
   left: calc(50% - 400px - 1rem);
-  right: 1rem;
   z-index: 0;
 }
 
-.content section.small:after {
-  max-width: 400px;
-  left: calc(50% - 200px);
+@media(max-width: 800px) {
+  .content section > .kx.foreground {
+    left: 0;
+    right: 0;
+    max-width: 100%;
+  }
 }
 
-.content section[pattern*="two-"][index="0"]:after {
-  left: calc(100% - 400px - 1rem);
-}
-.content section[pattern*="two-"][index="1"]:after {
-  left: 1rem;
-}
+@media (min-width: 800px) {
+  .content section.small > .kx.foreground {
+    width: 400px;
+    left: calc(50% - 200px);
+  }
 
+  .content section[pattern*="two-"][index="0"] {
+    padding-right: 2rem;
+  }
+  .content section[pattern*="two-"][index="1"] {
+    padding-left: 2rem;
+  }
+  .content section[pattern*="two-"][index="0"] > .kx.foreground {
+    left: calc(100% - 400px - 1rem);
+  }
+  .content section[pattern*="two-"][index="1"] > .kx.foreground {
+    left: 1rem;
+  }
+  .content section[pattern*="two-"] picture {
+    height: calc(400px - 2rem);
+  }
+}
 .content section > * {
   position: relative;
   z-index: 1;
@@ -355,8 +344,8 @@ section[pattern="one-quote"] > *:not(.toolbar) {
 
 
 article > section > *:not(a):not(picture) {
-  max-width: 800px;
-  width: 100%;
+  max-width: calc(100vw - 2rem);
+  width: 800px;
 }
 article > section > * {
   margin-left: auto;
@@ -366,6 +355,7 @@ article > section > * {
 article.content > section.small > * {
   width: calc(400px - 2rem);
 }
+
 article > section:not(.large):not(.small) > picture,
 article > section:not(.large):not(.small) > a {
   width: 800px;

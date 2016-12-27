@@ -148,7 +148,8 @@ Editor.Content.isBlock = function(element) {
        || element.tagName == 'SECTION'
         
        // special case picture inside A
-       || (element.tagName == 'PICTURE' && element.parentNode.tagName != 'A')
+       || (element.tagName == 'PICTURE')
+       || (element.tagName == 'IMG')
        || (element.tagName == 'A' && element.firstElementChild && element.firstElementChild.tagName == 'PICTURE')
 }
 

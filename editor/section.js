@@ -68,6 +68,25 @@ Editor.Section.setActive = function(editor, target, force) {
   }
 }
 
+Editor.Section.insertBefore = function(editor, section) {
+  
+  var a = Editor.Section.getFirstChild(section);
+  var b = editor.currentToolbar.previousElementSibling 
+       && Editor.Section.getFirstChild(section.previousElementSibling);
+
+  if ((!a || !Editor.Content.isEmpty(a)) 
+   && (!b || !Editor.Content.isEmpty(b))) {
+    var sect = Editor.Section.build(editor);
+    sect.classList.add('forced')
+    var focused = document.createElement('p');
+    editor.refocusing = focused;
+    sect.appendChild(focused);
+    editor.currentToolbar.parentNode.insertBefore(sect, section);
+    if (sect.nextElementSibling)
+      sect.nextElementSibling.classList.add('forced')
+  }
+}
+
 Editor.Section.split = function(editor, root) {
   var children = Array.prototype.slice.call(root.childNodes);
   var selection = editor.getSelection()

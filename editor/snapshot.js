@@ -151,7 +151,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
       if (element.classList.contains('added'))
         var spring = to[springName] = new Spring(30, 15);
       else
-        var spring = to[springName] = new Spring(74, 22);
+        var spring = to[springName] = new Spring(34, 22);
     } else if (property == 'fontSize') {
       var spring = to[springName] = new Spring(20, 8);
     } else if (property == 'top') {
@@ -428,7 +428,7 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
     repos = this.normalize(element.children[i], from, repos, - diffX, - diffY, t)
   }
 
-  if (Editor.Content.isParagraph(element))
+  if (Editor.Content.isParagraph(element) || Editor.Content.isPicture(element) || element.tagName == 'IMG')
     if (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5))
       repositioned = 1;
 

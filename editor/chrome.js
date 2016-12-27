@@ -217,7 +217,7 @@ Editor.Chrome.update = function(editor, force) {
 
   formatting.style.display = 'block';
   formatting.style.position  = 'absolute' 
-  formatting.style.left = Math.max(32, left + 16) + 'px'
+  formatting.style.left = left + 'px'
   formatting.style.top = top;
 
   //if (force && button == editor.currentButton) return;

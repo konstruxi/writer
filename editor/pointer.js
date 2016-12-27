@@ -19,7 +19,7 @@ Editor.Pointer = function(editor, content) {
                  e.srcEvent.target.correspondingElement || 
                  e.srcEvent.target;
     for (var p = target; p; p = p.parentNode)
-      if (p.classList) 
+      if (p.tagName == 'svg') 
         if (p.classList.contains('enlarge')) {
           Editor.Section.enlarge(editor, editor.currentToolbar);
           Editor.Chrome.Toolbar.close(editor)
@@ -30,11 +30,16 @@ Editor.Pointer = function(editor, content) {
           Editor.Chrome.Toolbar.close(editor)
           e.preventDefault()
           return
+        } else if (p.classList.contains('split')) {
+          Editor.Section.insertBefore(editor, editor.currentToolbar);
+          Editor.Chrome.Toolbar.close(editor)
+          e.preventDefault()
+          return
         } else if (p.classList.contains('toolbar')) {
           var section = Editor.Section.get(p);
           Editor.Chrome.Toolbar.open(editor, section, p);
           e.preventDefault()
-
+          return
         }
   })
 
@@ -271,24 +276,7 @@ onDragEnd = function(editor, e) {
     var target = e.target;
     while (target && target.tagName != 'svg')
       target = target.parentNode;
-    if (target) {
-      if (target.classList.contains('split')) {
-        var a = Editor.Section.getFirstChild(editor.dragging);
-        var b = editor.dragging.previousElementSibling 
-             && Editor.Section.getFirstChild(editor.dragging.previousElementSibling);
 
-        if ((!a || !Editor.Content.isEmpty(a)) 
-         && (!b || !Editor.Content.isEmpty(b))) {
-          var sect = Editor.Section.build(editor);
-          sect.classList.add('forced')
-          var focused = document.createElement('p');
-          sect.appendChild(focused);
-          editor.dragging.parentNode.insertBefore(sect, editor.dragging);
-          if (sect.nextElementSibling)
-            sect.nextElementSibling.classList.add('forced')
-        }
-      }
-    }
   }
 
   editor.justdragged = dragging;

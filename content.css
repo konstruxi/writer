@@ -48,7 +48,6 @@ body,html {
   max-width: 100%;
   margin: 0 auto;
   height: auto !important;
-  transition: width 0.4s, top 0.6s, left 0.4s;
 }
 .content section[pattern*="two-"] picture img{
   max-width: 400%;
@@ -373,6 +372,7 @@ article.content > section.small > *:not(.toolbar) {
 article > section:not(.large):not(.small) > picture,
 article > section:not(.large):not(.small) > a {
   width: 800px;
+  max-width: 100%;
 }
 
 @media (max-width: 830px) {

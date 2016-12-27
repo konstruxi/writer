@@ -96,7 +96,7 @@
   height: 6.75rem;
   width: 2.25rem;
   position: absolute;
-  margin-left: -2.25rem;
+  margin-left: -1.2rem;
   margin-top: -3.40rem;
 }
 #formatting[hidden], #formatting[hidden] + #formatting-shadow {
@@ -161,7 +161,7 @@ svg.kx.toolbar {
   visibility: visible;;
   display: block;
   z-index: 10;
-  margin-left: -1rem;
+  margin-left: -1.2rem;
   margin-top: -3rem;
 }
 
@@ -192,5 +192,5 @@ section > .toolbar {
   position: absolute;
   top: -1rem;
   left: 50%;
-  margin-left: -1rem;
+  margin-left: -1.2rem;
 }

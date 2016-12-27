@@ -6,14 +6,14 @@ CKEDITOR.dom.elementPath.prototype.isContextFor = function() {
 
 Editor.Content = function(editor) {
   var root = editor.element.$;
-  var elements = Array.prototype.slice.call(root.getElementsByTagName('*'));
+  var elements = Array.prototype.slice.call(root.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", '*'));
   var result = []
   loop: for (var i = 0; i < elements.length; i++) {
     //for (var parent = elements[i]; parent; parent = parent.parentNode) {
       //if ((parent.classList && parent.classList.contains('toolbar')) 
       //  ||(parent.className && parent.className.indexOf && parent.className.indexOf('cke_') > -1))
       //  continue loop;
-      if (Editor.Content.isBlock(elements[i]) || elements[i].classList.contains('foreground')) {
+      if (Editor.Content.isBlock(elements[i]) || elements[i].classList.contains('kx')) {
         result.push(elements[i])
       }
     //}
@@ -61,7 +61,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
             var bookmark = selection.createBookmarks();
 
         cleaned.push(children[i])
-      } else {
+      } else if (!children[i].classList.contains('kx')) {
         var els = []
         var grandchildren = children[i].children;
         for (var j = 0; j < grandchildren.length; j++) {

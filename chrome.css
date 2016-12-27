@@ -1,66 +1,3 @@
-div.picker {
-  position: absolute;
-  z-index: 22;
-  white-space: nowrap;
-  top: -2.35rem;
-}
-
-#formatting div.picker svg {
-  margin: -1px;
-  height: 38px;
-  width: 38px;
-}
-/*body:not(.dragging) #formatting * {
-  transition: fill 0.3s, background-color 0.3s;
-}*/
-
-
-.matrix .picker li {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 100;
-}
-
-.matrix .picker li:nth-child(1) {
-  margin-left: -5.9rem;
-  margin-top: -5.9rem;
-}
-.matrix .picker li:nth-child(2) {
-  margin-left: 2.65rem;
-  margin-top: -5.9rem;
-}
-.matrix .picker li:nth-child(3) {
-  margin-left: -5.9rem;
-  margin-top: 2.65rem;
-}
-.matrix .picker li:nth-child(4) {
-  margin-left: 2.65rem;
-  margin-top: 2.65rem;
-}
-
-ul.picker li{
-  display: inline-block;
-  margin: -1px 0 0 0;
-  text-align: center;
-  border-radius: 50%;
-  padding: 0.15rem;
-  cursor: pointer;
-}
-ul.picker li {
-  margin-right: -0.5rem;
-}
-ul.picker li:first-of-type {
-  margin-right: -0.75rem;
-}
-
-body.dragging .picker {
-  pointer-events: none;
-}
-body.dragging .picker li {
-  pointer-events: all;
-}
-
 
 #formatting {
   opacity: 1;
@@ -103,15 +40,19 @@ body.dragging .picker li {
 
 #formatting {
   border-radius: 1.125rem;
-  background: #fafafa;
+  background: #fff;
   color: #000;
 }
 
-.cke_button__link:not([hidden]) {
-  z-index: 10;
-  display: block;
-
+#formatting .cke_button {
+  background: #fff;
 }
+
+#formatting .cke_button:hover {
+  background: #000;
+  color: #fff;
+}
+
 #formatting .objects.open .cke_button{
   display: block !important;
 }
@@ -149,147 +90,6 @@ body.dragging .picker li {
 }
 
 
-.content section > .toolbar {
-  position: absolute;
-  top: -1px;
-  left: 1rem;
-  right: 1rem;
-  width: 100%;
-  height: 2rem;
-  cursor: row-resize;
-  z-index: 2000;
-  width: 100%;
-}
-
-section .toolbar .handle {
-  width: 3rem;
-  height: 3rem;
-  display: block;
-  margin: 0 auto;
-}
-
-.content section x-toolbar {
-  text-align: center;
-  display: block;
-  white-space: nowrap;
-  position: absolute;
-  left: 50%;
-  width: 7.2rem;
-  margin-left: -3.6rem;
-}
-.content section x-toolbar:hover {
-  overflow: visible;;
-}
-
-x-toolbar x-panel.top {
-  visibility: hidden;
-}
-x-toolbar x-panel.middle,
-x-toolbar x-panel.top {
-  width: 2.4rem;
-  margin: 0 auto;
-}
-x-toolbar:hover x-panel.top {
-  visibility: visible;
-}
-x-toolbar:hover x-panel.middle {
-  width: auto;
-}
-.content section x-toolbar x-panel.bottom {
-  display: none;
-}
-.content section x-toolbar:hover x-panel.bottom {
-  display: block;
-  height: auto;
-  border-radius: 50%;
-}
-
-.content section x-panel {
-  display: block;
-  height: 1.85rem;
-}
-.content section x-panel svg:hover {
-  overflow: visible;
-  position: relative;;
-  z-index: 200;
-}
-.content x-panel.top {
-  width: 4.5rem;
-  margin: -2.4rem auto 0;
-}
-.content .toolbar .pick {
-  position: relative;
-  top: -0.34rem;
-}
-
-.content .toolbar .bottom svg + svg {
-  margin-left: -0.07rem;
-}
-
-
-.content .toolbar .settings{
-  margin-left: -0.45rem;
-}
-.content .toolbar .palette  {
-  margin-right: -0.45rem;
-}
-
-.toolbar  x-toolbar:not(:hover) x-panel{
-  overflow: hidden;
-}
-section .toolbar svg {
-  display: inline-block;
-  height: 2.4rem;
-  width: 2.4rem;
-  overflow: hidden;
-  box-sizing: border-box;
-  border-radius: 50%;
-  border: 0.2rem solid transparent;
-}
-section .toolbar .enlarge {
-  background: inherit
-}
-.toolbar svg.handler {
-  background-color: inherit;
-}
-
-section .toolbar svg {
-  display: none;
-}
-section .toolbar svg.resize {
-  display: inline-block;
-}
-section .toolbar x-toolbar:hover svg {
-  display: inline-block;
-}
-section .toolbar svg.palette {
-  z-index: 20;
-}
-section .toolbar svg{
-  fill: currentColor;
-}
-section .toolbar svg.split {
-  display: none;
-}
-
-section .toolbar x-toolbar:hover svg.split {
-  display: inline-block;
-}
-section .toolbar x-toolbar:hover svg.resize {
-  display: none;
-}
-
-
-
-.toolbar svg {
-  cursor: pointer;
-}
-
-
-.wrapper > section {
-  margin: 0;
-}
-
 #formatting {
   top: 0;
   left: 0;
@@ -301,4 +101,96 @@ section .toolbar x-toolbar:hover svg.resize {
 }
 #formatting[hidden], #formatting[hidden] + #formatting-shadow {
   opacity: 0;
+}
+
+
+#sectionizer svg{
+  width: 2rem;
+  height: 2rem;
+  border: 0.2rem solid transparent;
+  pointer-events: all;
+}
+svg.kx.toolbar {
+  pointer-events: all;
+}
+
+
+#sectionizer svg {
+  background: #f1f1f1;
+}
+
+#sectionizer svg:hover {
+  background: #000;
+  color: #f1f1f1;
+}
+
+
+#sectionizer svg.star:hover {
+  z-index: 1;
+  border: 0.2rem solid transparent;
+  margin: 0rem;
+}
+#sectionizer svg.star{
+  border: 0.5rem solid transparent;
+  margin: -0.3rem;
+}
+#sectionizer svg.settings {
+  top: -0.55rem;
+  left: 1.95rem;
+}
+#sectionizer svg.palette {
+  top: -0.55rem;
+  left: -1.9rem;
+}
+#sectionizer svg.split {
+  top: -2.1rem;
+}
+#sectionizer svg.enlarge {
+  top: 1.65rem;
+  left: 1.15rem;
+}
+#sectionizer svg.shrink {
+  top: 1.65rem;
+  left: -1.15rem;
+}
+
+#sectionizer {
+  position: absolute;;
+  top: 0;
+  left: 0;
+  visibility: visible;;
+  display: block;
+  z-index: 10;
+  margin-left: -1rem;
+  margin-top: -3rem;
+}
+
+#sectionizer[hidden] {
+  visibility: hidden;
+  display: none;
+}
+
+#sectionizer > svg {
+  fill: currentColor;
+  position: absolute;
+  border-radius: 50%;
+}
+
+
+section > svg {
+  fill: currentColor;
+}
+
+
+
+section > .toolbar {
+  cursor: move;
+  height: 2.4rem;
+  width: 2.4rem;
+  border: 0.2rem solid transparent;
+  border-radius: 50%;
+  position: absolute;
+  top: -1rem;
+  left: 50%;
+  margin-left: -1rem;
 }

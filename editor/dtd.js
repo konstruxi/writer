@@ -432,7 +432,6 @@ Editor.DTD = function(editor) {
   })
   editor.dataProcessor.dataFilter.addRules(Rules, {priority: -200})
 
-
   CKEDITOR.dtd.$avoidNest = {
     p: 1,
     h1: 1,

@@ -25,9 +25,6 @@ body,html {
   transition: height 0.3s, filter 0.6s;
 }*/
 
-.content section, .matrix section {
-  background: #fafafa;
-}
 
 .content picture {
   overflow: hidden;
@@ -128,9 +125,16 @@ section .toolbar {
 section.forced:before {
   border-color: #aaa;
 }
-section.forced > .kx.foreground {
+section > .kx.foreground {
   border-color: #aaa;
-  background: #eaeaea;
+  background: #fff;
+}
+article section {
+  background: #f1f1f1;
+}
+
+section > .kx.toolbar {
+  background: #f1f1f1;
 }
 
 .content * {
@@ -201,10 +205,10 @@ section > a + * {
   pointer-events: none;
 }
 section.focused > .kx.foreground, section.focused:hover > .kx.foreground {
-  outline: 1px solid #aaa;
+  border: 1px solid #aaa;
 }
 section:hover > .kx.foreground {
-  outline: 1px solid #ccc;
+  border: 1px solid #ccc;
 }
 
 section.clone {
@@ -282,7 +286,7 @@ section[pattern="one-quote"] {
 }
 
 section[pattern="one-quote"] > *:not(.toolbar) {
-  max-width: 500px;
+  width: 500px;
 }
 
 
@@ -292,9 +296,12 @@ section[pattern="one-quote"] > *:not(.toolbar) {
   z-index: -1;
   position: absolute;
   width: 100vw;
+  border: 1px solid transparent;
+  margin-top: -1px;
+  margin-left: -1px;
 
   top: 2rem;
-  bottom: 2rem;
+  height: calc(100% - 4rem);
   max-width: calc(800px + 2rem);
   left: calc(50% - 400px - 1rem);
   z-index: 0;
@@ -317,8 +324,15 @@ section[pattern="one-quote"] > *:not(.toolbar) {
   .content section[pattern*="two-"][index="0"] {
     padding-right: 2rem;
   }
+  .content section[pattern*="two-"][index="0"] > .kx.toolbar {
+    right: 200px;
+    left: auto;
+  }
   .content section[pattern*="two-"][index="1"] {
     padding-left: 2rem;
+  }
+  .content section[pattern*="two-"][index="1"] > .kx.toolbar {
+    left: 200px;
   }
   .content section[pattern*="two-"][index="0"] > .kx.foreground {
     left: calc(100% - 400px - 1rem);
@@ -344,7 +358,7 @@ section[pattern="one-quote"] > *:not(.toolbar) {
 
 
 article > section > *:not(a):not(picture) {
-  max-width: calc(100vw - 2rem);
+  max-width: calc(100vw - 3rem);
   width: 800px;
 }
 article > section > * {
@@ -352,7 +366,7 @@ article > section > * {
   margin-right: auto;
 }
 
-article.content > section.small > * {
+article.content > section.small > *:not(.toolbar) {
   width: calc(400px - 2rem);
 }
 
@@ -362,6 +376,9 @@ article > section:not(.large):not(.small) > a {
 }
 
 @media (max-width: 830px) {
+  article > section > *:not(.kx):not(a):not(picture) {
+    margin-left: 2rem;
+  }
 
   article > section:not(.large):not(.small) > picture,
   article > section:not(.large):not(.small) > a {

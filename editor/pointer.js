@@ -3,25 +3,41 @@
 Editor.Pointer = function(editor, content) {
   delete Hammer.defaults.cssProps.userSelect;
 
-  editor.pointer = new Hammer(content, {
+  editor.pointer = new Hammer(document.body, {
     
   })
 
+  document.body.addEventListener('mousedown', function(e) {
+    if (!e.target.nodeType || e.target.tagName == 'svg' || e.target.tagName == 'use') {
+      e.preventDefault()
+      return;
+    }
+  }, true)
+
   editor.pointer.on('tap', function(e) {
-    for (var p = e.target; p; p = p.parentNode)
+    var target = e.srcEvent.target.correspondingUseElement || 
+                 e.srcEvent.target.correspondingElement || 
+                 e.srcEvent.target;
+    for (var p = target; p; p = p.parentNode)
       if (p.classList) 
         if (p.classList.contains('enlarge')) {
-          var section = Editor.Section.get(p);
-          Editor.Section.enlarge(editor, section);
+          Editor.Section.enlarge(editor, editor.currentToolbar);
+          Editor.Chrome.Toolbar.close(editor)
           e.preventDefault()
           return
         } else if (p.classList.contains('shrink')) {
-          var section = Editor.Section.get(p);
-          Editor.Section.shrink(editor, section);
+          Editor.Section.shrink(editor, editor.currentToolbar);
+          Editor.Chrome.Toolbar.close(editor)
           e.preventDefault()
           return
+        } else if (p.classList.contains('toolbar')) {
+          var section = Editor.Section.get(p);
+          Editor.Chrome.Toolbar.open(editor, section, p);
+          e.preventDefault()
+
         }
   })
+
 
   editor.dragging = null;
   editor.dragstart = null;
@@ -30,6 +46,7 @@ Editor.Pointer = function(editor, content) {
   editor.dragzone.id = 'dragzone'
 
   editor.handleEvent = function(e) {
+    if (e.type)
     switch (e.type) {
       case 'touchstart': case 'mousedown':
         editor.dragstarted = onDragStart(editor, e);

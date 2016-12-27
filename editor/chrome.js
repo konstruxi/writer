@@ -22,6 +22,8 @@ Editor.Chrome = function(editor, content) {
   editor.on('customSelectionChange', function() {
     if (editor.currentMenu)
       Editor.Chrome.closeMenu(editor)
+    if (editor.currentToolbar)
+      Editor.Chrome.Toolbar.close(editor)
   })
 
   editor.on('uiSpace', function() {
@@ -56,38 +58,50 @@ Editor.Chrome = function(editor, content) {
 
 Editor.Chrome.Toolbar = function(editor, section) {
   if (!section.getElementsByClassName('foreground')[0]) {
-    var bg = document.createElement('div');
-    var icon = document.createElement('x-icon');
-    bg.appendChild(icon)
-    bg.className = 'kx foreground'
+    var bg = document.createElement('x-div');
+    bg.classList.add('kx')
+    bg.classList.add('foreground')
+    //bg.setAttribute('contenteditable', 'false')
     bg.setAttribute('unselectable', 'on')
     section.insertBefore(bg, section.firstChild)
   }
   if (!section.getElementsByClassName('toolbar')[0]) {
-                
-    var toolbar = document.createElement('div');
-    toolbar.className = 'kx toolbar'
+    var toolbar = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    toolbar.setAttribute('width', '48')
+    toolbar.setAttribute('height', '48')
+    //toolbar.setAttribute('contenteditable', 'false')
     toolbar.setAttribute('unselectable', 'on')
+    toolbar.setAttribute('viewBox', "0 0 48 48")
+    toolbar.classList.add('kx')
+    toolbar.classList.add('toolbar')
+    toolbar.classList.add('resize')
     //toolbar.setAttribute('contenteditable', 'false')
 
-    toolbar.innerHTML = 
-                '<x-toolbar>' +
-                '<x-panel class="top">' +
-                '<svg viewBox="-2 0 48 48" class="star icon"><use xlink:href="#star-icon"></use></svg>' +
-                '</x-panel>' + 
-                '<x-panel class="middle">' +
-                '<svg viewBox="-1 0 50 50" class="pick palette icon"><use xlink:href="#palette-icon"></use></svg>' +
-                '<svg viewBox="0 0 48 48" class="resize handler icon"><use xlink:href="#resize-section-icon"></use></svg>' +
-                '<svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>' +
-                '<svg viewBox="-1 0 50 50" class="pick settings icon"><use xlink:href="#settings-icon"></use></svg>' +
-                '</x-panel>' +
-                '<x-panel class="bottom">' +
-                '<svg viewBox="-2 2 48 48" class="shrink zoomer icon"><use xlink:href="#zoom-out-icon"></use></svg>' +
-                '<svg viewBox="-2 2 48 48" class="enlarge zoomer icon"><use xlink:href="#zoom-in-icon"></use></svg>' +
-                '</x-panel>' + 
-                '</x-toolbar>'
+    var link = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#resize-section-icon');
+    toolbar.appendChild(link)
     section.insertBefore(toolbar, section.firstChild)
   }
+}
+
+Editor.Chrome.Toolbar.open = function(editor, section, button) {
+  var indexF = editor.snapshot.elements.indexOf(section.getElementsByClassName('foreground')[0]);
+  if (indexF > -1) {
+    var box = editor.snapshot.dimensions[indexF]
+    var offsetTop = box.top + editor.offsetTop;
+    var offsetLeft = box.left + box.width / 2 + editor.offsetLeft;
+  } else {
+    return;
+  }
+  editor.currentToolbar = section;
+  setUIColors(editor, section, 'menu');
+  sectionizer.style.top = offsetTop + 'px'
+  sectionizer.style.left = offsetLeft + 'px'
+  sectionizer.removeAttribute('hidden')
+}
+
+Editor.Chrome.Toolbar.close = function(editor) {
+  sectionizer.setAttribute('hidden', 'hidden')
 }
 
 Editor.Chrome.closeMenu = function(editor, element) {
@@ -127,33 +141,21 @@ Editor.Chrome.update = function(editor, force) {
     endSection = endSection.parentNode;
 
   if (!startSection) return;
-  // use final keyframe positions when animating
-  if (editor.snapshot) {
-    var index = editor.snapshot.elements.indexOf(start);
-    var indexS = editor.snapshot.elements.indexOf(startSection);
-    if (index > -1 && indexS > -1) {
-      var offsetHeight = editor.snapshot.dimensions[index].height;
-      var sectionOffsetWidth = editor.snapshot.dimensions[indexS].width;
-      var sectionOffsetTop = editor.snapshot.dimensions[indexS].top;
-      var offsetTop = editor.snapshot.dimensions[index].top + editor.offsetTop;
-      var offsetLeft = editor.snapshot.dimensions[indexS].left + editor.offsetLeft;
-    } else {
-      return;
-    }
-  // place at currently selected element mid-point
+
+  var foreground = startSection.getElementsByClassName('foreground')[0]
+  var index = editor.snapshot.elements.indexOf(start);
+  var indexS = editor.snapshot.elements.indexOf(startSection);
+  var indexF = editor.snapshot.elements.indexOf(foreground);
+
+  if (index > -1 && indexS > -1 && indexF > -1) {
+    var offsetHeight = editor.snapshot.dimensions[index].height;
+    var offsetWidth = editor.snapshot.dimensions[indexS].width;
+    var offsetTop = editor.snapshot.dimensions[index].top + editor.offsetTop;
+    var offsetLeft = editor.snapshot.dimensions[indexF].left + editor.offsetLeft;
   } else {
-    var offsetHeight = start.offsetHeight
-    var sectionOffsetWidth = startSection.offsetWidth
-    var offsetTop = 0;
-    var offsetLeft = 0;
-    var sectionOffsetTop = 0;
-    for (var el = start; el; el = el.offsetParent)
-      offsetTop += el.offsetTop;
-    for (var el = startSection; el; el = el.offsetParent) {
-      sectionOffsetTop += el.offsetTop;
-      offsetLeft += el.offsetLeft;
-    }
+    return;
   }
+
 
   var section = start;
   while (section && section.tagName != 'SECTION')
@@ -210,17 +212,18 @@ Editor.Chrome.update = function(editor, force) {
                               Math.max(editor.scrollY + 54, offsetTop + offsetHeight / 2)))) + 'px';
 
   var width = startSection.classList.contains('small') ? 400 : 800;
-  var left = offsetLeft + Math.ceil((editor.offsetWidth - Math.min(window.innerWidth, width)) / 2) + 'px';
-  
+  var diff = (offsetWidth - Math.min(editor.innerWidth, width));
+  var left = offsetLeft
+
   formatting.style.display = 'block';
   formatting.style.position  = 'absolute' 
-  formatting.style.left = left;
+  formatting.style.left = Math.max(32, left + 16) + 'px'
   formatting.style.top = top;
 
   //if (force && button == editor.currentButton) return;
   editor.currentButton = button;
   
-  setUIColors(editor, section);
+  setUIColors(editor, section, 'toolbar');
   
   // update formatting buttons
   var buttons = formatting.querySelectorAll('.cke_toolbar:nth-child(2) .cke_button');
@@ -267,14 +270,14 @@ function rightNow(callback) {
 }
 
 
-function setUIColors(editor, section) {
+function setUIColors(editor, section, type) {
   var old, current;
   for (var i = 0; i < document.body.classList.length; i++)
-    if (document.body.classList[i].indexOf('has-palette') > -1)
+    if (document.body.classList[i].indexOf(type + '-has-palette') > -1)
       old = document.body.classList[i]
   for (var i = 0; i < section.classList.length; i++)
     if (section.classList[i].indexOf('has-palette') > -1)
-      current = section.classList[i];
+      current = type + '-' + section.classList[i];
   if (current != old) {
     if (old)
       document.body.classList.remove(old)

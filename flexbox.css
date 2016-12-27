@@ -28,6 +28,7 @@ article > section {
   -webkit-box-flex: 1;
       -ms-flex: 0 1 100%;
           flex: 0 1 100%;
+  -webkit-flex-basis: 100%;
 
 
 
@@ -66,16 +67,15 @@ article > section > *:not(.kx){
 @media (min-width: 800px) {
   section[pattern="two-images"] {
     flex-basis: 50%;
+    -webkit-flex-basis: 50%;
     -webkit-align-self: stretch;
     -ms-flex-item-align: stretch;
     align-self: stretch;
   }
-  .content section[pattern="two-images"][index="0"] > *,
-  .content section[pattern="two-images"][index="0"] > .kx.foreground {
+  .content section[pattern="two-images"][index="0"] > :not(.toolbar) {
     margin-right: 0;
   }
-  .content section[pattern="two-images"][index="1"] > *,
-  .content section[pattern="two-images"][index="1"] > .kx.foreground{
+  .content section[pattern="two-images"][index="1"] > :not(.toolbar){
     margin-left: 0;
   }
 }
@@ -84,6 +84,8 @@ article > section > *:not(.kx){
 article > section.large {
   flex-basis: 100%;
   flex-grow: 0;
+  -webkit-flex-basis: 100%;
+  -webkit-flex-grow: 0;
 }
 
 

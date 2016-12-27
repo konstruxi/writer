@@ -464,43 +464,42 @@ Palette.example = function(colors, level) {
 
 CSS = function(prefix) {
   return (
-"body" + prefix + " #formatting," +
-"body" + prefix + " #formatting .cke_button {\n" +
+"body.toolbar-" + prefix + " #formatting," +
+"body.menu-"    + prefix + " #sectionizer svg," +
+"body.toolbar-" + prefix + " #formatting .cke_button {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
-"body" + prefix + " #formatting-shadow {\n" +
-"  border-color: " + this.accent + ";\n" +
-"}\n" +
-"body" + prefix + " #formatting .cke_button:hover {\n" +
+"body.menu-"    + prefix + " #sectionizer svg:hover," +
+"body.toolbar-" + prefix + " #formatting .cke_button:hover {\n" +
 "  color: " + this.foreground + ";\n" +
 "  background-color: " + this.accent + ";\n" +
 "}\n" +
-".content section" + prefix + " {\n" +
+".content section." + prefix + " {\n" +
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
 "}\n" +
-".content section" + prefix + " .toolbar svg {\n" +
+".content section." + prefix + " svg.toolbar  {\n" +
 "  background-color: " + this.background + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
-".content section" + prefix + " .toolbar svg:hover {\n" +
+".content section." + prefix + " .toolbar svg:hover {\n" +
 "  border-color: " + this.accent + ";\n" +
 "  background-color: " + this.accent + ";\n" +
 "  color: " + this.background + ";\n" +
 "}\n" +
-".content section" + prefix + " h1,\n" +
-".content section" + prefix + " h2,\n" +
-".content section" + prefix + " h3 {\n" +
+".content section." + prefix + " h1,\n" +
+".content section." + prefix + " h2,\n" +
+".content section." + prefix + " h3 {\n" +
 "  color: " + this.foregroundAA + ";\n" +
 "}\n" +
-".content section" + prefix + " a {\n" +
+".content section." + prefix + " a {\n" +
 "  color: " + this.accent + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
-".content section" + prefix + " > .foreground {\n" +
+".content section." + prefix + " > .foreground {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "  outline-color: " + this.accent + ";\n" +
 "}")

@@ -3,7 +3,7 @@ Editor.Snapshot = function(editor, elements, dimensions, selected) {
   this.root = editor.element.$
   this.elements = elements || []
   this.dimensions = dimensions || [];
-  this.selected = selected;
+  this.selected = selected || [];
 }
 
 // attempt to restore identity of selected elements between snapshots
@@ -89,7 +89,7 @@ Editor.Snapshot.prototype.animate = function(section) {
     var start = snapshot.startTime || time
     snapshot.morph(from, (start + Math.floor((time - start) / 1)), start)
 
-    if (!migrated) {
+    if (!migrated && snapshot.selected.length) {
       migrated = true;
       snapshot.migrateSelectedElements(from)
     }
@@ -231,6 +231,7 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         element.style.visibility = ''
         element.style.position = 'absolute';
         element.style.margin = '0'
+        element.style.zIndex = '';
         if (to.currentFontSize)
           element.style.fontSize = to.currentFontSize + 'px'
 
@@ -250,6 +251,7 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         element.style.height = to.currentHeight + 'px';
         element.style.width = to.currentWidth + 'px';
       } else {
+        element.style.zIndex = -1;
         element.style.visibility = 'hidden'
       }
     }
@@ -312,7 +314,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
     box.visible = Editor.Container.isBoxVisible(editor, box);
     dimensions.push(box)
   }
-    var selected = Editor.Snapshot.rememberSelected(editor)
+  var selected = Editor.Snapshot.rememberSelected(editor)
   
 
       //if (window.scrollY > offsetTop - 75/* || window.scrollY + window.innerHeight / 3 <  offsetTop - 75*/) {
@@ -345,7 +347,7 @@ Editor.Snapshot.rememberSelected = function(editor, bookmark, focused) {
       var selected = []
       for (var element; element = iterator.getNextParagraph();) {
         var el = element.$;
-        if (el) {
+        if (el && !el.classList.contains('kx') && !el.parentNode.classList.contains('kx')) {
           if (!focused) focused = el;
           var fontSize = window.getComputedStyle(el)['font-size'];
           selected.push(el, fontSize)
@@ -353,6 +355,8 @@ Editor.Snapshot.rememberSelected = function(editor, bookmark, focused) {
       }
     }
   }
+  //if (selected && Editor.Section.get(selected[0]) != Editor.Section.get(selected[selected.length - 2]))
+  //  return []
   return selected;
 }
 
@@ -363,8 +367,6 @@ Editor.Snapshot.prototype.reset = function(elements, over) {
     var element= elements[i];
     //element.style.webkitTransitionDuration = '0s'
     //element.style.transitionDuration = '0s'
-    element.style.webkitTransform = ''
-    element.style.transform = ''
     element.style.height = ''
     element.style.width = ''
     element.style.top = ''
@@ -374,8 +376,12 @@ Editor.Snapshot.prototype.reset = function(elements, over) {
     element.style.fontSize = ''
     element.style.margin = ''
     element.style.backgroundColor = ''
-    if (over)
+    if (over) {
+      element.style.zIndex = ''
       element.style.visibility = ''
+      element.style.webkitTransform = ''
+      element.style.transform = ''
+    }
 
   }
 }

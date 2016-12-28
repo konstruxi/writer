@@ -130,8 +130,14 @@ Editor.Snapshot.prototype.compute = function(snapshot) {
 }
 
 
-Editor.Snapshot.prototype.get = function(element) {
-  return this.dimensions[this.elements.indexOf(element)]
+Editor.Snapshot.prototype.get = function(element, copy) {
+  var box = this.dimensions[this.elements.indexOf(element)]
+  if (box && copy) {
+    return {left: box.left, x: box.x, width: box.width,
+            top: box.top, y: box.y, height: box.height}
+
+  }
+  return box;
 }
 
 Editor.Snapshot.prototype.transition = function(element, from, to, time, startTime, fallback, property, springName) {
@@ -201,61 +207,63 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
     if (from && to.fontSize != from.fontSize && from.fontSize && to.fontSize) {
       to.currentFontSize = this.transition(element, from, to, time, startTime, 'currentFontSize', 'fontSize', 'fontSizeSpring');
     }
-    if (to.animated || from && from.animated) {
+
+    if (from && (to.animated || from && from.animated)) {
       to.animated = true
 
-      if (from) {
+      to.currentTop    = this.transition(element, from, to, time, startTime, 'currentTop', 'top', 'topSpring');
+      to.currentLeft   = this.transition(element, from, to, time, startTime, 'currentLeft', 'left', 'leftSpring');
+      to.currentWidth  = this.transition(element, from, to, time, startTime, 'currentWidth', 'width', 'widthSpring');
+      to.currentHeight = this.transition(element, from, to, time, startTime, 'currentHeight', 'height', 'heightSpring');
 
-        to.currentTop    = this.transition(element, from, to, time, startTime, 'currentTop', 'top', 'topSpring');
-        to.currentLeft   = this.transition(element, from, to, time, startTime, 'currentLeft', 'left', 'leftSpring');
-        to.currentWidth  = this.transition(element, from, to, time, startTime, 'currentWidth', 'width', 'widthSpring');
-        to.currentHeight = this.transition(element, from, to, time, startTime, 'currentHeight', 'height', 'heightSpring');
-
-        var shiftX = 0;
-        var shiftY = 0;
-        if (to.up) {
-          shiftY += (to.up.currentTop || to.up.top) - to.up.top;
-          shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
-        }
-        to.currentX = to.x + (to.currentLeft - to.left) - shiftX;
-        to.currentY = to.y + (to.currentTop - to.top) - shiftY;
-
-
-      } else {
-        to.currentWidth  = to.width
-        to.currentHeight = to.height
-        to.currentY      = to.y
-        to.currentX      = to.x
-
+      var shiftX = 0;
+      var shiftY = 0;
+      if (to.up) {
+        shiftY += (to.up.currentTop || to.up.top) - to.up.top;
+        shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
       }
-      if (to.visible) {
-        element.style.visibility = ''
-        element.style.position = 'absolute';
-        element.style.margin = '0'
-        element.style.zIndex = '';
-        if (to.currentFontSize)
-          element.style.fontSize = to.currentFontSize + 'px'
+      to.currentX = to.x + (to.currentLeft - to.left) - shiftX;
+      to.currentY = to.y + (to.currentTop - to.top) - shiftY;
 
-        // if movement animation is at rest, disable gpu transform
 
-        if (!to.topSpring && !to.leftSpring && element.tagName == 'SECTION') {
-          element.style.top = to.currentY + 'px';
-          element.style.left = to.currentX + 'px';
-          element.style.transform = 
-          element.style.webkitTransform = ''
-        } else {
-          element.style.top = '0';
-          element.style.left = '0';
-          element.style.transform = 
-          element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
-        }
-        element.style.height = to.currentHeight + 'px';
-        element.style.width = to.currentWidth + 'px';
-      } else {
-        element.style.zIndex = -1;
-        element.style.visibility = 'hidden'
-      }
+    } else {
+      to.currentWidth  = to.width
+      to.currentHeight = to.height
+      to.currentY      = to.y
+      to.currentX      = to.x
+
     }
+    if (to.visible) {
+      element.style.visibility = ''
+      element.style.position = 'absolute';
+      element.style.margin = '0'
+      element.style.zIndex = '';
+      if (to.currentFontSize)
+        element.style.fontSize = to.currentFontSize + 'px'
+
+      // if movement animation is at rest, disable gpu transform
+
+      if (!to.topSpring && !to.leftSpring/* && element.tagName == 'SECTION'*/) {
+        element.style.top = to.currentY + 'px';
+        element.style.left = to.currentX + 'px';
+        element.style.transform = 
+        element.style.webkitTransform = ''
+      } else {
+        element.style.top = '0';
+        element.style.left = '0';
+        element.style.transform = 
+        element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
+      }
+      element.style.height = to.currentHeight + 'px';
+      element.style.width = to.currentWidth + 'px';
+    } else {
+      element.style.zIndex = -1;
+      element.style.visibility = 'hidden'
+    }
+
+
+    if (!to.topSpring && !to.leftSpring && !to.heightSpring && !to.widthSpring && !to.fontSizeSpring)
+      to.animated = false;
   }
 }
 
@@ -349,7 +357,8 @@ Editor.Snapshot.rememberSelected = function(editor, bookmark, focused) {
       var selected = []
       for (var element; element = iterator.getNextParagraph();) {
         var el = element.$;
-        if (el && !el.classList.contains('kx') && !el.parentNode.classList.contains('kx')) {
+        if (el && el.tagName && el.tagName == el.tagName.toUpperCase() &&
+            !el.classList.contains('kx') && !el.parentNode.classList.contains('kx')) {
           if (!focused) focused = el;
           var fontSize = window.getComputedStyle(el)['font-size'];
           selected.push(el, fontSize)
@@ -367,8 +376,9 @@ Editor.Snapshot.prototype.reset = function(elements, over) {
     elements = this.elements;
   for (var i = 0; i < elements.length; i++) {
     var element= elements[i];
-    //element.style.webkitTransitionDuration = '0s'
-    //element.style.transitionDuration = '0s'
+    element.style.webkitTransitionDuration = '0s'
+    element.style.transitionDuration = '0s'
+    element.style.webkitTransform = ''
     element.style.height = ''
     element.style.width = ''
     element.style.top = ''
@@ -379,9 +389,11 @@ Editor.Snapshot.prototype.reset = function(elements, over) {
     element.style.margin = ''
     element.style.backgroundColor = ''
     if (over) {
+      var box = this.get(element)
+      //if (box)
+      //  box.animated = false;
       element.style.zIndex = ''
       element.style.visibility = ''
-      element.style.webkitTransform = ''
       element.style.transform = ''
     }
 
@@ -433,8 +445,9 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
     }
 
   if (Editor.Content.isParagraph(element) || Editor.Content.isPicture(element) || element.tagName == 'IMG' || element.tagName == 'svg')
-    if (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5) || diffSize > 5)
+    if (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5) || diffSize > 5) {
       repositioned = 1;
+    }
 
   t.x = shiftX;
   t.y = shiftY;

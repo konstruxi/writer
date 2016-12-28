@@ -23,7 +23,7 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded, arg) {
       Editor.Image.onLoaded(editor, this, onImageProcessed, file)
     }
     image.src = URL.createObjectURL(file);
-  } else if (image.complete && image.src) {
+  } else if (image.complete && image.src && image.naturalWidth) {
     Editor.Image.onLoaded(editor, image, onImageProcessed)
   } else {
     image.onload = function() {
@@ -130,7 +130,7 @@ Editor.Image.applyChanges = function(data, img) {
     image.parentNode.classList.add('processed')
 
     var generator = Palette(image)
-    var result = generator('DV+V')
+    var result = generator('DM+V')
 
     var width = parseInt(image.getAttribute('width'));
     var height = parseInt(image.getAttribute('height'));

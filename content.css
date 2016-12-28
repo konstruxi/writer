@@ -231,12 +231,6 @@ section.clone {
   transition: color .3s, background-color .3s; 
   -webkit-transition: color .3s , background-color .3s
 }
-
-.content .toolbar * {
-  transition: none; 
-  -webkit-transition: none;
-}
-
 .content section {
   transition: opacity .3s 
   -webkit-transition: opacity .3s 
@@ -286,6 +280,7 @@ section[pattern="one-quote"] {
 
 section[pattern="one-quote"] > *:not(.toolbar) {
   width: 500px;
+
 }
 
 
@@ -307,7 +302,7 @@ section[pattern="one-quote"] > *:not(.toolbar) {
 }
 
 
-section.large.has-long-text {
+section.large.has-long-text:not(.has-picture) {
   display: block;
   columns: 2 calc(400px - 2rem);
   -moz-columns: 2 calc(400px - 2rem);
@@ -319,7 +314,7 @@ section.large.has-long-text {
   padding-left: calc(50vw - 400px);
   padding-right: calc(50vw - 400px);
 }
-section.large.has-long-text > *:not(.kx) {
+section.large.has-long-text:not(.has-picture) > *:not(.kx) {
   -webkit-column-break-inside: avoid; /* Chrome, Safari */
   page-break-inside: avoid;           /* Theoretically FF 20+ */
   break-inside: avoid-column;         /* IE 11 */
@@ -327,11 +322,12 @@ section.large.has-long-text > *:not(.kx) {
   margin: 0;
   padding: 0 0 0.8rem 0;
 }
-section.large.has-long-text > h1,
-section.large.has-long-text > h2,
-section.large.has-long-text > h3 {
+section.large.has-long-text:not(.has-picture) > h1,
+section.large.has-long-text:not(.has-picture) > h2,
+section.large.has-long-text:not(.has-picture) > h3 {
   column-span: all;
   -webkit-column-span: all;
+  -moz-column-span: all;
 }
 @media(max-width: 800px) {
   .content section > .kx.foreground {
@@ -377,6 +373,9 @@ section.large.has-long-text > h3 {
 
 body.dragging article section:not(.above-the-fold):not(.below-the-fold) {
   z-index: 10;
+}
+body.dragging article section.below-the-fold > .toolbar {
+  z-index: 20;
 }
 
 .content .was-moving {

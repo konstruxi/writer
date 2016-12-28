@@ -54,6 +54,25 @@ Editor.Container.measure = function(editor, scroll) {
 
 
 
+Editor.Container.isBoxIntersecting = function(box, another) {
+  var top = box.top;
+  var bottom = box.top + box.height
+  var topmost = another.top 
+  var bottomost = another.top + another.height;
+
+  var left = box.left;
+  var right = box.left + box.width
+  var leftmost = another.left
+  var rightmost = another.left + another.width;
+
+  return ((top >= topmost  && top    <= bottomost)
+    || (bottom >= topmost  && bottom <= bottomost)
+    ||    (top <= topmost  && bottom >= bottomost))
+    &&  ((left >= leftmost && left   <= rightmost)
+    ||  (right >= leftmost && right  <= rightmost)
+    ||   (left <= leftmost && right  >= rightmost))
+
+}
 Editor.Container.isBoxVisible = function(editor, box) {
   var top = box.top;
   var bottom = box.top + box.height

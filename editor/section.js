@@ -87,6 +87,66 @@ Editor.Section.insertBefore = function(editor, section) {
   }
 }
 
+Editor.Section.getSectionAbove = function(editor, section) {
+  var before = section.previousElementSibling;
+  var box = editor.snapshot.get(section)
+  while (before) {
+    var bbox = editor.snapshot.get(before)
+    if (bbox.top > box.top || Math.abs(bbox.top - box.top) < 30) {
+      before = before.previousElementSibling;
+    } else {
+      break;
+    }
+  }
+  return before
+}
+
+Editor.Section.findMovableElements = function(source, target, reverse) {
+  var h1 = target.getElementsByTagName('h1')[0];
+  var h2 = target.getElementsByTagName('h2')[0];
+  var h3 = target.getElementsByTagName('h3')[0];
+  var text = target.querySelector('blockquote, ul, ol, p');
+  var result = [];
+  var picture = target.getElementsByTagName('picture')[0];
+  var children = Array.prototype.slice.call(source.children);
+  if (reverse)
+    children = children.reverse()
+  loop: for (var i = 0; i < children.length; i++) {
+    var child = children[i]
+    switch (child.tagName) {
+      case 'H1':
+        if (reverse) {
+          if (h1) break loop;
+        } else {
+          if (text) break loop;
+        }
+
+        break;
+      case 'H2':
+        if (reverse) {
+          if (h1 || h2) break loop;
+        } else {
+          if (text) break loop;
+        }
+        break;
+      case 'H3':
+        if (h1 || h2 || h3) break loop;
+        break;
+      case 'A': case 'PICTURE':
+        if (picture) break loop;
+        break;
+      case 'X-DIV': case 'svg':
+        continue loop;
+      default:
+        if (reverse && (h1 || h2)) break loop;
+
+    }
+
+    result.unshift(child)
+  }
+  return result;
+} 
+
 Editor.Section.split = function(editor, root) {
   var children = Array.prototype.slice.call(root.childNodes);
   var selection = editor.getSelection()
@@ -172,7 +232,7 @@ Editor.Section.analyze = function(node) {
       case 'P': case 'A': case 'PICTURE':
         var img = child.getElementsByTagName('img')[0]
         if (img) {
-          tags.push('has-image', 'has-palette-' + img.getAttribute('uid'))
+          tags.push('has-picture', 'has-palette-' + img.getAttribute('uid'))
         } else if (child.textContent.length) {
           texts += child.textContent.length;
           tags.push('has-text')

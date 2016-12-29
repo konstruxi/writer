@@ -140,7 +140,7 @@ Editor.Image.applyChanges = function(data, img) {
     //image.style.maxHeight = height + 'px';
     var ratio = width > height ? width / height : height / width;
     Editor.Image.style.textContent += result.toString('has-palette-' + image.getAttribute('uid'))
-    Editor.Image.style.textContent += '.content section[pattern*="two-"] img[uid="' + image.getAttribute('uid') + '"] {' + 
+    Editor.Image.style.textContent += '.content section.small img[uid="' + image.getAttribute('uid') + '"] {' + 
       'left: -' + data.square.x / width * ratio * 100 + '%; ' +
       'top: -' + data.square.y / height * ratio * 100 + '%; ' +
       'width: ' + (height < width ? ratio : 1) * 100 + '%; ' +

@@ -45,7 +45,6 @@ body,html {
 }
 
 .content picture img {
-  max-width: 100%;
   margin: 0 auto;
   height: auto !important;
 }
@@ -94,6 +93,7 @@ body,html {
 #image-cropper {
   position: absolute;
   background: rgba(0,50,0,0.5);
+  z-index: 2000;
 }
 
 section {
@@ -127,7 +127,12 @@ section.forced:before {
 section > .kx.foreground {
   border-color: #aaa;
   background: #fff;
+   -moz-user-select: none; 
+    -ms-user-select: none; 
+        user-select: none;
+
 }
+
 article section {
   background: #f1f1f1;
 }
@@ -203,10 +208,7 @@ section > a + * {
   top: -50px;
   pointer-events: none;
 }
-section.focused > .kx.foreground, section.focused:hover > .kx.foreground {
-  border: 1px solid #aaa;
-}
-section:hover > .kx.foreground {
+.content section:hover > .kx.foreground {
   border: 1px solid #ccc;
 }
 
@@ -221,6 +223,7 @@ section.clone {
   width: 100%;
   height: auto;
 }
+
 
 .content {
   position: relative;
@@ -240,7 +243,6 @@ section.clone {
 
 .content {
   outline: none;
-  zoverflow: hidden;
 }
 
 
@@ -354,22 +356,28 @@ section.large.has-long-text:not(.has-picture) > h3 {
   .content section[pattern*="two-"][index="0"] > .kx.toolbar {
     right: 200px;
     left: auto;
+    margin-left: 0;
+  }
+  .content section[pattern*="two-"][index="0"] > .kx.foreground {
+    left: calc(100% - 400px - 1rem);
   }
   .content section[pattern*="two-"][index="1"] {
     padding-left: 2rem;
   }
   .content section[pattern*="two-"][index="1"] > .kx.toolbar {
     left: 200px;
-  }
-  .content section[pattern*="two-"][index="0"] > .kx.foreground {
-    left: calc(100% - 400px - 1rem);
+    margin-left: 0;
   }
   .content section[pattern*="two-"][index="1"] > .kx.foreground {
     left: 1rem;
   }
-  .content section[pattern*="two-"] picture {
-    height: calc(400px - 2rem);
-  }
+}
+
+.content section.small picture {
+  height: calc(400px - 2rem);
+}
+.content section.small picture img{
+  max-width: 300%;
 }
 .content section > * {
   position: relative;
@@ -380,6 +388,7 @@ section.large.has-long-text:not(.has-picture) > h3 {
 body.dragging article section:not(.above-the-fold):not(.below-the-fold) {
   z-index: 10;
 }*/
+
 body.dragging article section.below-the-fold > .toolbar {
   z-index: 20;
 }

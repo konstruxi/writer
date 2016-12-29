@@ -59,7 +59,7 @@ Editor.Selection = function(editor, content) {
   })
 
   // highlight crop area
-  content.addEventListener('mouseover', function(e) {
+  content.addEventListener('mousemove', function(e) {
     if (e.target.tagName == 'IMG' && e.metaKey) {
       var x = parseInt(e.target.getAttribute('crop-x'));
       var y = parseInt(e.target.getAttribute('crop-y'));
@@ -99,10 +99,12 @@ Editor.Selection = function(editor, content) {
 Editor.Selection.fix = function(editor) {
   var selection = editor.getSelection();
   var range = selection.getRanges()[0];
+  if (!range) return
   for (var p = range.startContainer.$; p; p = p.parentNode) {
     switch (p.tagName) {
       case 'PICTURE':
-        return selection.selectElement(new CKEDITOR.dom.element(p))
+        range.selectNodeContents(new CKEDITOR.dom.element(p))
+        return range.select()
       case 'X-DIV': case 'svg': case 'use':
         return Editor.Selection.moveToFollowingParagraph(editor, range);    
     }

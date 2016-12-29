@@ -1,10 +1,10 @@
 .content .temp-has-default-palette {
-  background: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.7);
   color: #000;
 }
 
 .content [class*="temp-has"] {
-  opacity: 0.7;
+  opacity: 0.9;
   z-index: 40;
 }
 #formatting {
@@ -93,9 +93,6 @@
 #formatting svg {
   cursor: pointer;
 }
-#formatting svg path {
-  fill: currentColor;
-}
 
 
 #formatting {
@@ -106,6 +103,12 @@
   position: absolute;
   margin-left: -1.2rem;
   margin-top: -3.40rem;
+}
+
+@media (max-width: 400px) {
+  #formatting {
+    margin-left: -0.1rem;
+  }
 }
 #formatting[hidden], #formatting[hidden] + #formatting-shadow {
   opacity: 0;
@@ -119,9 +122,18 @@
   pointer-events: all;
 }
 
-.dragging .toolbar {
+.dragging.toolbar {
   pointer-events: none;
-
+  z-index: 50000 !important; /*science*/
+}
+html {
+  cursor: none;
+}
+body {
+  cursor: default;
+}
+body.dragging *{
+  cursor: none !important;
 }
 
 
@@ -171,8 +183,6 @@
   visibility: visible;;
   display: block;
   z-index: 10;
-  margin-left: -1.2rem;
-  margin-top: -3rem;
 }
 
 #sectionizer[hidden] {
@@ -195,7 +205,7 @@ section > .toolbar {
   z-index: 2;
   position: absolute;
   position: absolute;
-  top: -1rem;
+  top: -0.55rem;
   left: 50%;
   margin-left: -1.2rem;
   height: 2.4rem;

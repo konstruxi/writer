@@ -96,6 +96,9 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
     //if (editor.snapshot)
     //  editor.snapshot.removeElement(cleaned[i])
   }
+  if (cleaned.length) {
+    console.log('cleaned', cleaned)
+  }
 
   if (!editor.refocusing && !blur) {
     if (before && before.parentNode || after && after.parentNode) {

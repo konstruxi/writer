@@ -167,18 +167,18 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
       if (element.classList.contains('added'))
         var spring = to[springName] = new Spring(30, 12);
       else
-        var spring = to[springName] = new Spring(24, 9);
+        var spring = to[springName] = new Spring(44, 9);
     } else if (property == 'width') {
       if (element.classList.contains('added'))
         var spring = to[springName] = new Spring(30, 15);
       else
-        var spring = to[springName] = new Spring(54, 13);
+        var spring = to[springName] = new Spring(104, 22);
     } else if (property == 'fontSize') {
       var spring = to[springName] = new Spring(20, 8);
     } else if (property == 'top') {
-      var spring = to[springName] = new Spring(24, 9);
+      var spring = to[springName] = new Spring(34, 9);
     } else {
-      var spring = to[springName] = new Spring(80, 22);
+      var spring = to[springName] = new Spring(104, 22);
     }
   }
   if (spring) {
@@ -256,17 +256,12 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
 
       // if movement animation is at rest, disable gpu transform
 
-      if (false && !to.topSpring && !to.leftSpring/* && element.tagName == 'SECTION'*/) {
-        element.style.top = to.currentY + 'px';
-        element.style.left = to.currentX + 'px';
-        element.style.transform = 
-        element.style.webkitTransform = ''
-      } else {
-        element.style.top = '0';
-        element.style.left = '0';
-        element.style.transform = 
-        element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
-      }
+
+      element.style.top = '0';
+      element.style.left = '0';
+      element.style.transform = 
+      element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
+      
       element.style.height = to.currentHeight + 'px';
       element.style.width = to.currentWidth + 'px';
     } else {
@@ -502,13 +497,12 @@ Editor.Snapshot.prototype.processElements = function(snapshot) {
       Editor.Image.register(this.editor, snapshot.elements[i]);
   }
 
-  console.log(this.animating, removed)
   if (this.animating)
     for (var i = this.animating.length; i--;) {
       var j = removed.indexOf(this.elements.indexOf(this.animating[i].element))
       if (j > -1) {
         console.log('removed animating element', this.animating[i].element)
-        this.animating.splice(j, 1)
+        this.animating.splice(i, 1)
       }
     }
 }

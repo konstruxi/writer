@@ -4,20 +4,27 @@ Editor.Pointer = function(editor, content) {
   delete Hammer.defaults.cssProps.userSelect;
 
 
-  editor.gestures = new Hammer.Manager(document.body);
+  preventGhosts([content])
+
+  editor.gestures = new Hammer.Manager(document.body, {
+    touchAction: ('ontouchend' in document.body) ? 'pan-x pan-y' : 'compute'
+  });
 
   editor.gestures.add(new Hammer.Pan({ threshold: 1, pointers: 1 }));
 
   editor.gestures.add(new Hammer.Tap({ event: 'doubletap', taps: 2 }));
   editor.gestures.add(new Hammer.Tap());
 
-  editor.gestures.add(new Hammer.Rotate({ threshold: 0 })).recognizeWith(editor.gestures.get('pan'));
-  editor.gestures.add(new Hammer.Pinch({ threshold: 0 })).recognizeWith([editor.gestures.get('pan'), editor.gestures.get('rotate')]);
+  //editor.gestures.add(new Hammer.Rotate({ threshold: 0 })).recognizeWith(editor.gestures.get('pan'));
+  //editor.gestures.add(new Hammer.Pinch({ threshold: 0 })).recognizeWith([editor.gestures.get('pan'), editor.gestures.get('rotate')]);
 
+  // dont change focus/selection on button click
   document.body.addEventListener('mousedown', function(e) {
-    if (!e.target.nodeType || e.target.tagName == 'svg' || e.target.tagName == 'use') {
-      e.preventDefault()
-      return;
+    if (!e.target.nodeType || e.target.tagName == 'svg' || e.target.tagName == 'use' || (e.target.classList && e.target.classList.contains('toolbar'))) {
+      //if (editor.focusManager.hasFocus) {
+        e.preventDefault()
+
+      //}
     }
   }, true)
 
@@ -33,7 +40,6 @@ Editor.Pointer = function(editor, content) {
     if (toolbar) {
       e.preventDefault();
       var section = Editor.Section.get(toolbar);
-      console.log(toolbar, section)
       toolbar.classList.add('dragging')
       document.body.classList.add('dragging')
       var foreground = section.getElementsByClassName('foreground')[0];
@@ -52,26 +58,38 @@ Editor.Pointer = function(editor, content) {
         }
       }
       var link = toolbar.getElementsByTagName('use')[0];
-      link.setAttributeNS("http://www.w3.org/1999/xlink", 'href', '#move-icon')
       section.classList.add('below-the-fold')
-      editor.gestures.current = {
-        before: before,
-        beforePalette: before && Editor.Section.getPaletteName(before),
-        beforeForeground: beforeForeground,
-        beforeForegroundBox: beforeBox,
-        beforeForegroundFinalBox: before && Object.create(beforeBox),
-        beforeForegroundDistance: before && beforeBox.top + beforeBox.height - foregroundBox.top,
-
-        above: before && Editor.Section.findMovableElements(before, section, true),
-        below: before && Editor.Section.findMovableElements(section, before),
-
+      var gesture = editor.gestures.current = {
         section: section,
         sectionPalette: Editor.Section.getPaletteName(section),
         foreground: foreground,
         foregroundBox: foregroundBox,
         foregroundFinalBox: Object.create(foregroundBox),
         button: toolbar,
-        buttonBox: editor.snapshot.get(toolbar)
+        buttonBox: editor.snapshot.get(toolbar),
+        link: link
+      }
+      if (before) {
+        gesture.before = before
+        gesture.beforePalette = Editor.Section.getPaletteName(before)
+        gesture.beforeForeground = beforeForeground
+        gesture.beforeForegroundBox = beforeBox
+        gesture.beforeForegroundFinalBox = Object.create(beforeBox)
+        gesture.beforeForegroundDistance = beforeBox.top + beforeBox.height - foregroundBox.top
+        gesture.above = Editor.Section.findMovableElements(before, section, true)
+        gesture.below = Editor.Section.findMovableElements(section, before)
+
+        gesture.above.forEach(function(el) {
+          var box = editor.snapshot.get(el);
+          if (!gesture.topmost || box.top < gesture.topmost)
+            gesture.topmost = box.top;
+        })
+
+        gesture.below.forEach(function(el) {
+          var box = editor.snapshot.get(el);
+          if (!gesture.bottomost || box.top + box.height > gesture.bottomost)
+            gesture.bottomost = box.top + box.height;
+        })
       }
     }
     editor.fire('unlockSnapshot')
@@ -84,17 +102,35 @@ Editor.Pointer = function(editor, content) {
       gesture.deltaX = e.deltaX
     }
 
-    var anchor = Editor.Section.get(e.srcEvent.target);
+    var action = '#move-icon'
+
+    if (e.srcEvent.type == 'touchmove') {
+      var myLocation = e.srcEvent.changedTouches[0];
+      var realTarget = document.elementFromPoint(myLocation.clientX, myLocation.clientY);
+      var anchor = Editor.Section.get(realTarget);
+      gesture.anchorShiftX = -36
+      gesture.anchorShiftY = -18
+    } else {
+      var anchor = Editor.Section.get(e.target);
+      gesture.anchorShiftX = 0
+      gesture.anchorShiftY = 0
+    }
+    gesture.anchor = anchor
 
     editor.fire('lockSnapshot')
 
     var x = e.deltaX - gesture.deltaX
     var y = e.deltaY - gesture.deltaY
 
-    gesture.button.style.left = gesture.buttonBox.x - gesture.buttonBox.left + e.center.x + 16 + 'px'
-    gesture.button.style.top = gesture.buttonBox.y - gesture.buttonBox.top + e.center.y + editor.scrollY - 4 + 'px'
+    gesture.button.style.left = gesture.buttonBox.x + x + gesture.anchorShiftX + 'px'
+    gesture.button.style.top = gesture.buttonBox.y + y + gesture.anchorShiftY + 'px'
     gesture.button.style.webkitTransform = gesture.button.style.transform = ''
 
+    // reset resizing if dragged too much
+    if ((gesture.topmost && gesture.buttonBox.top + y + 64 < gesture.topmost)
+    ||  (gesture.bottomost && gesture.buttonBox.top + y - 64 > gesture.bottomost)) {
+      y = 0;
+    }
     if (gesture.beforeForeground) {
 
       // update box dimensions in snapshot
@@ -124,6 +160,7 @@ Editor.Pointer = function(editor, content) {
           gesture.currentAbove = gesture.above.filter(function(element) {
             if (anchor == gesture.before && 
               Editor.Container.isBoxIntersecting(box, editor.snapshot.get(element))) {
+              action = '#move-down-icon'
               element.classList.add('temp-' + gesture.sectionPalette)
               return element;
             } else {
@@ -131,10 +168,9 @@ Editor.Pointer = function(editor, content) {
             }
           })
         }
-        if (gesture.below)
-          gesture.currentBelow = gesture.below.filter(function(element) {
-            element.classList.remove('temp-' + gesture.beforePalette)
-          });
+        gesture.currentBelow = gesture.below.filter(function(element) {
+          element.classList.remove('temp-' + gesture.beforePalette)
+        });
       } else {
         if (gesture.below.length) {
           if (y > - gesture.beforeForegroundDistance - 10) {
@@ -156,6 +192,7 @@ Editor.Pointer = function(editor, content) {
           // mark selected elements
           gesture.currentBelow = gesture.below.filter(function(element) {
             if (Editor.Container.isBoxIntersecting(beforeBox, editor.snapshot.get(element))) {
+              action = '#move-up-icon'
               element.classList.add('temp-' + gesture.beforePalette)
               return element;
             } else {
@@ -163,22 +200,26 @@ Editor.Pointer = function(editor, content) {
             }
           })
         }
-        if (gesture.above)
-          gesture.currentAbove = gesture.above.filter(function(element) {
-            element.classList.remove('temp-' + gesture.sectionPalette)
-          });
+        gesture.currentAbove = gesture.above.filter(function(element) {
+          element.classList.remove('temp-' + gesture.sectionPalette)
+        });
       }
 
     }
 
+    gesture.link.setAttributeNS("http://www.w3.org/1999/xlink", 'href', action)
     editor.fire('unlockSnapshot')
   })
   editor.gestures.on('panend', function(e) {
     var gesture = editor.gestures.current;
+    setTimeout(function() {
+
+      Editor.Chrome.update(editor)
+    }, 100)
+    Editor.Chrome.update(editor)
     document.body.classList.remove('dragging')
     if (!gesture) return;
 
-    var anchor = Editor.Section.get(e.srcEvent.target);
     gesture.section.classList.remove('below-the-fold')
     editor.gestures.current = null;
     gesture.button.classList.remove('dragging')
@@ -186,38 +227,56 @@ Editor.Pointer = function(editor, content) {
     gesture.button.style.left = ''
     var x = e.deltaX - gesture.deltaX
     var y = e.deltaY - gesture.deltaY
-    var link = gesture.button.getElementsByTagName('use')[0];
-    link.setAttributeNS("http://www.w3.org/1999/xlink", 'href', '#resize-section-icon')
+    var buttonBox = editor.snapshot.get(gesture.button);
+    gesture.buttonBox.x  = gesture.buttonBox.x + x + gesture.anchorShiftX 
+    gesture.buttonBox.left  = gesture.buttonBox.left + x + gesture.anchorShiftX
+    gesture.buttonBox.y  = gesture.buttonBox.y + y + gesture.anchorShiftY
+    gesture.buttonBox.top  = gesture.buttonBox.top + y + gesture.anchorShiftY
+
+    gesture.link.setAttributeNS("http://www.w3.org/1999/xlink", 'href', '#resize-section-icon')
 
     var isMovingContent = (gesture.currentBelow && gesture.currentBelow.length) ||
                           (gesture.currentAbove && gesture.currentAbove.length)
 
-    if (!isMovingContent && (!anchor || anchor == gesture.section))
-      return;
     editor.fire('saveSnapshot');
 
+
+    // reset resizing if dragged too much
+    if ((gesture.topmost && gesture.buttonBox.top + y + 32 < gesture.topmost)
+    ||  (gesture.bottomost && gesture.buttonBox.top + y - 64 > gesture.bottomost)) {
+      y = 0;
+      var exceeded = true;
+    }
+    if (gesture.before) {
+      var beforeBox = editor.snapshot.get(gesture.beforeForeground);
+      var box = editor.snapshot.get(gesture.foreground);
+      box.y      = gesture.foregroundFinalBox.y;
+      box.top    = gesture.foregroundFinalBox.top;
+      box.height = gesture.foregroundFinalBox.height;
+      beforeBox.height = gesture.beforeForegroundFinalBox.height;
+
+      if (y < 0) {
+        Editor.Snapshot.shiftChildren(editor, gesture.section, y)
+      }
+      if (y > - gesture.beforeForegroundDistance - 10) {
+        Editor.Snapshot.shiftChildren(editor, gesture.section, (gesture.beforeForegroundDistance + 10 + y))
+      }
+    }
 
     if (isMovingContent) {
       if (gesture.before) {
         editor.dragbookmark = editor.getSelection().createBookmarks()
-        var beforeBox = editor.snapshot.get(gesture.beforeForeground);
-        var box = editor.snapshot.get(gesture.foreground);
 
         var first = Editor.Section.getFirstChild(gesture.section)
         var last = gesture.before.lastElementChild;
         if (gesture.currentAbove && gesture.currentAbove.length) {
 
-          Editor.Snapshot.shiftChildren(editor, gesture.section, y)
           gesture.currentAbove.forEach(function(element) {
             gesture.section.insertBefore(element, first)
             gesture.section.classList.add('forced')
             element.classList.remove('temp-' + gesture.sectionPalette)
           })
         }
-        box.y      = gesture.foregroundFinalBox.y;
-        box.top    = gesture.foregroundFinalBox.top;
-        box.height = gesture.foregroundFinalBox.height;
-        beforeBox.height = gesture.beforeForegroundFinalBox.height;
 
         if (gesture.currentBelow && gesture.currentBelow.length) {
 
@@ -226,19 +285,17 @@ Editor.Pointer = function(editor, content) {
             gesture.before.insertBefore(element, last.nextSibling)
             gesture.before.classList.add('forced')
           })
-
-          if (y > - gesture.beforeForegroundDistance - 10) {
-            Editor.Snapshot.shiftChildren(editor, gesture.section, (gesture.beforeForegroundDistance + 10 + y))
-          }
         }
       }
-    } else if (anchor && anchor != gesture.section) {
+    } else if (gesture.anchor && gesture.anchor != gesture.section/* && (Math.abs(y) + Math.abs(x) / 2 > 100)*/) {
       gesture.section.classList.add('forced');
-      if (anchor.previousElementSibling == gesture.section)
-        gesture.section.parentNode.insertBefore(gesture.section, anchor.nextElementSibling)
+      if (gesture.anchor.previousElementSibling == gesture.section)
+        gesture.section.parentNode.insertBefore(gesture.section, gesture.anchor.nextElementSibling)
       else
-        gesture.section.parentNode.insertBefore(gesture.section, anchor)
+        gesture.section.parentNode.insertBefore(gesture.section, gesture.anchor)
 
+    } else if (gesture.before) {
+      editor.snapshot = editor.snapshot.animate();
     }
     editor.fire('saveSnapshot');
   })
@@ -285,4 +342,48 @@ Editor.Pointer = function(editor, content) {
   })
 }
 
+var ANTI_GHOST_DELAY = 2000;
 
+var POINTER_TYPE = {
+  MOUSE: 0,
+  TOUCH: 1
+};
+
+function preventGhosts(element) {
+
+  var latestInteractionType,
+    latestInteractionTime;
+
+  function handleTap(type, e) {
+    // console.log('got tap ' + e.type + ' of pointer ' + type);
+
+    var now = Date.now();
+
+    if (type !== latestInteractionType) {
+
+      if (now - latestInteractionTime <= ANTI_GHOST_DELAY) {
+        // console.log('!prevented!');
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+
+      latestInteractionType = type;
+    }
+
+    latestInteractionTime = now;
+  }
+
+  function attachEvents(eventList, interactionType) {
+    eventList.forEach(function(eventName) {
+      element[0].addEventListener(eventName, handleTap.bind(null, interactionType), true);
+    });
+  }
+
+  var mouseEvents = ['mousedown', 'mouseup', 'mousemove'];
+  var touchEvents = ['touchstart', 'touchend'];
+
+  attachEvents(mouseEvents, POINTER_TYPE.MOUSE);
+  attachEvents(touchEvents, POINTER_TYPE.TOUCH);
+}

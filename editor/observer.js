@@ -13,18 +13,14 @@ Editor.Observer = function(editor) {
         for (var j = 0; j < m.removedNodes.length; j++) {
           if (m.removedNodes[j].nodeType == 1 &&
               m.removedNodes[j].tagName != 'SPAN' &&
-              m.removedNodes[j].tagName != 'DIV' &&
-              (!m.removedNodes[j].classList || !m.removedNodes[j].classList.contains('kx')) &&
-              (!m.target.classList || !m.target.classList.contains('kx'))) {
+              m.removedNodes[j].tagName != 'DIV') {
             var reason = mutations[i];
           }
         }
         for (var j = 0; j < m.addedNodes.length; j++) {
           if (m.addedNodes[j].nodeType == 1 &&
               m.addedNodes[j].tagName != 'SPAN' &&
-              m.addedNodes[j].tagName != 'DIV' &&
-              (!m.addedNodes[j].classList || !m.addedNodes[j].classList.contains('kx')) &&
-              (!m.target.classList || !m.target.classList.contains('kx'))) {
+              m.addedNodes[j].tagName != 'DIV') {
             var reason = mutations[i];
           }
         }

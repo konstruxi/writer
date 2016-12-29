@@ -6,12 +6,16 @@ Editor.Section = function(editor, mutation, observer) {
   editor.fire( 'lockSnapshot');
   var content = editor.element.$;
   var section = Editor.Section.split(editor, content) || editor.justdropped
-  for (var i = 0; i < content.children.length; i++)
+  for (var i = 0; i < content.children.length; i++) {
     Editor.Section.analyze(content.children[i])
+  }
   Editor.Section.group(content)
 
 
   editor.snapshot = snapshot.animate(section);
+
+  for (var i = 0; i < content.children.length; i++) 
+    Editor.Section.lookaround(editor, content.children[i], editor.snapshot)
 
   //updateToolbar(editor, true)
   //togglePicker(editor, true)
@@ -86,11 +90,14 @@ Editor.Section.insertBefore = function(editor, section) {
   }
 }
 
-Editor.Section.getSectionAbove = function(editor, section) {
+Editor.Section.getSectionAbove = function(editor, section, snapshot) {
   var before = section.previousElementSibling;
-  var box = editor.snapshot.get(section)
+  if (!snapshot)
+    snapshot = editor.snapshot;
+  var box = snapshot.get(section)
+  if (box)
   while (before) {
-    var bbox = editor.snapshot.get(before)
+    var bbox = snapshot.get(before)
     if (bbox.top > box.top || Math.abs(bbox.top - box.top) < 30) {
       before = before.previousElementSibling;
     } else {
@@ -207,7 +214,22 @@ Editor.Section.getPaletteName = function(node) {
   }
   return 'has-default-palette'
 }
-
+Editor.Section.lookaround = function(editor, node, snapshot) {
+  var link = node.querySelector('.toolbar svg use')
+  var icon = '#menu-icon';
+  if (!node.classList.contains('small')) {
+    var before = Editor.Section.getSectionAbove(editor, node, snapshot);
+    if (before && !before.classList.contains('small')) {
+      if (Editor.Section.findMovableElements(node, before).length || 
+          Editor.Section.findMovableElements(before, node, true).length) {
+        node.classList.add('movable')
+        var icon = '#resize-section-icon'
+      }
+    }
+  }
+  if (link.getAttributeNS('http://www.w3.org/1999/xlink', 'href') != icon)
+        link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', icon);
+}
 Editor.Section.analyze = function(node) {
   var tags = [];
   var titles = 0;

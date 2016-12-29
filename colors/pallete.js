@@ -488,6 +488,11 @@ CSS = function(prefix) {
 "  border-color: " + this.background + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
+".content section." + prefix + " .toolbar  svg{\n" +
+"  color: " + this.accent + ";\n" +
+"  background-color: " + this.background + ";\n" +
+"  border-color: " + this.background + ";\n" +
+"}\n" +
 ".content section." + prefix + " .toolbar svg:hover {\n" +
 "  border-color: " + this.accent + ";\n" +
 "  background-color: " + this.accent + ";\n" +
@@ -505,7 +510,13 @@ CSS = function(prefix) {
 "}\n" +
 ".content section." + prefix + " > .foreground {\n" +
 "  background-color: " + this.foreground + ";\n" +
-"  outline-color: " + this.accent + ";\n" +
+"}" +
+".content section." + prefix + ":hover > .foreground {\n" +
+"  border-color: " + this.accent + ";\n" +
+"}" + 
+".content section." + prefix + " *::selection {\n" +
+"  background-color: " + this.accent + ";\n" +
+"  color: " + this.accentAAA + ";\n" +
 "}")
 };
 

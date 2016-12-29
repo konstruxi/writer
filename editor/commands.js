@@ -117,8 +117,8 @@ Editor.Commands.Link = function (editor, url) {
   if(selector) {
      element = selector.getAscendant( 'a', true );
   }
-
-  var text = selection.getSelectedText();
+  debugger
+  var text = selection.getSelectedText().trim();
   var start = selection.getStartElement()
   if (!text) {
     if (start.$.tagName == 'IMG') {
@@ -165,13 +165,17 @@ Editor.Commands.Link = function (editor, url) {
     } else if (!text) {
       text = url.split('://')[1];
     }
-    if (text && !img)
+    if (text && !img) {
+
       element.$.textContent = text
-    else 
+
+      if (!deferred)
+        editor.insertElement(element)
+    } else {
+      img.parentNode.parentNode.insertBefore(element.$, img.parentNode)
       element.$.appendChild(img.parentNode)
+    }
     element.setAttribute("target","_blank")
-    if (!deferred)
-      editor.insertElement(element)
   } else {
     if (url == null)
       url = prompt('Enter url:', element.$.href)
@@ -186,6 +190,7 @@ Editor.Commands.Link = function (editor, url) {
       element.$.parentNode.insertBefore(element.$.firstChild, element.$)
     element.$.parentNode.removeChild(element.$)
   }
+  //selection.selectElement(img ? new CKEDITOR.dom.element(img) : element)
   //if (img) {
   //  var section = Editor.Section.get(img);
   //  if (section) Editor.Section.analyze(section)

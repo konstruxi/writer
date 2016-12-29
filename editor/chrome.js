@@ -94,11 +94,11 @@ Editor.Chrome.Toolbar = function(editor, section) {
 }
 
 Editor.Chrome.Toolbar.open = function(editor, section, button) {
-  var indexF = editor.snapshot.elements.indexOf(section.getElementsByClassName('foreground')[0]);
+  var indexF = editor.snapshot.elements.indexOf(section.getElementsByClassName('toolbar')[0]);
   if (indexF > -1) {
     var box = editor.snapshot.dimensions[indexF]
     var offsetTop = box.top + editor.offsetTop;
-    var offsetLeft = box.left + box.width / 2 + editor.offsetLeft;
+    var offsetLeft = box.left + editor.offsetLeft;
   } else {
     return;
   }

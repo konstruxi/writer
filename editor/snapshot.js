@@ -6,6 +6,22 @@ Editor.Snapshot = function(editor, elements, dimensions, selected) {
   this.selected = selected || [];
 }
 
+Editor.Snapshot.shiftChildren = function(editor, section, y, mutate) {
+
+  var els = section.children;
+  for (var i = 0; i < els.length; i++) {
+    var child = editor.snapshot.get(els[i])
+    if (child) {
+      if (mutate) {
+        if (child.yShift)
+          child.y += child.yShift;
+        child.yShift = y;
+      }
+      child.y -= y
+    }
+  }
+}
+
 // attempt to restore identity of selected elements between snapshots
 Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
   if (snapshot.selected && this.selected) {
@@ -90,7 +106,7 @@ Editor.Snapshot.prototype.animate = function(section, callback) {
     var start = snapshot.startTime || time
     snapshot.morph(from, (start + Math.floor((time - start) / 1)), start)
 
-    if (!migrated && snapshot.selected.length) {
+    if (!migrated) {
       migrated = true;
       snapshot.migrateSelectedElements(from)
     }
@@ -153,16 +169,16 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
       if (element.classList.contains('added'))
         var spring = to[springName] = new Spring(30, 12);
       else
-        var spring = to[springName] = new Spring(74, 9);
-    } else if (property == 'height') {
+        var spring = to[springName] = new Spring(24, 9);
+    } else if (property == 'width') {
       if (element.classList.contains('added'))
         var spring = to[springName] = new Spring(30, 15);
       else
-        var spring = to[springName] = new Spring(34, 22);
+        var spring = to[springName] = new Spring(54, 22);
     } else if (property == 'fontSize') {
       var spring = to[springName] = new Spring(20, 8);
     } else if (property == 'top') {
-      var spring = to[springName] = new Spring(20, 6);
+      var spring = to[springName] = new Spring(24, 9);
     } else {
       var spring = to[springName] = new Spring(80, 22);
     }
@@ -207,7 +223,6 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
     if (from && to.fontSize != from.fontSize && from.fontSize && to.fontSize) {
       to.currentFontSize = this.transition(element, from, to, time, startTime, 'currentFontSize', 'fontSize', 'fontSizeSpring');
     }
-
     if (from && (to.animated || from && from.animated)) {
       to.animated = true
 
@@ -243,7 +258,7 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
 
       // if movement animation is at rest, disable gpu transform
 
-      if (!to.topSpring && !to.leftSpring/* && element.tagName == 'SECTION'*/) {
+      if (false && !to.topSpring && !to.leftSpring/* && element.tagName == 'SECTION'*/) {
         element.style.top = to.currentY + 'px';
         element.style.left = to.currentX + 'px';
         element.style.transform = 
@@ -262,8 +277,8 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
     }
 
 
-    if (!to.topSpring && !to.leftSpring && !to.heightSpring && !to.widthSpring && !to.fontSizeSpring)
-      to.animated = false;
+    //if (!to.topSpring && !to.leftSpring && !to.heightSpring && !to.widthSpring && !to.fontSizeSpring)
+    //  to.animated = false;
   }
 }
 
@@ -376,8 +391,8 @@ Editor.Snapshot.prototype.reset = function(elements, over) {
     elements = this.elements;
   for (var i = 0; i < elements.length; i++) {
     var element= elements[i];
-    element.style.webkitTransitionDuration = '0s'
-    element.style.transitionDuration = '0s'
+    //element.style.webkitTransitionDuration = '0s'
+    //element.style.transitionDuration = '0s'
     element.style.webkitTransform = ''
     element.style.height = ''
     element.style.width = ''
@@ -390,8 +405,8 @@ Editor.Snapshot.prototype.reset = function(elements, over) {
     element.style.backgroundColor = ''
     if (over) {
       var box = this.get(element)
-      //if (box)
-      //  box.animated = false;
+      if (box)
+        box.animated = false;
       element.style.zIndex = ''
       element.style.visibility = ''
       element.style.transform = ''

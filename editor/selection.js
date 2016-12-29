@@ -21,7 +21,7 @@ Editor.Selection = function(editor, content) {
   editor.on( 'selectionChange', function( evt ) {
     if ( editor.readOnly )
       return;
-
+    Editor.Selection.fix(editor)
     Editor.Selection.onChange(editor)
     var range = editor.getSelection().getRanges()[0];
     if (range)
@@ -94,11 +94,25 @@ Editor.Selection = function(editor, content) {
   });
 }
 
+Editor.Selection.fix = function(editor) {
+  var selection = editor.getSelection();
+  var range = selection.getRanges()[0];
+  for (var p = range.startContainer.$; p; p = p.parentNode) {
+    switch (p.tagName) {
+      case 'PICTURE':
+        return selection.selectElement(new CKEDITOR.dom.element(p))
+      case 'X-DIV': case 'svg': case 'use':
+        return Editor.Selection.moveToNextParagraph(editor, range);    
+    }
+  }
+}
 Editor.Selection.moveToParagraphAfter = function(editor, range) {
 
    if (!range) range = editor.getSelection().getRanges()[0]
   var ascender = range.startContainer.getAscendant('picture', true) || range.startContainer;
   ascender = ascender.getAscendant('a') || ascender;
+  while (ascender && !ascender.getParent().is('section'))
+    ascender = ascender.getParent()
 
   var paragraph = new CKEDITOR.dom.element('p')
   paragraph.insertAfter(ascender);

@@ -66,20 +66,22 @@ Editor.Chrome.Toolbar = function(editor, section) {
     section.insertBefore(bg, section.firstChild)
   }
   if (!section.getElementsByClassName('toolbar')[0]) {
-    var toolbar = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    toolbar.setAttribute('width', '48')
-    toolbar.setAttribute('height', '48')
-    //toolbar.setAttribute('contenteditable', 'false')
+    var toolbar = document.createElement('x-div');
     toolbar.setAttribute('unselectable', 'on')
-    toolbar.setAttribute('viewBox', "0 0 48 48")
     toolbar.classList.add('kx')
     toolbar.classList.add('toolbar')
-    toolbar.classList.add('resize')
+    var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('width', '48')
+    icon.setAttribute('height', '48')
+    icon.classList.add('menu')
+    //icon.setAttribute('contenteditable', 'false')
+    icon.setAttribute('viewBox', "0 0 48 48")
     //toolbar.setAttribute('contenteditable', 'false')
 
     var link = document.createElementNS('http://www.w3.org/2000/svg', 'use');
     link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#resize-section-icon');
-    toolbar.appendChild(link)
+    icon.appendChild(link)
+    toolbar.appendChild(icon)
     section.insertBefore(toolbar, section.firstChild)
   }
 }

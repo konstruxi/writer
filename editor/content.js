@@ -150,12 +150,12 @@ Editor.Content.isBlock = function(element) {
        // special case picture inside A
        || (element.tagName == 'PICTURE')
        || (element.tagName == 'IMG')
-       || (element.tagName == 'A' && element.firstElementChild && element.firstElementChild.tagName == 'PICTURE')
+       || (element.tagName == 'A' && element.getElementsByTagName('PICTURE')[0])
 }
 
 Editor.Content.isPicture = function(element) {
   return (element.tagName == 'PICTURE')
-       || (element.tagName == 'A' && element.firstElementChild && element.firstElementChild.tagName == 'PICTURE')
+       || (element.tagName == 'A' && element.getElementsByTagName('PICTURE')[0])
 }
 Editor.Content.isParagraph = function(element) {
   switch (element.parentNode.tagName) {

@@ -17,7 +17,7 @@ function Editor(content) {
   editor.on('loaded', function() {
     Editor.Commands(editor, content)
     Editor.DTD(editor, content);
-    Editor.Section.observe(editor);
+    Editor.Observer(editor);
   }, null, null, -100)
   editor.on('contentDom', function() {
     Editor.Container(editor, content)

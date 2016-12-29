@@ -49,7 +49,7 @@ Editor.DTD = function(editor) {
 
             // Is this class semantic?
             for (var i = 0; i < list.length; i++) {
-              if (name.indexOf(list[i]) > -1 || name == 'forced' || name == 'soft') {
+              if (name.indexOf(list[i]) > -1 || name == 'forced' || name == 'small' || name == 'large' || name == 'soft') {
                 var replacement = name.indexOf(list[i]) > -1 
                                     ? Editor.Content.soundsLikeSemanticClass[list[i]]
                                     : name;

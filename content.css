@@ -301,6 +301,9 @@ section[pattern="one-quote"] > *:not(.toolbar) {
   z-index: 1;
 }
 
+section.large:not(.has-picture):not(.has-long-text) {
+  font-size: 1.5rem;
+}
 
 section.large.has-long-text:not(.has-picture) {
   display: block;
@@ -329,6 +332,8 @@ section.large.has-long-text:not(.has-picture) > h3 {
   -webkit-column-span: all;
   -moz-column-span: all;
 }
+
+
 @media(max-width: 800px) {
   .content section > .kx.foreground {
     left: 0;
@@ -368,22 +373,21 @@ section.large.has-long-text:not(.has-picture) > h3 {
 }
 .content section > * {
   position: relative;
-  z-index: 3;
+  z-index: 1;
 }
 
+/*
 body.dragging article section:not(.above-the-fold):not(.below-the-fold) {
   z-index: 10;
-}
+}*/
 body.dragging article section.below-the-fold > .toolbar {
   z-index: 20;
 }
 
-.content .was-moving {
-  will-change: transform;
-  transform: translateZ(0);
+
+article {
+  background: #f1f1f1
 }
-
-
 
 article > section > *:not(a):not(picture) {
   max-width: calc(100vw - 3rem);

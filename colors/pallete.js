@@ -470,6 +470,10 @@ CSS = function(prefix) {
 "  background-color: " + this.foreground + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
+".temp-"    + prefix + " {" +
+"  color: " + this.foregroundAAA + " !important;\n" +
+"  background-color: " + this.foreground + ";\n" +
+"}\n" +
 "body.menu-"    + prefix + " #sectionizer svg:hover," +
 "body.toolbar-" + prefix + " #formatting .cke_button:hover {\n" +
 "  color: " + this.foreground + ";\n" +

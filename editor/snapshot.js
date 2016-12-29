@@ -255,13 +255,18 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         element.style.fontSize = to.currentFontSize + 'px'
 
       // if movement animation is at rest, disable gpu transform
+      //if (to.topSpring == null && to.leftSpring == null && to.heightSpring == null && to.widthSpring == null) {
+      //  element.style.top = to.currentY + 'px';
+      //  element.style.left = to.currentX + 'px';
+      //  element.style.transform = 
+      //  element.style.webkitTransform = ''
+      //} else {
 
-
-      element.style.top = '0';
-      element.style.left = '0';
-      element.style.transform = 
-      element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
-      
+        element.style.top = '0';
+        element.style.left = '0';
+        element.style.transform = 
+        element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
+      //}
       element.style.height = to.currentHeight + 'px';
       element.style.width = to.currentWidth + 'px';
     } else {
@@ -312,6 +317,14 @@ Editor.Snapshot.take = function(editor, reset, focused) {
       if (bookmark && bookmark[0] && bookmark[0].startNode.$.parentNode)
         bookmark[0].startNode.$.parentNode.removeChild(bookmark[0].startNode.$)
 
+  }
+
+
+  // Hack: Animating when image is selected is uber choppy, just move caret
+  var selection = editor.getSelection();
+  var range = selection.getRanges()[0]
+  if (range && Editor.Content.isPicture(range.startContainer.$)) {
+    Editor.Selection.moveToFollowingParagraph(editor, range)
   }
 
 

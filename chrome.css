@@ -185,6 +185,21 @@ body.dragging *{
   z-index: 10;
 }
 
+#sectionizer.large .enlarge {
+  opacity: 0.3;
+}
+#sectionizer.small .shrink {
+  opacity: 0.3;
+}
+@media (max-width: 400px) {
+  #sectionizer .enlarge {
+    display: none;
+  }
+  #sectionizer .shrink {
+    display: none;
+  }
+}
+
 #sectionizer[hidden] {
   visibility: hidden;
   display: none;
@@ -208,8 +223,8 @@ section > .toolbar {
   top: -0.55rem;
   left: 50%;
   margin-left: -1.2rem;
-  height: 2.4rem;
-  width: 2.4rem;
+  height: 2.3rem;
+  width: 2.3rem;
   border-radius: 50%;
 }
 
@@ -217,7 +232,7 @@ section > .toolbar {
 section > .toolbar svg {
   border-radius: 50%;
   cursor: move;
-  height: 2.4rem;
-  width: 2.4rem;
+  height: 2.3rem;
+  width: 2.3rem;
   border: 0.2rem solid transparent;
 }

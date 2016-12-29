@@ -34,7 +34,6 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
   var snapshot = editor.stylesnapshot;
   editor.fire('lockSnapshot');
   var cleaned = [];
-      console.log(editor.doNotBlur)
   for (var i = 0; i < children.length; i++) {
     var inside = Editor.Content.isInside(selected, children[i]);
     if (selected && inside) {

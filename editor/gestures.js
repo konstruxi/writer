@@ -4,7 +4,6 @@ Editor.Pointer = function(editor, content) {
   delete Hammer.defaults.cssProps.userSelect;
 
 
-  preventGhosts([content])
 
   editor.gestures = new Hammer.Manager(document.body, {
     touchAction: ('ontouchend' in document.body) ? 'pan-x pan-y' : 'compute'
@@ -23,7 +22,6 @@ Editor.Pointer = function(editor, content) {
     if (!e.target.nodeType || e.target.tagName == 'svg' || e.target.tagName == 'use' || (e.target.classList && e.target.classList.contains('toolbar'))) {
       //if (editor.focusManager.hasFocus) {
         e.preventDefault()
-
       //}
     }
   }, true)
@@ -127,8 +125,10 @@ Editor.Pointer = function(editor, content) {
     gesture.button.style.webkitTransform = gesture.button.style.transform = ''
 
     // reset resizing if dragged too much
-    if ((gesture.topmost && gesture.buttonBox.top + y + 64 < gesture.topmost)
-    ||  (gesture.bottomost && gesture.buttonBox.top + y - 64 > gesture.bottomost)) {
+    if (gesture.topmost && gesture.buttonBox.top + y + 64 < gesture.topmost) {
+      y = -1;
+    }
+    if  (gesture.bottomost && gesture.buttonBox.top + y - 64 > gesture.bottomost) {
       y = 0;
     }
     if (gesture.beforeForeground) {
@@ -158,8 +158,7 @@ Editor.Pointer = function(editor, content) {
 
           // mark selected elements
           gesture.currentAbove = gesture.above.filter(function(element) {
-            if (anchor == gesture.before && 
-              Editor.Container.isBoxIntersecting(box, editor.snapshot.get(element))) {
+            if (Editor.Container.isBoxIntersecting(box, editor.snapshot.get(element))) {
               action = '#move-down-icon'
               element.classList.add('temp-' + gesture.sectionPalette)
               return element;
@@ -213,10 +212,8 @@ Editor.Pointer = function(editor, content) {
   editor.gestures.on('panend', function(e) {
     var gesture = editor.gestures.current;
     setTimeout(function() {
-
       Editor.Chrome.update(editor)
-    }, 100)
-    Editor.Chrome.update(editor)
+    }, 50)
     document.body.classList.remove('dragging')
     if (!gesture) return;
 
@@ -240,12 +237,11 @@ Editor.Pointer = function(editor, content) {
 
     editor.fire('saveSnapshot');
 
-
+    var distance = (Math.abs(y) + Math.abs(x) / 2);
     // reset resizing if dragged too much
     if ((gesture.topmost && gesture.buttonBox.top + y + 32 < gesture.topmost)
     ||  (gesture.bottomost && gesture.buttonBox.top + y - 64 > gesture.bottomost)) {
       y = 0;
-      var exceeded = true;
     }
     if (gesture.before) {
       var beforeBox = editor.snapshot.get(gesture.beforeForeground);
@@ -287,7 +283,8 @@ Editor.Pointer = function(editor, content) {
           })
         }
       }
-    } else if (gesture.anchor && gesture.anchor != gesture.section/* && (Math.abs(y) + Math.abs(x) / 2 > 100)*/) {
+    } else if (gesture.anchor && gesture.anchor != gesture.section && distance > 100) {
+      editor.dragbookmark = editor.getSelection().createBookmarks()
       gesture.section.classList.add('forced');
       if (gesture.anchor.previousElementSibling == gesture.section)
         gesture.section.parentNode.insertBefore(gesture.section, gesture.anchor.nextElementSibling)
@@ -340,50 +337,4 @@ Editor.Pointer = function(editor, content) {
     }
     Editor.Selection.onChange(editor, true)
   })
-}
-
-var ANTI_GHOST_DELAY = 2000;
-
-var POINTER_TYPE = {
-  MOUSE: 0,
-  TOUCH: 1
-};
-
-function preventGhosts(element) {
-
-  var latestInteractionType,
-    latestInteractionTime;
-
-  function handleTap(type, e) {
-    // console.log('got tap ' + e.type + ' of pointer ' + type);
-
-    var now = Date.now();
-
-    if (type !== latestInteractionType) {
-
-      if (now - latestInteractionTime <= ANTI_GHOST_DELAY) {
-        // console.log('!prevented!');
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        return false;
-      }
-
-      latestInteractionType = type;
-    }
-
-    latestInteractionTime = now;
-  }
-
-  function attachEvents(eventList, interactionType) {
-    eventList.forEach(function(eventName) {
-      element[0].addEventListener(eventName, handleTap.bind(null, interactionType), true);
-    });
-  }
-
-  var mouseEvents = ['mousedown', 'mouseup', 'mousemove'];
-  var touchEvents = ['touchstart', 'touchend'];
-
-  attachEvents(mouseEvents, POINTER_TYPE.MOUSE);
-  attachEvents(touchEvents, POINTER_TYPE.TOUCH);
 }

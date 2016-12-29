@@ -105,7 +105,8 @@ Editor.Chrome.Toolbar.open = function(editor, section, button) {
   editor.currentToolbar = section;
   setUIColors(editor, section, 'menu');
   sectionizer.style.top = offsetTop + 'px'
-  sectionizer.style.left = offsetLeft + 'px'
+  sectionizer.style.left = offsetLeft + 'px';
+  sectionizer.className = section.className
   sectionizer.removeAttribute('hidden')
 }
 

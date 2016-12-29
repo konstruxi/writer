@@ -307,32 +307,34 @@ section.large:not(.has-picture):not(.has-long-text) {
   font-size: 1.5rem;
 }
 
-section.large.has-long-text:not(.has-picture) {
-  display: block;
-  columns: 2 calc(400px - 2rem);
-  -moz-columns: 2 calc(400px - 2rem);
-  -webkit-columns: 2 calc(400px - 2rem);
-  column-gap: 4rem;
-  -moz-column-gap: 4rem;
-  -webkit-column-gap: 4rem;
+@media (min-width: 800px) {
+  section.large.has-long-text:not(.has-picture) {
+    display: block;
+    columns: 2 calc(400px - 2rem);
+    -moz-columns: 2 calc(400px - 2rem);
+    -webkit-columns: 2 calc(400px - 2rem);
+    column-gap: 4rem;
+    -moz-column-gap: 4rem;
+    -webkit-column-gap: 4rem;
 
-  padding-left: calc(50vw - 400px);
-  padding-right: calc(50vw - 400px);
-}
-section.large.has-long-text:not(.has-picture) > *:not(.kx) {
-  -webkit-column-break-inside: avoid; /* Chrome, Safari */
-  page-break-inside: avoid;           /* Theoretically FF 20+ */
-  break-inside: avoid-column;         /* IE 11 */
-  width: 100%;
-  margin: 0;
-  padding: 0 0 0.8rem 0;
-}
-section.large.has-long-text:not(.has-picture) > h1,
-section.large.has-long-text:not(.has-picture) > h2,
-section.large.has-long-text:not(.has-picture) > h3 {
-  column-span: all;
-  -webkit-column-span: all;
-  -moz-column-span: all;
+    padding-left: calc(50vw - 400px);
+    padding-right: calc(50vw - 400px);
+  }
+  section.large.has-long-text:not(.has-picture) > *:not(.kx) {
+    -webkit-column-break-inside: avoid; /* Chrome, Safari */
+    page-break-inside: avoid;           /* Theoretically FF 20+ */
+    break-inside: avoid-column;         /* IE 11 */
+    width: 100%;
+    margin: 0;
+    padding: 0 0 0.8rem 0;
+  }
+  section.large.has-long-text:not(.has-picture) > h1,
+  section.large.has-long-text:not(.has-picture) > h2,
+  section.large.has-long-text:not(.has-picture) > h3 {
+    column-span: all;
+    -webkit-column-span: all;
+    -moz-column-span: all;
+  }
 }
 
 

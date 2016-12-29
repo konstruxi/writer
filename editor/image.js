@@ -134,6 +134,12 @@ Editor.Image.applyChanges = function(data, img) {
 
     var width = parseInt(image.getAttribute('width'));
     var height = parseInt(image.getAttribute('height'));
+
+    if (height >= width * 1.2) {
+      image.parentNode.classList.add('portrait');
+    } else if (width >= height * 1.2) {
+      image.parentNode.classList.add('landscape');
+    }
     var min = Math.min(parseInt(image.getAttribute('width')), parseInt(image.getAttribute('height')));
     
     //image.style.width  = width + 'px';
@@ -148,6 +154,10 @@ Editor.Image.applyChanges = function(data, img) {
     'padding-top: ' + parseFloat(((height / width) * 100).toFixed(3)) + '%; }\n' 
   }
   Editor.Chrome.update(this)
+  var section = Editor.Section.get(image);
+  if (section) {
+    Editor.Section.analyze(section)
+  }
   this.fire('unlockSnapshot')
 }
 

@@ -34,7 +34,6 @@ Editor.Section.enlarge = function(editor, section) {
     section.classList.remove('small')
   else
     section.classList.add('large')
-  Editor.Section(editor)
 }
 
 Editor.Section.shrink = function(editor, section) {
@@ -42,7 +41,6 @@ Editor.Section.shrink = function(editor, section) {
     section.classList.remove('large')
   else
     section.classList.add('small')
-  Editor.Section(editor)
 }
 
 Editor.Section.setActive = function(editor, target, force) {
@@ -261,17 +259,16 @@ Editor.Section.analyze = function(node) {
       case 'P': case 'A': case 'PICTURE':
         var img = child.getElementsByTagName('img')[0]
         if (img) {
+          if (img.parentNode.classList.contains('portrait'))
+            tags.push('has-portrait-image')
+          if (img.parentNode.classList.contains('landscape'))
+            tags.push('has-landscape-image')
           tags.push('has-picture', 'has-palette-' + img.getAttribute('uid'))
         } else if (child.textContent.length) {
           texts += child.textContent.length;
           tags.push('has-text')
         }
         break;
-
-      case 'IMG': 
-        tags.push('has-image', 'has-palette-' + child.getAttribute('uid'))
-
-
     }
   }
   if (texts && texts < 200)

@@ -303,7 +303,7 @@ section[pattern="one-quote"] > *:not(.toolbar) {
   z-index: 1;
 }
 
-section.large:not(.has-picture):not(.has-long-text) {
+section.large:not(.has-long-text) {
   font-size: 1.5rem;
 }
 
@@ -372,6 +372,37 @@ section.large:not(.has-picture):not(.has-long-text) {
   }
   .content section[pattern*="two-"][index="1"] > .kx.foreground {
     left: 1rem;
+  }
+
+
+
+
+
+
+  section:not(.small):not(.large).has-portrait-image.has-text {
+    height: calc(502px + 6rem);
+    justify-content: center;
+    -webkit-justify-content: center;
+  }
+
+  section:not(.small):not(.large).has-portrait-image.has-text > a,
+  section:not(.small):not(.large).has-portrait-image.has-text > picture{
+    margin-right: 1rem;
+    margin-top: 0;
+    width: calc(400px - 1rem);
+    max-height: 500px;
+    position: absolute;
+    top: 3rem;
+    right: calc(50vw - 400px - 2rem); 
+  }
+  section:not(.small):not(.large).has-portrait-image.has-text picture img{
+    max-height: 500px;
+    width: auto;
+  }
+
+  section:not(.small):not(.large).has-portrait-image.has-text > *:not(a):not(picture):not(.kx){
+    margin-right: calc(50vw + 1rem); 
+    width: calc(400px - 1rem);
   }
 }
 

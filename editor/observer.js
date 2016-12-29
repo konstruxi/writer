@@ -13,7 +13,7 @@ Editor.Observer = function(editor) {
         for (var j = 0; j < m.removedNodes.length; j++) {
           if (m.removedNodes[j].nodeType == 1 &&
               m.removedNodes[j].tagName != 'SPAN' &&
-              m.removedNodes[j].tagName != 'DIV') {
+              m.removedNodes[j].tagName != 'DIV'  ) {
             var reason = mutations[i];
           }
         }
@@ -28,7 +28,12 @@ Editor.Observer = function(editor) {
         if (m.target != editor.element.$
             && ((m.attributeName == 'class'
               && ((m.oldValue 
-                && (m.oldValue.indexOf('forced') > -1) != (m.target.classList.toString().indexOf('forced') > -1)))))) {
+                && (
+                  (m.oldValue.indexOf('forced') > -1) != (m.target.classList.toString().indexOf('forced') > -1) ||
+                  (m.oldValue.indexOf('large') > -1) != (m.target.classList.toString().indexOf('large') > -1) ||
+                  (m.oldValue.indexOf('small') > -1) != (m.target.classList.toString().indexOf('small') > -1) ||
+                  (m.oldValue.indexOf('has-picture') > -1) != (m.target.classList.toString().indexOf('has-picture') > -1)
+                )))))) {
           var reason = mutations[i];
         }
       }

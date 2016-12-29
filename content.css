@@ -387,17 +387,18 @@ section.large:not(.has-long-text) {
 
   section:not(.small):not(.large).has-portrait-image.has-text > a,
   section:not(.small):not(.large).has-portrait-image.has-text > picture{
-    margin-right: 1rem;
+    margin-right: 0;
     margin-top: 0;
     width: calc(400px - 1rem);
     max-height: 500px;
     position: absolute;
     top: 3rem;
-    right: calc(50vw - 400px - 2rem); 
+    right: calc(50vw - 400px); 
   }
   section:not(.small):not(.large).has-portrait-image.has-text picture img{
     max-height: 500px;
     width: auto;
+    margin-right: 0;
   }
 
   section:not(.small):not(.large).has-portrait-image.has-text > *:not(a):not(picture):not(.kx){

@@ -14,14 +14,16 @@ Editor.Selection = function(editor, content) {
   }, null, null, -10);
 
   document.addEventListener('selectionchange', function(e) {
+    if (editor.justcleaned) return;
     if (!editor.dragging) {
+      Editor.Selection.fix(editor)
       Editor.Selection.onChange(editor)
     }
   })
   editor.on( 'selectionChange', function( evt ) {
+    if (editor.justcleaned) return;
     if ( editor.readOnly )
       return;
-    Editor.Selection.fix(editor)
     Editor.Selection.onChange(editor)
     var range = editor.getSelection().getRanges()[0];
     if (range)
@@ -102,11 +104,11 @@ Editor.Selection.fix = function(editor) {
       case 'PICTURE':
         return selection.selectElement(new CKEDITOR.dom.element(p))
       case 'X-DIV': case 'svg': case 'use':
-        return Editor.Selection.moveToNextParagraph(editor, range);    
+        return Editor.Selection.moveToFollowingParagraph(editor, range);    
     }
   }
 }
-Editor.Selection.moveToParagraphAfter = function(editor, range) {
+Editor.Selection.moveToNewParagraphAfter = function(editor, range) {
 
    if (!range) range = editor.getSelection().getRanges()[0]
   var ascender = range.startContainer.getAscendant('picture', true) || range.startContainer;
@@ -120,15 +122,34 @@ Editor.Selection.moveToParagraphAfter = function(editor, range) {
   range.select()
 }
 
-Editor.Selection.moveToNextParagraph = function(editor, range) {
+Editor.Selection.moveToAfterParagraph = function(editor, range) {
   if (!range) range = editor.getSelection().getRanges()[0]
   var ascender = range.startContainer.getAscendant(CKEDITOR.dtd.$avoidNest, true)
-  if (ascender)
-    var ascender = ascender.getAscendant('blockquote') || ascender;
-    if (ascender) {
-      range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
+  if (ascender) {
+    ascender = ascender.getAscendant('blockquote') || ascender;
+    range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
+    range.select()
+  }
+}
+
+Editor.Selection.moveToFollowingParagraph = function(editor, range) {
+  if (!range) range = editor.getSelection().getRanges()[0]
+  var ascender = range.startContainer.getAscendant(CKEDITOR.dtd.$avoidNest, true)
+  if (ascender) {
+    ascender = ascender.getAscendant('blockquote') || ascender;
+    var next = ascender.getNext(function(node) {
+      return node.is(CKEDITOR.dtd.$paragraphs)
+    })
+    if (next) {
+      range.moveToPosition( next, CKEDITOR.POSITION_AFTER_START );
+      range.select()
+    } else {
+      var paragraph = new CKEDITOR.dom.element('p')
+      paragraph.insertAfter(ascender);
+      range.moveToPosition( paragraph, CKEDITOR.POSITION_AFTER_START );
       range.select()
     }
+  }
 }
 
 
@@ -136,12 +157,12 @@ Editor.Selection.moveToEditablePlace = function(editor, range) {
  if (!range) range = editor.getSelection().getRanges()[0]
   // if typing within picture, move cursor to newly created paragraph next
   if (range.startContainer.getAscendant('picture', true) || Editor.Content.isPicture(range.startContainer.$)) {
-    return Editor.Selection.moveToParagraphAfter(editor, range)
+    return Editor.Selection.moveToNewParagraphAfter(editor, range)
   // if pasting within block-level content, move cursor after
   } else {
     var ascender = Editor.Content.getEditableAscender(range.startContainer.$);
     //if (!ascender || !Editor.Content.isEmpty(ascender))
-      return Editor.Selection.moveToNextParagraph(editor, range)
+      return Editor.Selection.moveToAfterParagraph(editor, range)
   }
 }
 
@@ -155,10 +176,14 @@ Editor.Selection.onChange = function(editor, force, blur) {
     cancelAnimationFrame(editor.clearcursor)
     editor.clearcursor = requestAnimationFrame(function() {
       editor.clearcursor = null;
+      editor.justchangedselection = true;
 
       if (editor.doNotBlur)
         return
       
+      editor.justcleaned = setTimeout(function() {
+        editor.justcleaned = null;
+      }, 100)
       Editor.Content.cleanEmpty(editor, force, blur)
     })
   }, 100)

@@ -483,7 +483,7 @@ CSS = function(prefix) {
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
 "}\n" +
-".content section." + prefix + " svg.toolbar  {\n" +
+".content section." + prefix + " .toolbar  {\n" +
 "  background-color: " + this.background + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  color: " + this.accent + ";\n" +

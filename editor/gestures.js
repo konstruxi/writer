@@ -103,17 +103,17 @@ Editor.Pointer = function(editor, content) {
       gesture.before.classList.remove('below-the-fold')
       if (y < 0) {
         if (gesture.above.length) {
-          //if (y < gesture.beforeForegroundDistance + 10) {
-          //  gesture.beforeForeground.style.height = gesture.beforeForegroundBox.height - gesture.beforeForegroundDistance - 10 + y + 'px'
-          //} else {
-          //  gesture.beforeForeground.style.height = gesture.beforeForegroundBox.height + 'px';
-          //}
+          if (y < gesture.beforeForegroundDistance + 10) {
+            gesture.beforeForeground.style.height = gesture.beforeForegroundBox.height - gesture.beforeForegroundDistance - 10 + y + 'px'
+          } else {
+            gesture.beforeForeground.style.height = gesture.beforeForegroundBox.height + 'px';
+          }
           box.top = gesture.foregroundBox.top + y;
           box.y = gesture.foregroundBox.y + y;
           box.height = gesture.foregroundBox.height - y;
 
-          //gesture.foreground.style.top = box.y + 'px'
-          //gesture.foreground.style.height = box.height + 'px'
+          gesture.foreground.style.top = box.y + 'px'
+          gesture.foreground.style.height = box.height + 'px'
 
 
           if (y < gesture.beforeForegroundDistance + 10) {
@@ -137,14 +137,14 @@ Editor.Pointer = function(editor, content) {
           });
       } else {
         if (gesture.below.length) {
-          //if (y > - gesture.beforeForegroundDistance - 10) {
-          //  gesture.foreground.style.top = gesture.foregroundBox.y + gesture.beforeForegroundDistance + 10 + y + 'px'
-          //  gesture.foreground.style.height = gesture.foregroundBox.height - gesture.beforeForegroundDistance - 10 - y + 'px'
-          //} else {
-          //  gesture.foreground.style.top = gesture.foregroundBox.y + 'px';
-          //  gesture.foreground.style.height = gesture.foregroundBox.height + 'px';
-          //}
-          //gesture.beforeForeground.style.height = gesture.beforeForegroundBox.height + y + 'px';
+          if (y > - gesture.beforeForegroundDistance - 10) {
+            gesture.foreground.style.top = gesture.foregroundBox.y + gesture.beforeForegroundDistance + 10 + y + 'px'
+            gesture.foreground.style.height = gesture.foregroundBox.height - gesture.beforeForegroundDistance - 10 - y + 'px'
+          } else {
+            gesture.foreground.style.top = gesture.foregroundBox.y + 'px';
+            gesture.foreground.style.height = gesture.foregroundBox.height + 'px';
+          }
+          gesture.beforeForeground.style.height = gesture.beforeForegroundBox.height + y + 'px';
 
           if (y > - gesture.beforeForegroundDistance - 10) {
             box.y = gesture.foregroundBox.y + (gesture.beforeForegroundDistance + 10 + y)
@@ -194,6 +194,7 @@ Editor.Pointer = function(editor, content) {
 
     if (!isMovingContent && (!anchor || anchor == gesture.section))
       return;
+    editor.fire('saveSnapshot');
 
 
     if (isMovingContent) {
@@ -206,17 +207,17 @@ Editor.Pointer = function(editor, content) {
         var last = gesture.before.lastElementChild;
         if (gesture.currentAbove && gesture.currentAbove.length) {
 
-          //Editor.Snapshot.shiftChildren(editor, gesture.section, y)
+          Editor.Snapshot.shiftChildren(editor, gesture.section, y)
           gesture.currentAbove.forEach(function(element) {
             gesture.section.insertBefore(element, first)
             gesture.section.classList.add('forced')
             element.classList.remove('temp-' + gesture.sectionPalette)
           })
         }
-        //box.y      = gesture.foregroundFinalBox.y;
-        //box.top    = gesture.foregroundFinalBox.top;
-        //box.height = gesture.foregroundFinalBox.height;
-        //beforeBox.height = gesture.beforeForegroundFinalBox.height;
+        box.y      = gesture.foregroundFinalBox.y;
+        box.top    = gesture.foregroundFinalBox.top;
+        box.height = gesture.foregroundFinalBox.height;
+        beforeBox.height = gesture.beforeForegroundFinalBox.height;
 
         if (gesture.currentBelow && gesture.currentBelow.length) {
 
@@ -226,9 +227,9 @@ Editor.Pointer = function(editor, content) {
             gesture.before.classList.add('forced')
           })
 
-          //if (y > - gesture.beforeForegroundDistance - 10) {
-          //  Editor.Snapshot.shiftChildren(editor, gesture.section, (gesture.beforeForegroundDistance + 10 + y))
-          //}
+          if (y > - gesture.beforeForegroundDistance - 10) {
+            Editor.Snapshot.shiftChildren(editor, gesture.section, (gesture.beforeForegroundDistance + 10 + y))
+          }
         }
       }
     } else if (anchor && anchor != gesture.section) {
@@ -239,7 +240,7 @@ Editor.Pointer = function(editor, content) {
         gesture.section.parentNode.insertBefore(gesture.section, anchor)
 
     }
-
+    editor.fire('saveSnapshot');
   })
 
   editor.gestures.on('tap', function(e) {

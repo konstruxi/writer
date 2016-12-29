@@ -63,6 +63,11 @@ Editor.Chrome.Toolbar = function(editor, section) {
     bg.classList.add('foreground')
     //bg.setAttribute('contenteditable', 'false')
     bg.setAttribute('unselectable', 'on')
+
+    // need svg to be unselectable
+    var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    bg.appendChild(icon)
+
     section.insertBefore(bg, section.firstChild)
   }
   if (!section.getElementsByClassName('toolbar')[0]) {
@@ -74,6 +79,8 @@ Editor.Chrome.Toolbar = function(editor, section) {
     icon.setAttribute('width', '48')
     icon.setAttribute('height', '48')
     icon.classList.add('menu')
+    icon.setAttribute('unselectable', 'on')
+    icon.setAttribute('readonly', 'true')
     //icon.setAttribute('contenteditable', 'false')
     icon.setAttribute('viewBox', "0 0 48 48")
     //toolbar.setAttribute('contenteditable', 'false')

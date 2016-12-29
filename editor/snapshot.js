@@ -63,25 +63,23 @@ Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
   }
 }
 Editor.Snapshot.prototype.removeElement = function(element) {
-  var index = this.elements.indexOf(element);
-  if (index == -1) return;// || this.selected && this.selected.indexOf(element) > -1) return;
-
-  //this.elements.splice(index, 1);
-  var box = this.dimensions[index];
-  for (var property in box) {
-    if (property.indexOf('Spring') > -1) {
-      var spring = box[property];
-      box[property] = false;
-      var j = this.animating.indexOf(spring);
-      if (j > -1)
-        this.animating.splice(j, 1)
+  if (this.animating)
+    for (var i = this.animating.length; i--;) {
+      var animation = this.animating[i];
+      if (animation.element == element)
+        animation.splice(i, 1)
     }
-  }
+  //var index = this.elements.indexOf(element);
+  //if (index > -1)// || this.selected && this.selected.indexOf(element) > -1) return;
+  //  this.elements.splice(index, 1);
+  
+  
 }
 Editor.Snapshot.prototype.animate = function(section, callback) {
   var snapshot = Editor.Snapshot.take(this.editor, true);
   if (callback)
     callback(snapshot)
+  this.processElements(snapshot);
   snapshot.animating = (this.animating || [])
 
   //snapshot.locked = true;
@@ -174,7 +172,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
       if (element.classList.contains('added'))
         var spring = to[springName] = new Spring(30, 15);
       else
-        var spring = to[springName] = new Spring(54, 22);
+        var spring = to[springName] = new Spring(54, 13);
     } else if (property == 'fontSize') {
       var spring = to[springName] = new Spring(20, 8);
     } else if (property == 'top') {
@@ -487,4 +485,30 @@ Editor.Snapshot.prototype.invalidate = function(callback) {
     that.editor.snapshot = that.animate()
     that.editor.fire('unlockSnapshot')
   });
+}
+
+Editor.Snapshot.prototype.processElements = function(snapshot) {
+  var removed = []
+  var addedImages = []
+  for (var i = 0, j = this.elements.length; i < j; i++) {
+    if (snapshot.elements.indexOf(this.elements[i]) == -1) {
+      if (this.elements[i].tagName == 'IMG')
+        Editor.Image.unload(this.editor, this.elements[i]);
+      removed.push(i)
+    }
+  }
+  for (var i = 0, j = snapshot.elements.length; i < j; i++) {
+    if (snapshot.elements[i].tagName == 'IMG' && this.elements.indexOf(snapshot.elements[i]) == -1)
+      Editor.Image.register(this.editor, snapshot.elements[i]);
+  }
+
+  console.log(this.animating, removed)
+  if (this.animating)
+    for (var i = this.animating.length; i--;) {
+      var j = removed.indexOf(this.elements.indexOf(this.animating[i].element))
+      if (j > -1) {
+        console.log('removed animating element', this.animating[i].element)
+        this.animating.splice(j, 1)
+      }
+    }
 }

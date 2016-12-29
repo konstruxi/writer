@@ -3,7 +3,6 @@ Editor.Section = function(editor, mutation, observer) {
   var snapshot = editor.snapshot || Editor.Snapshot.take(editor);
   //editor.stylesnapshot = undefined;
 
-
   editor.fire( 'lockSnapshot');
   var content = editor.element.$;
   var section = Editor.Section.split(editor, content) || editor.justdropped

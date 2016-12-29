@@ -438,7 +438,19 @@ Editor.DTD = function(editor) {
     h2: 1,
     h3: 1,
     picture: 1,
-    li: 1
+    li: 1,
+    'x-div': 1
+  }
+
+  CKEDITOR.dtd.$paragraphs = {
+    p: 1,
+    ul: 1,
+    li: 1,
+    ol: 1,
+    h1: 1,
+    h2: 1,
+    h3: 1,
+    blockquote: 1
   }
 
   

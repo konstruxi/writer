@@ -246,34 +246,27 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
       to.currentX      = to.x
 
     }
-    if (to.visible) {
-      element.style.visibility = ''
-      element.style.position = 'absolute';
-      element.style.margin = '0'
-      element.style.zIndex = '';
-      if (to.currentFontSize)
-        element.style.fontSize = to.currentFontSize + 'px'
+    if (!to.static) {
+      if (to.visible) {
+        if (to.currentFontSize)
+          element.style.fontSize = to.currentFontSize + 'px'
 
-      // if movement animation is at rest, disable gpu transform
-      //if (to.topSpring == null && to.leftSpring == null && to.heightSpring == null && to.widthSpring == null) {
-      //  element.style.top = to.currentY + 'px';
-      //  element.style.left = to.currentX + 'px';
-      //  element.style.transform = 
-      //  element.style.webkitTransform = ''
-      //} else {
+        element.style.visibility = ''
+        element.style.position = 'absolute';
+        element.style.margin = '0'
+        element.style.zIndex = '';
 
         element.style.top = '0';
         element.style.left = '0';
         element.style.transform = 
         element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
-      //}
-      element.style.height = to.currentHeight + 'px';
-      element.style.width = to.currentWidth + 'px';
-    } else {
-      element.style.zIndex = -1;
-      element.style.visibility = 'hidden'
+        element.style.height = to.currentHeight + 'px';
+        element.style.width = to.currentWidth + 'px';
+      } else {
+        element.style.zIndex = -1;
+        element.style.visibility = 'hidden'
+      }
     }
-
 
     //if (!to.topSpring && !to.leftSpring && !to.heightSpring && !to.widthSpring && !to.fontSizeSpring)
     //  to.animated = false;
@@ -392,32 +385,33 @@ Editor.Snapshot.rememberSelected = function(editor, bookmark, focused) {
   return selected;
 }
 
+Editor.Snapshot.prototype.resetElement = function(element, over) {
+  //element.style.webkitTransitionDuration = '0s'
+  //element.style.transitionDuration = '0s'
+  element.style.webkitTransform = ''
+  element.style.height = ''
+  element.style.width = ''
+  element.style.top = ''
+  element.style.left = ''
+  element.style.position = ''
+  element.style.left = ''
+  element.style.fontSize = ''
+  element.style.margin = ''
+  element.style.backgroundColor = ''
+  if (over) {
+    var box = this.get(element)
+    if (box)
+      box.animated = false;
+    element.style.zIndex = ''
+    element.style.visibility = ''
+    element.style.transform = ''
+  }
+}
 Editor.Snapshot.prototype.reset = function(elements, over) {
   if (!elements)
     elements = this.elements;
   for (var i = 0; i < elements.length; i++) {
-    var element= elements[i];
-    //element.style.webkitTransitionDuration = '0s'
-    //element.style.transitionDuration = '0s'
-    element.style.webkitTransform = ''
-    element.style.height = ''
-    element.style.width = ''
-    element.style.top = ''
-    element.style.left = ''
-    element.style.position = ''
-    element.style.left = ''
-    element.style.fontSize = ''
-    element.style.margin = ''
-    element.style.backgroundColor = ''
-    if (over) {
-      var box = this.get(element)
-      if (box)
-        box.animated = false;
-      element.style.zIndex = ''
-      element.style.visibility = ''
-      element.style.transform = ''
-    }
-
+    this.resetElement(elements[i], over)
   }
 }
 
@@ -475,6 +469,15 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
 
   t.animated = repositioned;
 
+  // do not reposition content of non-animated sections
+  if (!repos && element.tagName == 'SECTION') {
+    var desc = element.getElementsByTagName('*');
+    for (var i = 0; i < desc.length; i++) {
+      var j = this.elements.indexOf(desc[i]);
+      if (j > -1)
+        this.dimensions[j].static = true;
+    }
+  }
   return repositioned || !!repos;
 }
 

@@ -123,6 +123,7 @@
 }
 
 .dragging.toolbar {
+  margin: 0;
   pointer-events: none;
   z-index: 50000 !important; /*science*/
 }

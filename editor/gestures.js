@@ -320,6 +320,10 @@ Editor.Pointer = function(editor, content) {
           Editor.Chrome.Toolbar.open(editor, section, p);
           e.preventDefault()
           return
+        } else if (p.classList.contains('star')) {
+          Editor.Section.star(editor, editor.currentToolbar, p);
+          e.preventDefault()
+          return
         }
   })
 
@@ -327,10 +331,17 @@ Editor.Pointer = function(editor, content) {
     // disallow pasting block content into paragraphs and headers
     var html = e.data.dataTransfer.getData('text/html')
     console.log('drop', html)
-    if (html && html.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
-      Editor.Selection.moveToEditablePlace(editor, e.data.dropRange);
-      e.data.dropRange = editor.getSelection().getRanges()[0]
-      e.data.target = e.data.dropRange.startContainer;
+    
+    var newRange = Editor.Selection.moveToNewParagraphAfterPicture(editor, e.data.dropRange);
+    if (!newRange) {
+      if (html && html.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
+        newRange = Editor.Selection.moveToAfterParagraph(editor, e.data.dropRange);
+      }
+    }
+
+    if (newRange) {
+      e.data.dropRange = newRange
+      e.data.target = newRange.startContainer;
     }
     Editor.Selection.onChange(editor, true)
   })

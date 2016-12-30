@@ -104,8 +104,10 @@ Editor.Keys = function(editor) {
       // typing within picture is forbidden
       var sel = this.getSelection();
       var start = sel.getStartElement();
-      if (start && start.getAscendant('picture', true))
-        Editor.Selection.moveToEditablePlace(editor)
+      var range = sel.getRanges()[0];
+      var enclosed = range && range.getEnclosedNode()
+
+      Editor.Selection.moveToNewParagraphAfterPicture(editor, range)
     }
   }, null, null, -10);
 }

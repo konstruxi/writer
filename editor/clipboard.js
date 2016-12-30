@@ -2,9 +2,11 @@ Editor.Clipboard = function(editor) {
   editor.on('paste', function(e) {
     if (e.data.method == 'drop') return;
     console.log(e.data.dataValue)
-    // disallow pasting block content into paragraphs and headers
-    if (e.data.type == 'html' && e.data.dataValue.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
-      Editor.Selection.moveToEditablePlace(editor);
+    // disallow pasting block content into pictures, paragraphs and headers
+    if (!Editor.Selection.moveToNewParagraphAfterPicture(editor)) {
+      if (e.data.type == 'html' && e.data.dataValue.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
+        Editor.Selection.moveToAfterParagraph(editor);
+      }
     }
     //Editor.Selection.onChange(editor, true)
   })

@@ -187,7 +187,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
       else
         var spring = to[springName] = new Spring(74, 12);
     } else if (property == 'fontSize') {
-      var spring = to[springName] = new Spring(20, 8);
+      var spring = to[springName] = new Spring(50, 8);
     } else if (property == 'top') {
       var spring = to[springName] = new Spring(34, 9);
     } else {
@@ -350,8 +350,8 @@ Editor.Snapshot.take = function(editor, reset, focused) {
       box.top += parent.offsetTop;
       box.left += parent.offsetLeft;
     }
-    if (elements[i].tagName == 'SECTION')
-      box.client = elements[i].getBoundingClientRect();
+    //if (elements[i].tagName == 'SECTION')
+    //  box.client = elements[i].getBoundingClientRect();
     box.visible = Editor.Container.isBoxVisible(editor, box);
     dimensions.push(box)
   }

@@ -45,6 +45,13 @@ Editor.Section.shrink = function(editor, section) {
     section.classList.add('small')
 }
 
+Editor.Section.star = function(editor, section) {
+  if (section.classList.contains('starred'))
+    section.classList.remove('starred')
+  else
+    section.classList.add('starred')
+}
+
 Editor.Section.setActive = function(editor, target, force) {
   for (; target; target = target.parentNode) {
     if (target.tagName == 'SECTION') {

@@ -109,11 +109,20 @@ Editor.Selection.fix = function(editor) {
     }
   }
 }
-Editor.Selection.moveToNewParagraphAfter = function(editor, range) {
+Editor.Selection.moveToNewParagraphAfterPicture = function(editor, range) {
 
-   if (!range) range = editor.getSelection().getRanges()[0]
-  var ascender = range.startContainer.getAscendant('picture', true) || range.startContainer;
-  ascender = ascender.getAscendant('a') || ascender;
+  if (!range) range = editor.getSelection().getRanges()[0]
+  if (!range) return;
+  var start = range.startContainer;
+
+  var picture = start.getAscendant('picture', true);
+  if (!picture) {
+    var picture = range.getEnclosedNode();
+    if (!picture || !Editor.Content.isPicture(picture.$))
+      return;
+  } 
+
+  ascender = picture.getAscendant('a') || picture;
   while (ascender && !ascender.getParent().is('section'))
     ascender = ascender.getParent()
 
@@ -121,6 +130,7 @@ Editor.Selection.moveToNewParagraphAfter = function(editor, range) {
   paragraph.insertAfter(ascender);
   range.moveToPosition( paragraph, CKEDITOR.POSITION_AFTER_START );
   range.select()
+  return range
 }
 
 Editor.Selection.moveToAfterParagraph = function(editor, range) {
@@ -130,6 +140,7 @@ Editor.Selection.moveToAfterParagraph = function(editor, range) {
     ascender = ascender.getAscendant('blockquote') || ascender;
     range.moveToPosition( ascender, CKEDITOR.POSITION_AFTER_END );
     range.select()
+    return range;
   }
 }
 
@@ -158,19 +169,6 @@ Editor.Selection.moveToFollowingParagraph = function(editor, range) {
   }
 }
 
-
-Editor.Selection.moveToEditablePlace = function(editor, range) {
- if (!range) range = editor.getSelection().getRanges()[0]
-  // if typing within picture, move cursor to newly created paragraph next
-  if (range.startContainer.getAscendant('picture', true) || Editor.Content.isPicture(range.startContainer.$)) {
-    return Editor.Selection.moveToNewParagraphAfter(editor, range)
-  // if pasting within block-level content, move cursor after
-  } else {
-    var ascender = Editor.Content.getEditableAscender(range.startContainer.$);
-    //if (!ascender || !Editor.Content.isEmpty(ascender))
-      return Editor.Selection.moveToAfterParagraph(editor, range)
-  }
-}
 
 // clean up empty content if it's not in currently focused section
 Editor.Selection.onChange = function(editor, force, blur) {

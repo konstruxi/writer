@@ -43,7 +43,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
         editor.section = children[i]
         editor.section.classList.add('focused')
         Editor.Section.setActive(editor, editor.section, true)
-        Editor.Chrome.update(editor)
+        //Editor.Chrome.update(editor)
       }
     }
     if ((!selected || force || !inside) && !editor.doNotBlur) {

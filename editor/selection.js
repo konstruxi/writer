@@ -134,6 +134,11 @@ Editor.Selection.moveToAfterParagraph = function(editor, range) {
   }
 }
 
+Editor.Selection.saveImageSelection = function(editor, range) {
+  editor.getSelection().selectElement(range.startContainer)
+}
+
+
 Editor.Selection.moveToFollowingParagraph = function(editor, range) {
   if (!range) range = editor.getSelection().getRanges()[0]
   var ascender = range.startContainer.getAscendant(CKEDITOR.dtd.$avoidNest, true)

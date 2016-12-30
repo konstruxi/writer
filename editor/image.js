@@ -119,8 +119,6 @@ Editor.Image.applyChanges = function(data, img) {
     image.setAttribute('palette', data.palette);
     //console.error('crops', data)
     if (!Editor.Image.style) {
-      Editor.Chrome.update(this)
-
       Editor.Image.style = document.createElement('style')
       document.body.appendChild(Editor.Image.style);
     }
@@ -153,7 +151,6 @@ Editor.Image.applyChanges = function(data, img) {
     '}\n picture[uid="' + image.getAttribute('uid') + '"]:before {\n' +
     'padding-top: ' + parseFloat(((height / width) * 100).toFixed(3)) + '%; }\n' 
   }
-  Editor.Chrome.update(this)
   var section = Editor.Section.get(image);
   if (section) {
     Editor.Section.analyze(section)

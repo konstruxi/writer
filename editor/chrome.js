@@ -129,6 +129,14 @@ Editor.Chrome.openMenu = function(editor, element) {
   })
 }
 
+Editor.Chrome.deferUpdate = function(editor) {
+  clearTimeout(editor.updatehcome)
+  editor.updatechrome = setTimeout(function() {
+    editor.updatechrome = null
+    Editor.Chrome.update(editor)
+  }, 50)
+}
+
 Editor.Chrome.update = function(editor, force) {
   var selection = editor.getSelection();
   if (!selection) return;
@@ -140,9 +148,15 @@ Editor.Chrome.update = function(editor, force) {
     container = container.getParent()
   var start = Editor.Content.getEditableAscender(range.startContainer.$);
 
-  var startSection = start;
-  while (startSection && startSection.tagName != 'SECTION')
-    startSection = startSection.parentNode;
+  if (start.tagName == 'SECTION') {
+    var startSection = start;
+    var start = range.getEnclosedNode()
+    if (start) start = start.$;
+  } else {
+    var startSection = start;
+    while (startSection && startSection.tagName != 'SECTION')
+      startSection = startSection.parentNode;
+  }
 
   var end = Editor.Content.getEditableAscender(range.endContainer.$);
 
@@ -167,15 +181,9 @@ Editor.Chrome.update = function(editor, force) {
   }
 
 
-  var section = start;
-  while (section && section.tagName != 'SECTION')
-    section = section.parentNode;
-  if (!section) return;
-
-
   var ui = editor.ui.instances
-  if (range.startOffset != range.endOffset && start == end) {
-    if (Editor.Content.isPicture(container.$)) {
+  if (range.startOffset != range.endOffset && start == end || Editor.Content.isPicture(start)) {
+    if (Editor.Content.isPicture(container.$) || Editor.Content.isPicture(start)) {
       var button = 'filters'
     } else {
       if (ui.Bold._.state == 2 && ui.Italic._.state == 2 && 
@@ -233,7 +241,7 @@ Editor.Chrome.update = function(editor, force) {
   //if (force && button == editor.currentButton) return;
   editor.currentButton = button;
   
-  setUIColors(editor, section, 'toolbar');
+  setUIColors(editor, startSection, 'toolbar');
   
   // update formatting buttons
   var buttons = formatting.querySelectorAll('.cke_toolbar:nth-child(2) .cke_button');

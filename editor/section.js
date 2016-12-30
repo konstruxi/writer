@@ -26,6 +26,8 @@ Editor.Section = function(editor, mutation, observer) {
 
   // Animationg function unlocks snapshot
   editor.fire( 'unlockSnapshot' );
+
+  Editor.Chrome.update(editor)
 }
 
 Editor.Section.enlarge = function(editor, section) {

@@ -211,9 +211,6 @@ Editor.Pointer = function(editor, content) {
   })
   editor.gestures.on('panend', function(e) {
     var gesture = editor.gestures.current;
-    setTimeout(function() {
-      Editor.Chrome.update(editor)
-    }, 50)
     document.body.classList.remove('dragging')
     if (!gesture) return;
 

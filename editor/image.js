@@ -40,6 +40,8 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded, arg) {
 
 Editor.Image.proxy = function(editor, src, callback) {
   var x = new XMLHttpRequest();
+  if (src.indexOf('ytimg.com') > -1)
+    src = src.replace('hqdefault', 'maxresdefault')
   x.open('GET', 'http://cors-anywhere.herokuapp.com/' + src);
   x.responseType = 'blob';
   x.onload = callback;

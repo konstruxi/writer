@@ -103,8 +103,7 @@ Editor.Selection.fix = function(editor) {
   for (var p = range.startContainer.$; p; p = p.parentNode) {
     switch (p.tagName) {
       case 'PICTURE':
-        range.selectNodeContents(new CKEDITOR.dom.element(p))
-        return range.select()
+        return selection.selectElement(new CKEDITOR.dom.element(p))
       case 'X-DIV': case 'svg': case 'use':
         return Editor.Selection.moveToFollowingParagraph(editor, range);    
     }

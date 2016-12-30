@@ -157,6 +157,7 @@ Editor.Image.applyChanges = function(data, img) {
   var section = Editor.Section.get(image);
   if (section) {
     Editor.Section.analyze(section)
+    this.snapshot = this.snapshot.animate()
   }
   this.fire('unlockSnapshot')
 }

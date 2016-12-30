@@ -308,6 +308,7 @@ section.large:not(.has-long-text) {
 }
 
 @media (min-width: 800px) {
+
   section.large.has-long-text:not(.has-picture) {
     display: block;
     columns: 2 calc(400px - 2rem);
@@ -334,6 +335,12 @@ section.large:not(.has-long-text) {
     column-span: all;
     -webkit-column-span: all;
     -moz-column-span: all;
+  }
+  section.large.large.has-long-text:not(.has-picture) > ul,
+  section.large.large.has-long-text:not(.has-picture) > ol,
+  section.large.large.has-long-text:not(.has-picture) > blockquote {
+    margin-left: 1.3rem;
+    margin-top: 0.5rem;
   }
 }
 

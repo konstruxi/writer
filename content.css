@@ -163,39 +163,39 @@ section > .kx.toolbar {
   margin-bottom: 0;
 }
 .content * + p {
-  margin-top: 0.8rem;
+  margin-top: 0.82rem;
 }
 
 .content * + h1, .content * + h2, .content * + h3, .content * + blockquote, .content * + picture, .content * + a {
-  margin-top: 0.8rem;
+  margin-top: 0.82rem;
 }
 
 .content .kx + * {
   margin-top: 0;
 }
 article h1 + * {
-  margin-top: 0.8rem;
+  margin-top: 0.82rem;
 }
 .content h2 + * {
-  margin-top: 0.8rem;
+  margin-top: 0.82rem;
 }
 .content h3 + * {
-  margin-top: 0.8rem;
+  margin-top: 0.82rem;
 }
 .content img + * {
-  margin-top: 0.8rem;
+  margin-top: 0.82rem;
 }
 .content picture + * {
-  margin-top: 0.8rem;
+  margin-top: 0.82rem;
 }
 .content blockquote + * {
-  margin-top: 0.8rem;
+  margin-top: 0.82rem;
 }
 section > a {
   display: block;
 }
 section > a + * {
-  margin-top: 0.8rem;
+  margin-top: 0.82rem;
 }
 
 .content .moved {
@@ -422,7 +422,7 @@ section.large:not(.has-long-text) {
 }
 .content section > * {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 /*
@@ -436,7 +436,7 @@ body.dragging article section.below-the-fold > .toolbar {
 
 
 article {
-  background: #f1f1f1
+  background: #f1f1f1;
 }
 
 article > section > *:not(a):not(picture) {

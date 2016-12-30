@@ -1,9 +1,10 @@
-Editor.Snapshot = function(editor, elements, dimensions, selected) {
+Editor.Snapshot = function(editor, elements, dimensions, selected, offsetHeight) {
   this.editor = editor;
   this.root = editor.element.$
   this.elements = elements || []
   this.dimensions = dimensions || [];
   this.selected = selected || [];
+  this.offsetHeight = offsetHeight;
 }
 
 Editor.Snapshot.shiftChildren = function(editor, section, y, mutate) {
@@ -22,8 +23,19 @@ Editor.Snapshot.shiftChildren = function(editor, section, y, mutate) {
   }
 }
 
+Editor.Snapshot.prototype.freezeContainer = function() {
+  if (this.offsetHeight)
+    this.editor.element.$.style.height = this.offsetHeight + 'px';
+}
+Editor.Snapshot.prototype.unfreezeContainer = function() {
+  if (this.offsetHeight)
+    this.editor.element.$.style.height = '';
+  
+}
+
 // attempt to restore identity of selected elements between snapshots
 Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
+
   if (snapshot.selected && this.selected) {
     var selected = this.selected.slice();
     for (var i = 0; i < selected.length; i += 2) {
@@ -58,7 +70,6 @@ Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
       }
     }
     //editor.element.$.classList.add('moving')
-    //editor.element.$.style.height = snapshot[3] + 'px';
 
   }
 }
@@ -107,6 +118,7 @@ Editor.Snapshot.prototype.animate = function(section, callback) {
     if (!migrated) {
       migrated = true;
       snapshot.migrateSelectedElements(from)
+      snapshot.freezeContainer();
     }
 
     if (!snapshot.startTime)
@@ -117,6 +129,7 @@ Editor.Snapshot.prototype.animate = function(section, callback) {
     } else {
       snapshot.editor.fire('transitionEnd')
       snapshot.reset(null, true)
+      snapshot.unfreezeContainer();
       console.log('animated in', time -  snapshot.startTime)
     }
   }
@@ -251,6 +264,7 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         if (to.currentFontSize)
           element.style.fontSize = to.currentFontSize + 'px'
 
+
         element.style.visibility = ''
         element.style.position = 'absolute';
         element.style.margin = '0'
@@ -278,6 +292,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
   if (reset) {
     Editor.Snapshot.prototype.reset(elements)
   }
+  var offsetHeight = editor.element.$.offsetHeight;
   var dimensions = []
   //debugger
 
@@ -335,6 +350,8 @@ Editor.Snapshot.take = function(editor, reset, focused) {
       box.top += parent.offsetTop;
       box.left += parent.offsetLeft;
     }
+    if (elements[i].tagName == 'SECTION')
+      box.client = elements[i].getBoundingClientRect();
     box.visible = Editor.Container.isBoxVisible(editor, box);
     dimensions.push(box)
   }
@@ -346,7 +363,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
       //}
     //})
   
-  return new Editor.Snapshot(editor, elements, dimensions, selected)
+  return new Editor.Snapshot(editor, elements, dimensions, selected, offsetHeight)
 }
 
 Editor.Snapshot.rememberSelected = function(editor, bookmark, focused) {
@@ -477,6 +494,8 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
       if (j > -1)
         this.dimensions[j].static = true;
     }
+
+    t.staticChildren = true;
   }
   return repositioned || !!repos;
 }

@@ -5,7 +5,8 @@ Editor.Keys = function(editor) {
       var range = selection.getRanges()[ 0 ]
       if (range) {
         var paragraph = Editor.Content.getEditableAscender(range.startContainer.$);
-        if (paragraph.tagName == 'LI') return;
+        if (paragraph.tagName == 'LI' || paragraph.parentNode.tagName == 'BLOCKQUOTE') return;
+
         var section = Editor.Section.get(paragraph);
         var first = Editor.Section.getFirstChild(section);
         if (!first) return false;

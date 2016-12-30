@@ -185,13 +185,13 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
       if (element.classList.contains('added'))
         var spring = to[springName] = new Spring(30, 15);
       else
-        var spring = to[springName] = new Spring(104, 22);
+        var spring = to[springName] = new Spring(74, 12);
     } else if (property == 'fontSize') {
       var spring = to[springName] = new Spring(20, 8);
     } else if (property == 'top') {
       var spring = to[springName] = new Spring(34, 9);
     } else {
-      var spring = to[springName] = new Spring(104, 22);
+      var spring = to[springName] = new Spring(74, 12);
     }
   }
   if (spring) {

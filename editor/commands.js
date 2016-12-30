@@ -117,7 +117,6 @@ Editor.Commands.Link = function (editor, url) {
   if(selector) {
      element = selector.getAscendant( 'a', true );
   }
-  debugger
   var text = selection.getSelectedText().trim();
   var start = selection.getStartElement()
   if (!text) {

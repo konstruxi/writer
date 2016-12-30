@@ -163,39 +163,39 @@ section > .kx.toolbar {
   margin-bottom: 0;
 }
 .content * + p {
-  margin-top: 0.82rem;
+  margin-top: 0.81rem;
 }
 
 .content * + h1, .content * + h2, .content * + h3, .content * + blockquote, .content * + picture, .content * + a {
-  margin-top: 0.82rem;
+  margin-top: 0.81rem;
 }
 
 .content .kx + * {
   margin-top: 0;
 }
 article h1 + * {
-  margin-top: 0.82rem;
+  margin-top: 0.81rem;
 }
 .content h2 + * {
-  margin-top: 0.82rem;
+  margin-top: 0.81rem;
 }
 .content h3 + * {
-  margin-top: 0.82rem;
+  margin-top: 0.81rem;
 }
 .content img + * {
-  margin-top: 0.82rem;
+  margin-top: 0.81rem;
 }
 .content picture + * {
-  margin-top: 0.82rem;
+  margin-top: 0.81rem;
 }
 .content blockquote + * {
-  margin-top: 0.82rem;
+  margin-top: 0.81rem;
 }
 section > a {
   display: block;
 }
 section > a + * {
-  margin-top: 0.82rem;
+  margin-top: 0.81rem;
 }
 
 .content .moved {
@@ -327,7 +327,7 @@ section.large:not(.has-long-text) {
     break-inside: avoid-column;         /* IE 11 */
     width: 100%;
     margin: 0;
-    padding: 0 0 0.8rem 0;
+    padding: 0 0 0.81rem 0;
   }
   section.large.has-long-text:not(.has-picture) > h1,
   section.large.has-long-text:not(.has-picture) > h2,

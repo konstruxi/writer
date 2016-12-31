@@ -142,6 +142,7 @@ body.dragging *{
   background: #f1f1f1;
 }
 
+section > .toolbar svg:hover,
 #sectionizer svg:hover {
   background: #000;
   color: #f1f1f1;

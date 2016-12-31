@@ -485,16 +485,12 @@ CSS = function(prefix) {
 "}\n" +
 ".content section." + prefix + " .toolbar  {\n" +
 "  background-color: " + this.background + ";\n" +
-"  border-color: " + this.background + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
 ".content section." + prefix + " .toolbar  svg{\n" +
 "  color: " + this.accent + ";\n" +
-"  background-color: " + this.background + ";\n" +
-"  border-color: " + this.background + ";\n" +
 "}\n" +
 ".content section." + prefix + " .toolbar svg:hover {\n" +
-"  border-color: " + this.accent + ";\n" +
 "  background-color: " + this.accent + ";\n" +
 "  color: " + this.background + ";\n" +
 "}\n" +

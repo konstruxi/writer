@@ -147,23 +147,31 @@ body.dragging *{
   color: #f1f1f1;
 }
 
-
+#sectionizer.starred .star{
+  display: none;
+}
+#sectionizer:not(.starred) .unstar{
+  display: none;
+}
+#sectionizer svg.unstar:hover,
 #sectionizer svg.star:hover {
   z-index: 1;
   border: 0.2rem solid transparent;
   margin: 0rem;
 }
+
+#sectionizer svg.unstar,
 #sectionizer svg.star{
   border: 0.5rem solid transparent;
   margin: -0.3rem;
 }
 #sectionizer svg.settings {
-  top: -0.55rem;
-  left: 1.95rem;
+  top: -0.45rem;
+  left: 2rem;
 }
 #sectionizer svg.palette {
-  top: -0.55rem;
-  left: -1.9rem;
+  top: -0.45rem;
+  left: -2rem;
 }
 #sectionizer svg.split {
   top: -2.1rem;
@@ -236,4 +244,8 @@ section > .toolbar svg {
   height: 2.3rem;
   width: 2.3rem;
   border: 0.2rem solid transparent;
+}
+
+section > .toolbar svg[icon="#resize-section-icon"] {
+  cursor: row-resize !important;
 }

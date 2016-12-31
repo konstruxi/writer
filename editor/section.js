@@ -234,8 +234,10 @@ Editor.Section.lookaround = function(editor, node, snapshot) {
       }
     }
   }
-  if (link.getAttributeNS('http://www.w3.org/1999/xlink', 'href') != icon)
-        link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', icon);
+  if (link.getAttributeNS('http://www.w3.org/1999/xlink', 'href') != icon) {
+    link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', icon);
+  }
+  link.parentNode.setAttribute('icon', icon)
 }
 Editor.Section.analyze = function(node) {
   var tags = [];

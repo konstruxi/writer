@@ -320,8 +320,9 @@ Editor.Pointer = function(editor, content) {
           Editor.Chrome.Toolbar.open(editor, section, p);
           e.preventDefault()
           return
-        } else if (p.classList.contains('star')) {
+        } else if (p.classList.contains('star') || p.classList.contains('unstar')) {
           Editor.Section.star(editor, editor.currentToolbar, p);
+          Editor.Chrome.Toolbar.close(editor)
           e.preventDefault()
           return
         }

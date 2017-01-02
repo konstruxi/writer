@@ -177,7 +177,8 @@ Editor.Content.isInside = function(element, another) {
 }
 
 Editor.Content.isEmpty = function(child) {
-  if (child.tagName == 'IMG' || child.tagName == 'HR' || child.tagName == 'PICTURE' ||child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('kx')))
+  if (child.tagName == 'IMG' || child.tagName == 'HR' || (child.tagName == 'PICTURE' && child.getElementsByTagName('img')[0])
+  || child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('kx')))
     return false;
   //if (child.tagName == 'P') {
     var text = child.textContent

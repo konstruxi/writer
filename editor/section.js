@@ -32,26 +32,32 @@ Editor.Section = function(editor, mutation, observer) {
 
 Editor.Section.enlarge = function(editor, section) {
   
+  editor.fire('saveSnapshot')
   if (section.classList.contains('small'))
     section.classList.remove('small')
   else
     section.classList.add('large')
+  editor.fire('saveSnapshot')
 }
 
 Editor.Section.shrink = function(editor, section) {
+  editor.fire('saveSnapshot')
   if (section.classList.contains('large'))
     section.classList.remove('large')
   else
     section.classList.add('small')
+  editor.fire('saveSnapshot')
 }
 
 Editor.Section.star = function(editor, section) {
+  editor.fire('saveSnapshot')
   if (section.classList.contains('starred'))
     section.classList.remove('starred')
   else
     section.classList.add('starred')
 
   Editor.Section.analyze(editor, section)
+  editor.fire('saveSnapshot')
 }
 
 Editor.Section.setActive = function(editor, target, force) {

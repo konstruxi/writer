@@ -108,7 +108,7 @@
 
 @media (max-width: 400px) {
   #formatting {
-    margin-left: -0.1rem;
+    margin-left: -0.25rem;
   }
 }
 #formatting[hidden], #formatting[hidden] + #formatting-shadow {

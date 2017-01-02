@@ -56,7 +56,7 @@ Editor.Section.star = function(editor, section) {
   else
     section.classList.add('starred')
 
-  Editor.Section.analyze(editor, section)
+  Editor.Section.analyze(editor, section, true)
   editor.fire('saveSnapshot')
 }
 
@@ -225,7 +225,12 @@ Editor.Section.split = function(editor, root) {
 Editor.Section.getPaletteName = function(node) {
   for (var i = 0; i < node.classList.length; i++) {
     if (node.classList[i].indexOf('style-palette') > -1)
-      return node.classList[i]
+      var palette = node.classList[i];
+    if (node.classList[i].indexOf('style-schema') > -1)
+      var schema = node.classList[i];
+  }
+  if (palette && schema) {
+    return palette + ' ' + schema
   }
   return 'style-default-palette'
 }
@@ -247,7 +252,7 @@ Editor.Section.lookaround = function(editor, node, snapshot) {
   }
   link.parentNode.setAttribute('icon', icon)
 }
-Editor.Section.analyze = function(editor, node) {
+Editor.Section.analyze = function(editor, node, wasStarred) {
   var tags = [];
   var styles = {};
   var titles = 0;
@@ -313,7 +318,8 @@ Editor.Section.analyze = function(editor, node) {
     node.classList.add(tags[i])
 
 
-  Editor.Style(editor, node, 'palette', node.classList.contains('starred') ? styles.palette : null)
+  Editor.Style(editor, node, 'palette', styles.palette, wasStarred)
+  Editor.Style(editor, node, 'schema', node.getAttribute('schema'), wasStarred)
 }
 
 var patterns = {
@@ -428,4 +434,10 @@ Editor.Section.place = function(editor, parent, previous, child, current, root, 
   }
   return parent;  
 
+}
+
+Editor.Section.forEachClass = function(klasses, element, method) {
+  klasses.split(' ').forEach(function(kls) {
+    element.classList[method]('temp-' + kls)
+  })
 }

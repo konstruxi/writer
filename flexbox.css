@@ -89,6 +89,12 @@ article > section.large {
 }
 
 
+article > section.small {
+  justify-content: center;
+  -webkit-justify-content: center;
+}
+
+
 
 
 

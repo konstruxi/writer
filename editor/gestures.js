@@ -160,15 +160,15 @@ Editor.Pointer = function(editor, content) {
           gesture.currentAbove = gesture.above.filter(function(element) {
             if (Editor.Container.isBoxIntersecting(box, editor.snapshot.get(element))) {
               action = '#move-down-icon'
-              element.classList.add('temp-' + gesture.sectionPalette)
+              Editor.Section.forEachClass(gesture.sectionPalette, element, 'add')
               return element;
             } else {
-              element.classList.remove('temp-' + gesture.sectionPalette)
+              Editor.Section.forEachClass(gesture.sectionPalette, element, 'remove')
             }
           })
         }
         gesture.currentBelow = gesture.below.filter(function(element) {
-          element.classList.remove('temp-' + gesture.beforePalette)
+          Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
         });
       } else {
         if (gesture.below.length) {
@@ -192,15 +192,15 @@ Editor.Pointer = function(editor, content) {
           gesture.currentBelow = gesture.below.filter(function(element) {
             if (Editor.Container.isBoxIntersecting(beforeBox, editor.snapshot.get(element))) {
               action = '#move-up-icon'
-              element.classList.add('temp-' + gesture.beforePalette)
+              Editor.Section.forEachClass(gesture.beforePalette, element, 'add')
               return element;
             } else {
-              element.classList.remove('temp-' + gesture.beforePalette)
+              Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
             }
           })
         }
         gesture.currentAbove = gesture.above.filter(function(element) {
-          element.classList.remove('temp-' + gesture.sectionPalette)
+          Editor.Section.forEachClass(gesture.sectionPalette, element, 'remove')
         });
       }
 
@@ -267,14 +267,14 @@ Editor.Pointer = function(editor, content) {
           gesture.currentAbove.forEach(function(element) {
             gesture.section.insertBefore(element, first)
             gesture.section.classList.add('forced')
-            element.classList.remove('temp-' + gesture.sectionPalette)
+            Editor.Section.forEachClass(gesture.sectionPalette, element, 'remove')
           })
         }
 
         if (gesture.currentBelow && gesture.currentBelow.length) {
 
           gesture.currentBelow.forEach(function(element) {
-            element.classList.remove('temp-' + gesture.beforePalette)
+            Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
             gesture.before.insertBefore(element, last.nextSibling)
             gesture.before.classList.add('forced')
           })
@@ -298,8 +298,14 @@ Editor.Pointer = function(editor, content) {
     var target = e.srcEvent.target.correspondingUseElement || 
                  e.srcEvent.target.correspondingElement || 
                  e.srcEvent.target;
-    for (var p = target; p; p = p.parentNode)
-      if (p.tagName == 'svg') 
+    for (var p = target; p; p = p.parentNode) {
+      if (p.classList && p.classList.contains('preview') && p.classList.contains('content')) {
+        Editor.Picker.choose(editor, p)
+        e.preventDefault()
+        return;
+      }
+      // buttons
+      if (p.tagName == 'svg') {
         if (p.classList.contains('enlarge')) {
           Editor.Section.enlarge(editor, editor.currentToolbar);
           Editor.Chrome.Toolbar.close(editor)
@@ -325,7 +331,14 @@ Editor.Pointer = function(editor, content) {
           Editor.Chrome.Toolbar.close(editor)
           e.preventDefault()
           return
+        } else if (p.classList.contains('palette')) {
+          Editor.Picker(editor, editor.currentToolbar, 'schema', Editor.Picker.Schema);
+          Editor.Chrome.Toolbar.close(editor)
+          e.preventDefault()
+          return
         }
+      }
+    }
   })
 
   editor.on('drop', function(e) {

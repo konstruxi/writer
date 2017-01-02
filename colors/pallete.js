@@ -10,15 +10,30 @@ var Palette = global.Palette = function(img) {
     swatches = vibrance.swatches();
   }
   matrix = Matrix(swatches);
-  generator = function(name, I, J) {
+  generator = function(name, I, J, relative) {
+    if (name.match(/\d/)) {
+      var bits = name.split('_')
+      name = Palette.Space[parseInt(bits[0])][parseInt(bits[1])]
+    }
     var cell, i, j, k, l, len, len1, row;
-    for (i = k = 0, len = Space.length; k < len; i = ++k) {
-      row = Space[i];
+    for (i = k = 0, len = Palette.Space.length; k < len; i = ++k) {
+      row = Palette.Space[i];
       for (j = l = 0, len1 = row.length; l < len1; j = ++l) {
         cell = row[j];
         if (j < 7) {
-          if (name === cell || (i === I && j === J)) {
-            return Schemes[cell](swatches, matrix, (I != null ? I : i) / 4, (J != null ? J : j) / 4);
+          if (name === cell || (!relative && i == I && j == J)) {
+            if (relative) {
+              i = (i + I + 5) % 5;
+              j = (j + J + 5) % 5;
+              cell = Palette.Space[i][j];
+            } else if (I != null) {
+              i = I;
+              j = J;
+            }
+            var result = Schemes[cell](swatches, matrix, i / 4, j / 4);
+            result.x = i;
+            result.y = j;
+            return result;
           }
         }
       }
@@ -319,11 +334,11 @@ PaletteResult = function(swatches, matrix, luma, saturation, preset) {
   return result;
 };
 
-global.Space = Space = ("DM+DM DM+LM DV+M  DV+V DV+LV\n"+ 
-        "DM+M  M+DM  M+DV  M+V  V+M\n" + 
-        "DM+V   M+LV  M+LM  V+DM V+LV\n"+ 
-        "LM+V  LM+DM LM+M  LV+M V+V\n"+ 
-        "LM+LM LM+LV LV+LM LV+V LV+LV").split(/\n/g).map(function(line) {
+Palette.Space = ("DM_DM DM_LM DV_M  DV_V DV_LV\n"+ 
+        "DM_M  M_DM  M_DV  M_V  V_M\n" + 
+        "DM_V   M_LV  M_LM  V_DM V_LV\n"+
+        "LM_V  LM_DM LM_M  LV_M V_V\n"+
+        "LM_LM LM_LV LV_LM LV_V LV_LV").split(/\n/g).map(function(line) {
   return line.split(/\s+/g);
 });
 
@@ -368,7 +383,7 @@ Schema = function(name, lumas, saturations) {
 Schema.fromString = function(name) {
   var bit, index, k, l, len, len1, letter, lumas, ref, saturations;
   lumas = saturations = null;
-  ref = name.split('+');
+  ref = name.split('_');
   for (index = k = 0, len = ref.length; k < len; index = ++k) {
     bit = ref[index];
     for (l = 0, len1 = bit.length; l < len1; l++) {
@@ -470,7 +485,7 @@ CSS = function(prefix) {
 "  background-color: " + this.foreground + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
-".temp-"    + prefix + " {" +
+".temp-"    + prefix.replace('.', '.temp-') + " {" +
 "  color: " + this.foregroundAAA + " !important;\n" +
 "  background-color: " + this.foreground + ";\n" +
 "}\n" +
@@ -479,6 +494,7 @@ CSS = function(prefix) {
 "  color: " + this.foreground + ";\n" +
 "  background-color: " + this.accent + ";\n" +
 "}\n" +
+"body.menu-"    + prefix + " .picker," +
 ".content section." + prefix + " {\n" +
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
@@ -507,6 +523,7 @@ CSS = function(prefix) {
 ".content section." + prefix + " > .foreground {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "}" +
+"body.menu-"    + prefix + " .picker > div:hover," +
 ".content section." + prefix + ":hover > .foreground {\n" +
 "  border-color: " + this.accent + ";\n" +
 "}" + 
@@ -525,8 +542,8 @@ Schemes = {};
 
 (function() {
   var cell, i, j, k, l, len, len1, luma, lumas, ref, ref1, ref2, results, row, saturation, saturations;
-  for (i = k = 0, len = Space.length; k < len; i = ++k) {
-    row = Space[i];
+  for (i = k = 0, len = Palette.Space.length; k < len; i = ++k) {
+    row = Palette.Space[i];
     for (j = l = 0, len1 = row.length; l < len1; j = ++l) {
       cell = row[j];
       Schemes[cell] = Schema.fromString(cell);

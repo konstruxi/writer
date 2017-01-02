@@ -253,3 +253,46 @@ section > .toolbar svg {
 section > .toolbar svg[icon="#resize-section-icon"] {
   cursor: row-resize !important;
 }
+
+
+
+
+
+
+
+
+
+div.picker {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000000;
+  width: 100vw;
+  height: 100vh;
+  max-width: 60.3rem;
+  max-height: 60.3rem;
+  margin: auto;
+}
+div.picker > .content {
+  background-color: inherit;
+}
+div.picker > div {
+  width: calc(33.3%);
+  height: calc(33.3%);
+  box-sizing: content-box;
+  max-width: 20rem;
+  max-height: 20rem;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+}
+div.picker > div:hover {
+  outline: 1rem solid #fff;
+  z-index: 10;
+}
+div.picker > div > .clone {
+  width: 25rem;
+  min-height: 100%;
+}

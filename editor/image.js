@@ -113,46 +113,50 @@ Editor.Image.schedule = function(editor, image, callback, file) {
 
 Editor.Image.uid = 0
 
-Editor.Image.applyChanges = function(data, img) {
+Editor.Image.applyChanges = function(data, image) {
   this.fire('lockSnapshot')
-  var images = this.element.$.querySelectorAll('img[uid="' + img.getAttribute('uid') + '"]');
-  for (var i = 0; i < images.length; i++) {
-    var image = images[i];
-    image.setAttribute('palette', data.palette);
-    //console.error('crops', data)
-    if (!Editor.Image.style) {
-      Editor.Image.style = document.createElement('style')
-      document.body.appendChild(Editor.Image.style);
-    }
+  image.setAttribute('palette', data.palette);
+  var section = Editor.Section.get(image);
+  
+  //console.error('crops', data)
 
-    image.setAttribute('crop-x', data.square.x);
-    image.setAttribute('crop-y', data.square.y);
-    image.parentNode.classList.add('processed')
+  image.setAttribute('crop-x', data.square.x);
+  image.setAttribute('crop-y', data.square.y);
+  image.parentNode.classList.add('processed')
 
-    var generator = Palette(image)
-    var result = generator('DM+V')
+  var generator = Palette(image)
+  Editor.Style.store(this, 'palette', image.getAttribute('uid'), generator);
+  var schema = Editor.Style.get(this, section, 'schema');
+  var result = generator(schema)
 
-    var width = parseInt(image.getAttribute('width'));
-    var height = parseInt(image.getAttribute('height'));
+  var width = parseInt(image.getAttribute('width'));
+  var height = parseInt(image.getAttribute('height'));
 
-    if (height >= width * 1.2) {
-      image.parentNode.classList.add('portrait');
-    } else if (width >= height * 1.2) {
-      image.parentNode.classList.add('landscape');
-    }
-    var min = Math.min(parseInt(image.getAttribute('width')), parseInt(image.getAttribute('height')));
-    
-    //image.style.width  = width + 'px';
-    //image.style.maxHeight = height + 'px';
-    var ratio = width > height ? width / height : height / width;
-    Editor.Image.style.textContent += result.toString('style-palette-' + image.getAttribute('uid'))
-    Editor.Image.style.textContent += '.content section.small img[uid="' + image.getAttribute('uid') + '"] {' + 
-      'left: -' + data.square.x / width * ratio * 100 + '%; ' +
-      'top: -' + data.square.y / height * ratio * 100 + '%; ' +
-      'width: ' + (height < width ? ratio : 1) * 100 + '%; ' +
-    '}\n picture[uid="' + image.getAttribute('uid') + '"]:before {\n' +
-    'padding-top: ' + parseFloat(((height / width) * 100).toFixed(3)) + '%; }\n' 
+  if (height >= width * 1.2) {
+    image.parentNode.classList.add('portrait');
+  } else if (width >= height * 1.2) {
+    image.parentNode.classList.add('landscape');
   }
+  var min = Math.min(parseInt(image.getAttribute('width')), parseInt(image.getAttribute('height')));
+  
+  //image.style.width  = width + 'px';
+  //image.style.maxHeight = height + 'px';
+  var ratio = width > height ? width / height : height / width;
+  var uid = image.getAttribute('uid');
+  var styles = {};
+
+  section.setAttribute('palette', uid);
+  Editor.Style.set(this, section, 'palette', uid)
+
+  styles['picture[uid="' + uid + '"]'] = '.content section.small img[uid="' + uid + '"] {' + 
+    'left: -' + data.square.x / width * ratio * 100 + '%; ' +
+    'top: -' + data.square.y / height * ratio * 100 + '%; ' +
+    'width: ' + (height < width ? ratio : 1) * 100 + '%; ' +
+  '}\n picture[uid="' + uid + '"]:before {\n' +
+  'padding-top: ' + parseFloat(((height / width) * 100).toFixed(3)) + '%; }\n'
+
+  Editor.Style.write(this, section, styles);
+
   var section = Editor.Section.get(image);
   if (section) {
     Editor.Section.analyze(this, section)
@@ -160,6 +164,7 @@ Editor.Image.applyChanges = function(data, img) {
   }
   this.fire('unlockSnapshot')
 }
+
 
 Editor.Image.unload = function(editor, image) {
   var src = image;

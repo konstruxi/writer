@@ -49,7 +49,7 @@ Editor.DTD = function(editor) {
 
             // Is this class semantic?
             for (var i = 0; i < list.length; i++) {
-              if (name.indexOf(list[i]) > -1 || name == 'forced' || name == 'small' || name == 'large' || name == 'soft' || name == 'starred') {
+              if (name.indexOf(list[i]) > -1 || element.name == 'section') {
                 var replacement = name.indexOf(list[i]) > -1 
                                     ? Editor.Content.soundsLikeSemanticClass[list[i]]
                                     : name;
@@ -454,6 +454,7 @@ Editor.DTD = function(editor) {
   }
 
   
+  CKEDITOR.dtd['x-div'] = {svg: 1, style: 1}
 
   CKEDITOR.dtd.picture = {img: 1}
   CKEDITOR.dtd.$object.picture = 1

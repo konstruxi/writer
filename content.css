@@ -133,7 +133,7 @@ section > .kx.foreground {
 
 }
 
-article section {
+.content section {
   background: #f1f1f1;
 }
 
@@ -173,7 +173,7 @@ section > .kx.toolbar {
 .content .kx + * {
   margin-top: 0;
 }
-article h1 + * {
+.content h1 + * {
   margin-top: 0.81rem;
 }
 .content h2 + * {
@@ -426,45 +426,45 @@ section.large:not(.has-long-text) {
 }
 
 /*
-body.dragging article section:not(.above-the-fold):not(.below-the-fold) {
+body.dragging .content section:not(.above-the-fold):not(.below-the-fold) {
   z-index: 10;
 }*/
 
-body.dragging article section.below-the-fold > .toolbar {
+body.dragging .content section.below-the-fold > .toolbar {
   z-index: 20;
 }
 
 
-article {
+.content {
   background: #f1f1f1;
 }
 
-article > section > *:not(a):not(picture) {
+.content > section > *:not(a):not(picture):not(.toolbar) {
   max-width: calc(100vw - 3rem);
   width: 800px;
 }
-article > section > * {
+.content > section > * {
   margin-left: auto;
   margin-right: auto;
 }
 
-article.content > section.small > *:not(.toolbar) {
+.content > section.small > *:not(.toolbar) {
   width: calc(400px - 2rem);
 }
 
-article > section:not(.large):not(.small) > picture,
-article > section:not(.large):not(.small) > a {
+.content > section:not(.large):not(.small) > picture,
+.content > section:not(.large):not(.small) > a {
   width: 800px;
   max-width: 100%;
 }
 
 @media (max-width: 830px) {
-  article > section > *:not(.kx):not(a):not(picture) {
+  .content > section > *:not(.kx):not(a):not(picture) {
     margin-left: 2rem;
   }
 
-  article > section:not(.large):not(.small) > picture,
-  article > section:not(.large):not(.small) > a {
+  .content > section:not(.large):not(.small) > picture,
+  .content > section:not(.large):not(.small) > a {
     width: 100%;
   }
 }

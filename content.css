@@ -448,8 +448,10 @@ body.dragging .content section.below-the-fold > .toolbar {
   margin-right: auto;
 }
 
-.content > section.small > *:not(.toolbar) {
-  width: calc(400px - 2rem);
+@media (min-width: 500px) {
+  .content > section.small > *:not(.toolbar) {
+    width: calc(400px - 2rem);
+  }
 }
 
 .content > section:not(.large):not(.small) > picture,

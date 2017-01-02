@@ -125,7 +125,8 @@ Editor.Image.applyChanges = function(data, image) {
   image.parentNode.classList.add('processed')
 
   var generator = Palette(image)
-  Editor.Style.store(this, 'palette', image.getAttribute('uid'), generator);
+  var uid = image.getAttribute('uid');
+  Editor.Style.store(this, 'palette', uid, generator);
   var schema = Editor.Style.get(this, section, 'schema');
   var result = generator(schema)
 
@@ -142,11 +143,10 @@ Editor.Image.applyChanges = function(data, image) {
   //image.style.width  = width + 'px';
   //image.style.maxHeight = height + 'px';
   var ratio = width > height ? width / height : height / width;
-  var uid = image.getAttribute('uid');
   var styles = {};
 
   section.setAttribute('palette', uid);
-  Editor.Style.set(this, section, 'palette', uid)
+  //Editor.Style(this, section, 'palette', uid)
 
   styles['picture[uid="' + uid + '"]'] = '.content section.small img[uid="' + uid + '"] {' + 
     'left: -' + data.square.x / width * ratio * 100 + '%; ' +

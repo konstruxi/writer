@@ -62,9 +62,9 @@ Editor.Style.set = function(editor, section, type, value, inherited, propagate) 
 
   if (value) {
     section.setAttribute(type, value);
-  }
-  else
+  } else if (!inherited) {
     section.removeAttribute(type)
+  }
   if (propagate)
     Editor.Style.propagate(editor, section, type, result);
 
@@ -88,7 +88,7 @@ Editor.Style.propagate = function(editor, section, type, value) {
 }
 
 Editor.Style.inherit = function(editor, section, type, ignoreSelf) {
-  if (section.getAttribute(type) && !ignoreSelf) 
+  if (section.getAttribute(type) && section.classList.contains('starred')) 
     return false;
   var left = 0, right = 0;
   var l, r;
@@ -131,8 +131,15 @@ Editor.Style.callbacks = {
     var generator = Editor.Style.retrieve(editor, 'palette', palette)
     if (!generator) return;
     var schema = Editor.Style.get(editor, section, 'schema', 'DM_V')
-    Editor.Style.write(editor, section, {
-      colors: generator(schema).toString('style-palette-' + palette + '.style-schema-' + schema)
-    })
+    if (section.schema != schema || section.palette != palette) {
+      section.palette = palette;
+      section.schema = schema;
+      Editor.Style.write(editor, section, {
+        colors: generator(schema).toString('style-palette-' + palette + '.style-schema-' + schema)
+      })
+    }
+  },
+  palette: function() {
+    return Editor.Style.callbacks.schema.apply(this, arguments)
   }
 }

@@ -13,14 +13,16 @@ Editor.Observer = function(editor) {
         for (var j = 0; j < m.removedNodes.length; j++) {
           if (m.removedNodes[j].nodeType == 1 &&
               m.removedNodes[j].tagName != 'SPAN' &&
-              m.removedNodes[j].tagName != 'DIV'  ) {
+              m.removedNodes[j].tagName != 'DIV' &&
+              m.removedNodes[j].tagName != 'STYLE'  ) {
             var reason = mutations[i];
           }
         }
         for (var j = 0; j < m.addedNodes.length; j++) {
           if (m.addedNodes[j].nodeType == 1 &&
               m.addedNodes[j].tagName != 'SPAN' &&
-              m.addedNodes[j].tagName != 'DIV') {
+              m.addedNodes[j].tagName != 'DIV' &&
+              m.addedNodes[j].tagName != 'STYLE') {
             var reason = mutations[i];
           }
         }

@@ -291,10 +291,10 @@ function rightNow(callback) {
 function setUIColors(editor, section, type) {
   var old, current;
   for (var i = 0; i < document.body.classList.length; i++)
-    if (document.body.classList[i].indexOf(type + '-has-palette') > -1)
+    if (document.body.classList[i].indexOf(type + '-style-palette') > -1)
       old = document.body.classList[i]
   for (var i = 0; i < section.classList.length; i++)
-    if (section.classList[i].indexOf('has-palette') > -1)
+    if (section.classList[i].indexOf('style-palette') > -1)
       current = type + '-' + section.classList[i];
   if (current != old) {
     if (old)

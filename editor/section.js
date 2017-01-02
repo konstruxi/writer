@@ -7,7 +7,7 @@ Editor.Section = function(editor, mutation, observer) {
   var content = editor.element.$;
   var section = Editor.Section.split(editor, content) || editor.justdropped
   for (var i = 0; i < content.children.length; i++) {
-    Editor.Section.analyze(content.children[i])
+    Editor.Section.analyze(editor, content.children[i])
   }
   Editor.Section.group(content)
 
@@ -216,10 +216,10 @@ Editor.Section.split = function(editor, root) {
 
 Editor.Section.getPaletteName = function(node) {
   for (var i = 0; i < node.classList.length; i++) {
-    if (node.classList[i].indexOf('has-palette') > -1)
+    if (node.classList[i].indexOf('style-palette') > -1)
       return node.classList[i]
   }
-  return 'has-default-palette'
+  return 'style-default-palette'
 }
 Editor.Section.lookaround = function(editor, node, snapshot) {
   var link = node.querySelector('.toolbar svg use')
@@ -239,8 +239,9 @@ Editor.Section.lookaround = function(editor, node, snapshot) {
   }
   link.parentNode.setAttribute('icon', icon)
 }
-Editor.Section.analyze = function(node) {
+Editor.Section.analyze = function(editor, node) {
   var tags = [];
+  var styles = [];
   var titles = 0;
   var texts = 0;
   for (var i = 0; i < node.children.length; i++) {
@@ -274,7 +275,8 @@ Editor.Section.analyze = function(node) {
             tags.push('has-portrait-image')
           if (img.parentNode.classList.contains('landscape'))
             tags.push('has-landscape-image')
-          tags.push('has-picture', 'has-palette-' + img.getAttribute('uid'))
+          tags.push('has-picture')
+          styles.push('style-palette-' + img.getAttribute('uid'))
         } else if (child.textContent.length) {
           texts += child.textContent.length;
           tags.push('has-text')
@@ -298,9 +300,15 @@ Editor.Section.analyze = function(node) {
       if (tags.indexOf(list[i]) == -1)
         node.classList.remove(list[i])
     }
+    if (list[i].indexOf('style-') == 0) {
+      if (styles.indexOf(list[i]) == -1)
+        node.classList.remove(list[i])
+    }
   }
   for (var i = 0; i < tags.length; i++)
     node.classList.add(tags[i])
+  for (var i = 0; i < styles.length; i++)
+    Editor.Style(editor, node, styles[i])
 }
 
 var patterns = {

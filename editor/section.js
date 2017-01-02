@@ -317,8 +317,6 @@ Editor.Section.analyze = function(editor, node, wasStarred) {
   for (var i = 0; i < tags.length; i++)
     node.classList.add(tags[i])
 
-
-  debugger
   Editor.Style(editor, node, 'palette', styles.palette, wasStarred)
   Editor.Style(editor, node, 'schema', node.getAttribute('schema'), wasStarred)
 }

@@ -568,4 +568,4 @@ Schemes = {};
   return results;
 })();
 
-})(this);
+})(typeof window == undefined ? this : window);

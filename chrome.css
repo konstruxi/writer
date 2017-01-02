@@ -106,7 +106,7 @@
   margin-top: -3.40rem;
 }
 
-@media (max-width: 400px) {
+@media (max-width: 700px) {
   #formatting {
     margin-left: -0.25rem;
   }
@@ -204,7 +204,7 @@ section > .toolbar svg:hover,
 #sectionizer.small .shrink {
   opacity: 0.3;
 }
-@media (max-width: 400px) {
+@media (max-width: 500px) {
   #sectionizer .enlarge {
     display: none;
   }

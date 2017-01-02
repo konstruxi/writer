@@ -448,7 +448,7 @@ body.dragging .content section.below-the-fold > .toolbar {
   margin-right: auto;
 }
 
-@media (min-width: 500px) {
+@media (min-width: 600px) {
   .content > section.small > *:not(.toolbar) {
     width: calc(400px - 2rem);
   }

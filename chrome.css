@@ -12,6 +12,7 @@
   z-index: 2200;
   transition: opacity 0.3s;
   pointer-events: none;
+  margin-left: -1px;
 }
 #formatting .cke_button {
   pointer-events: all;
@@ -140,7 +141,9 @@ body.dragging *{
 
 #sectionizer svg {
   background: #f1f1f1;
+  cursor: pointer;
 }
+
 
 section > .toolbar svg:hover,
 #sectionizer svg:hover {

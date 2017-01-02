@@ -50,6 +50,8 @@ Editor.Section.star = function(editor, section) {
     section.classList.remove('starred')
   else
     section.classList.add('starred')
+
+  Editor.Section.analyze(editor, section)
 }
 
 Editor.Section.setActive = function(editor, target, force) {
@@ -303,8 +305,9 @@ Editor.Section.analyze = function(editor, node) {
   }
   for (var i = 0; i < tags.length; i++)
     node.classList.add(tags[i])
-  
-  Editor.Style(editor, node, 'palette', styles.palette)
+
+
+  Editor.Style(editor, node, 'palette', node.classList.contains('starred') ? styles.palette : null)
 }
 
 var patterns = {

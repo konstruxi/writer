@@ -99,7 +99,7 @@ Editor.Pointer = function(editor, content) {
     }
 
     var action = '#move-icon'
-    
+
     if (e.srcEvent.type == 'touchmove') {
       var myLocation = e.srcEvent.changedTouches[0];
       var realTarget = document.elementFromPoint(myLocation.clientX, myLocation.clientY);
@@ -208,14 +208,13 @@ Editor.Pointer = function(editor, content) {
     gesture.section.classList.remove('growing')
     if (gesture.before) {
       gesture.before.classList.remove('growing')
-      
+
     }
     gesture.section.classList.remove('below-the-fold')
     gesture.button.classList.remove('dragging')
     var x = e.deltaX - gesture.deltaX
     var y = e.deltaY - gesture.deltaY
     var buttonBox = editor.snapshot.get(gesture.button);
-
     editor.snapshot.setStyle(gesture.button, 'left')
     editor.snapshot.setStyle(gesture.button, 'top')
 

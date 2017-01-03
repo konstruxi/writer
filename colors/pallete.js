@@ -494,10 +494,14 @@ CSS = function(prefix) {
 "  color: " + this.foreground + ";\n" +
 "  background-color: " + this.accent + ";\n" +
 "}\n" +
+"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " article," +
+"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " section," +
+"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " .foreground {" +
+"  background-color: " + this.background + ";\n" +
+"}\n" +
 "body.menu-"    + prefix.replace('.', '.menu-') + " .picker," +
 ".content section." + prefix + " {\n" +
 "  background-color: " + this.background + ";\n" +
-"  outline-color: " + this.background + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
 "}\n" +
 ".content section." + prefix + " .toolbar  {\n" +

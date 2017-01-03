@@ -190,6 +190,9 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
   } else {
     var target = to[property];
   }
+  var current = to[fallback] != null ? to[fallback] : 
+                from[fallback] != null ? from[fallback] :
+                from[property];
   if (to[springName] === false && to[fallback] === target) {
     return target
   } else if (to[springName]) {
@@ -197,7 +200,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
   } else if (from[springName]) {
     var spring = to[springName] = from[springName];
     from[springName] = undefined
-  } else if (from[property] != target) {
+  } else if (current != target) {
     if (property == 'height') {
       if (element.classList.contains('added'))
         var spring = to[springName] = new Spring(30, 12);
@@ -219,9 +222,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
   if (spring) {
     spring.element = element;
     if (spring[2] == null) { 
-      spring[2] = to[fallback] != null ? to[fallback] : 
-                  from[fallback] != null ? from[fallback] :
-                  from[property];
+      spring[2] = current
       console.log(property, element, 'spring from', spring[2], 'to', target)
     }
     spring[3] = target;
@@ -301,12 +302,13 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         element.style.margin = '0'
         element.style.zIndex = '';
 
-        element.style.top = '0';
-        element.style.left = '0';
-        element.style.transform = 
-        element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
-        element.style.height = to.currentHeight + 'px';
-        element.style.width = to.currentWidth + 'px';
+   
+          element.style.transform = 
+          element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
+          element.style.top = '0';
+          element.style.left = '0';
+        element.style.height = Math.floor(to.currentHeight) + 'px';
+        element.style.width = Math.floor(to.currentWidth) + 'px';
       } else {
         element.style.zIndex = -1;
         element.style.visibility = 'hidden'
@@ -607,8 +609,10 @@ Editor.Snapshot.prototype.setStyle = function(element, property, value) {
       break;
   }
 
-  this.manipulated = (this.manipulated || 0) + 1
-  box.manipulated = true;
+  if (value != null) {
+    this.manipulated = (this.manipulated || 0) + 1
+    box.manipulated = true;
+  }
   box.animated = true;
   box.static = false;
 }

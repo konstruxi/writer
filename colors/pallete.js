@@ -533,7 +533,7 @@ CSS = function(prefix) {
 "  border-color: " + this.accent + ";\n" +
 "}" + 
 ".content section." + prefix + " *::selection {\n" +
-"  background-color: " + this.accent + ";\n" +
+"  background-color: " + this.accent.toString().replace('rgb', 'rgba').replace(')', ',0.5)') + ";\n" +
 "  color: " + this.accentAAA + ";\n" +
 "}")
 };

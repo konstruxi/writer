@@ -43,16 +43,17 @@ Editor.Selection = function(editor, content) {
   } );
 
   // select image on tap on mobile
-  editor.gestures.on('tap', function(e) {
+  content.addEventListener('mousedown', function(e) {
     for (var p = e.target; p; p = p.parentNode) {
-      if (p.tagName == 'IMG') {
+      if (p.tagName == 'PICTURE') {
         if (p.parentNode.parentNode.tagName == 'A')
           editor.getSelection().selectElement(new CKEDITOR.dom.element(p.parentNode))
         else
           editor.getSelection().selectElement(new CKEDITOR.dom.element(p))
 
         Editor.Selection.onChange(editor, true, true)
-        //e.preventDefault();
+        e.preventDefault();
+        e.stopPropagation();
         break;
       }
     }

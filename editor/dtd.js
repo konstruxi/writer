@@ -466,6 +466,7 @@ Editor.DTD = function(editor) {
   //CKEDITOR.dtd.$intermediate.picture = 1; 
 
 
+  CKEDITOR.dtd.$block['x-div'] = 1; 
   CKEDITOR.dtd.$block.p = 1; 
   CKEDITOR.dtd.$block.section = 1; 
   CKEDITOR.dtd.$block.ul = 1; 

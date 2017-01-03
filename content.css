@@ -141,6 +141,7 @@ section > .kx.toolbar {
   background: #f1f1f1;
 }
 
+
 .content * {
   top: 0;
   left: 0;
@@ -221,6 +222,7 @@ section.clone {
 }
 .content img {
   width: 100%;
+  display: inline-block;
   height: auto;
   cursor: pointer;
 }
@@ -228,6 +230,7 @@ section.clone {
 .content .below-the-fold {
   z-index: 1;
 }
+
 
 
 .content {

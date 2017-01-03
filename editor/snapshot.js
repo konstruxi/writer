@@ -507,7 +507,7 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
       repos = this.normalize(element.children[i], from, repos, - diffX, - diffY, t)
     }
 
-  if (Editor.Content.isParagraph(element) || element.classList.contains('kx'))
+  if (Editor.Content.isParagraph(element) || element.tagName == 'IMG' || Editor.Content.isPicture(element) || element.classList.contains('kx'))
     if (!f || repos|| repositioned  || distance > 5 || diffSize > 5) {
       repositioned = 1;
     }

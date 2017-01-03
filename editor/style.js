@@ -88,7 +88,7 @@ Editor.Style.propagate = function(editor, section, type, value) {
 }
 
 Editor.Style.inherit = function(editor, section, type, ignoreSelf) {
-  if (section.getAttribute(type) && section.classList.contains('starred')) 
+  if (section.getAttribute(type) && (section.classList.contains('starred') || type != 'palette')) 
     return false;
   var left = 0, right = 0;
   var l, r;

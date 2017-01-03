@@ -305,15 +305,7 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         element.style.left = '0';
         element.style.transform = 
         element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
-
-//        if (element.tagName == 'SECTION' && to.animated) {
-//          element.style.height = (to.currentHeight + 1) + 'px';
- //         element.style.borderBottom = '1px solid transparent'
-//        } else {
-//          element.style.borderBottom = '';
-          element.style.height = to.currentHeight + 'px';
-//        }
-
+        element.style.height = to.currentHeight + 'px';
         element.style.width = to.currentWidth + 'px';
       } else {
         element.style.zIndex = -1;

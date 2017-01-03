@@ -295,14 +295,14 @@ function setUIColors(editor, section, type) {
 
     if (document.body.classList[i].indexOf(type + '-style-palette') > -1)
       oldPalette = document.body.classList[i]
-    if (document.body.classList[i].indexOf('style-schema') > -1)
+    if (document.body.classList[i].indexOf(type + '-style-schema') > -1)
       oldSchema = document.body.classList[i]
   }
   for (var i = 0; i < section.classList.length; i++) {
     if (section.classList[i].indexOf('style-palette') > -1)
       currentPalette = type + '-' + section.classList[i];
     if (section.classList[i].indexOf('style-schema') > -1)
-      currentSchema = section.classList[i];
+      currentSchema = type + '-' + section.classList[i];
   }
   if (currentPalette != oldPalette) {
     if (oldPalette)
@@ -316,5 +316,5 @@ function setUIColors(editor, section, type) {
     if (currentSchema)
       document.body.classList.add(currentSchema)
   }
-  
+
 }

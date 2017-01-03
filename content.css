@@ -134,6 +134,7 @@ section > .kx.foreground {
 }
 
 .content section {
+  outline: 1px solid #f1f1f1;
   background: #f1f1f1;
 }
 
@@ -222,6 +223,7 @@ section.clone {
 .content img {
   width: 100%;
   height: auto;
+  cursor: pointer;
 }
 
 

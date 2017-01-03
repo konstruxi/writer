@@ -479,9 +479,9 @@ Palette.example = function(colors, level) {
 
 CSS = function(prefix) {
   return (
-"body.toolbar-" + prefix + " #formatting," +
-"body.menu-"    + prefix + " #sectionizer svg," +
-"body.toolbar-" + prefix + " #formatting .cke_button {\n" +
+"body.toolbar-" + prefix.replace('.', '.toolbar-') + " #formatting," +
+"body.menu-"    + prefix.replace('.', '.menu-') + " #sectionizer svg," +
+"body.toolbar-" + prefix.replace('.', '.toolbar-') + " #formatting .cke_button {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
@@ -489,14 +489,15 @@ CSS = function(prefix) {
 "  color: " + this.foregroundAAA + " !important;\n" +
 "  background-color: " + this.foreground + ";\n" +
 "}\n" +
-"body.menu-"    + prefix + " #sectionizer svg:hover," +
-"body.toolbar-" + prefix + " #formatting .cke_button:hover {\n" +
+"body.menu-"    + prefix.replace('.', '.menu-') + " #sectionizer svg:hover," +
+"body.toolbar-" + prefix.replace('.', '.toolbar-') + " #formatting .cke_button:hover {\n" +
 "  color: " + this.foreground + ";\n" +
 "  background-color: " + this.accent + ";\n" +
 "}\n" +
-"body.menu-"    + prefix + " .picker," +
+"body.menu-"    + prefix.replace('.', '.menu-') + " .picker," +
 ".content section." + prefix + " {\n" +
 "  background-color: " + this.background + ";\n" +
+"  outline-color: " + this.background + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
 "}\n" +
 ".content section." + prefix + " .toolbar  {\n" +

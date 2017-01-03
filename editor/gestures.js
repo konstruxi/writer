@@ -62,7 +62,6 @@ Editor.Pointer = function(editor, content) {
         sectionPalette: Editor.Section.getPaletteName(section),
         foreground: foreground,
         foregroundBox: foregroundBox,
-        foregroundFinalBox: Object.create(foregroundBox),
         button: toolbar,
         buttonBox: editor.snapshot.get(toolbar),
         link: link
@@ -72,7 +71,6 @@ Editor.Pointer = function(editor, content) {
         gesture.beforePalette = Editor.Section.getPaletteName(before)
         gesture.beforeForeground = beforeForeground
         gesture.beforeForegroundBox = beforeBox
-        gesture.beforeForegroundFinalBox = Object.create(beforeBox)
         gesture.beforeForegroundDistance = beforeBox.top + beforeBox.height - foregroundBox.top
         gesture.above = Editor.Section.findMovableElements(before, section, true)
         gesture.below = Editor.Section.findMovableElements(section, before)
@@ -120,12 +118,11 @@ Editor.Pointer = function(editor, content) {
     var x = e.deltaX - gesture.deltaX
     var y = e.deltaY - gesture.deltaY
 
-    gesture.button.style.left = gesture.buttonBox.x + x + gesture.anchorShiftX + 'px'
-    gesture.button.style.top = gesture.buttonBox.y + y + gesture.anchorShiftY + 'px'
-    gesture.button.style.webkitTransform = gesture.button.style.transform = ''
-
+    editor.snapshot.setStyle(gesture.button, 'left', gesture.buttonBox.left + x + gesture.anchorShiftX)
+    editor.snapshot.setStyle(gesture.button, 'top', gesture.buttonBox.top + y + gesture.anchorShiftY)
+    
     // reset resizing if dragged too much
-    if (gesture.topmost && gesture.buttonBox.top + y + 64 < gesture.topmost) {
+    if (gesture.topmost && gesture.buttonBox.top + y + 40 < gesture.topmost) {
       y = -1;
     }
     if  (gesture.bottomost && gesture.buttonBox.top + y - 64 > gesture.bottomost) {
@@ -134,27 +131,18 @@ Editor.Pointer = function(editor, content) {
     if (gesture.beforeForeground) {
 
       // update box dimensions in snapshot
-      var box = gesture.foregroundFinalBox;
-      var beforeBox = gesture.beforeForegroundFinalBox;
+      var box = editor.snapshot.get(gesture.foreground);
+      var beforeBox = editor.snapshot.get(gesture.beforeForeground);
       gesture.before.classList.remove('below-the-fold')
       if (y < 0) {
         if (gesture.above.length) {
           if (y < gesture.beforeForegroundDistance + 10) {
-            gesture.beforeForeground.style.height = gesture.beforeForegroundBox.height - gesture.beforeForegroundDistance - 10 + y + 'px'
+            editor.snapshot.setStyle(gesture.beforeForeground, 'height', gesture.beforeForegroundBox.height - gesture.beforeForegroundDistance - 10 + y)
           } else {
-            gesture.beforeForeground.style.height = gesture.beforeForegroundBox.height + 'px';
+            editor.snapshot.setStyle(gesture.beforeForeground, 'height', gesture.beforeForegroundBox.height)
           }
-          box.top = gesture.foregroundBox.top + y;
-          box.y = gesture.foregroundBox.y + y;
-          box.height = gesture.foregroundBox.height - y;
-
-          gesture.foreground.style.top = box.y + 'px'
-          gesture.foreground.style.height = box.height + 'px'
-
-
-          if (y < gesture.beforeForegroundDistance + 10) {
-            beforeBox.height = gesture.beforeForegroundBox.height - (gesture.beforeForegroundDistance + 10 - y)
-          }
+          editor.snapshot.setStyle(gesture.foreground, 'top', gesture.foregroundBox.top + y)
+          editor.snapshot.setStyle(gesture.foreground, 'height', gesture.foregroundBox.height - y)
 
           // mark selected elements
           gesture.currentAbove = gesture.above.filter(function(element) {
@@ -167,27 +155,23 @@ Editor.Pointer = function(editor, content) {
             }
           })
         }
+          
         gesture.currentBelow = gesture.below.filter(function(element) {
           Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
         });
+        if (y < -30)
+          gesture.section.classList.add('growing')
+        gesture.before.classList.remove('growing')
       } else {
         if (gesture.below.length) {
           if (y > - gesture.beforeForegroundDistance - 10) {
-            gesture.foreground.style.top = gesture.foregroundBox.y + gesture.beforeForegroundDistance + 10 + y + 'px'
-            gesture.foreground.style.height = gesture.foregroundBox.height - gesture.beforeForegroundDistance - 10 - y + 'px'
+            editor.snapshot.setStyle(gesture.foreground, 'top', gesture.foregroundBox.top + gesture.beforeForegroundDistance + 10 + y)
+            editor.snapshot.setStyle(gesture.foreground, 'height', gesture.foregroundBox.height - gesture.beforeForegroundDistance - 10 - y)
           } else {
-            gesture.foreground.style.top = gesture.foregroundBox.y + 'px';
-            gesture.foreground.style.height = gesture.foregroundBox.height + 'px';
+            editor.snapshot.setStyle(gesture.foreground, 'top', gesture.foregroundBox.top)
+            editor.snapshot.setStyle(gesture.foreground, 'height', gesture.foregroundBox.height)
           }
-          gesture.beforeForeground.style.height = gesture.beforeForegroundBox.height + y + 'px';
-
-          if (y > - gesture.beforeForegroundDistance - 10) {
-            box.y = gesture.foregroundBox.y + (gesture.beforeForegroundDistance + 10 + y)
-            box.top = gesture.foregroundBox.top + (gesture.beforeForegroundDistance + 10 + y)
-            box.height = gesture.foregroundBox.height - (gesture.beforeForegroundDistance + 10 + y);
-          }
-          beforeBox.height = gesture.beforeForegroundBox.height + y  
-
+          editor.snapshot.setStyle(gesture.beforeForeground, 'height', gesture.beforeForegroundBox.height + y)
           // mark selected elements
           gesture.currentBelow = gesture.below.filter(function(element) {
             if (Editor.Container.isBoxIntersecting(beforeBox, editor.snapshot.get(element))) {
@@ -202,8 +186,12 @@ Editor.Pointer = function(editor, content) {
         gesture.currentAbove = gesture.above.filter(function(element) {
           Editor.Section.forEachClass(gesture.sectionPalette, element, 'remove')
         });
+        if (y > 30)
+          gesture.before.classList.add('growing')
+        gesture.section.classList.remove('growing')
       }
-
+      if (!editor.snapshot.timer)
+        editor.snapshot = editor.snapshot.animate()
     }
 
     gesture.link.setAttributeNS("http://www.w3.org/1999/xlink", 'href', action)
@@ -217,15 +205,12 @@ Editor.Pointer = function(editor, content) {
     gesture.section.classList.remove('below-the-fold')
     editor.gestures.current = null;
     gesture.button.classList.remove('dragging')
-    gesture.button.style.top = ''
-    gesture.button.style.left = ''
     var x = e.deltaX - gesture.deltaX
     var y = e.deltaY - gesture.deltaY
     var buttonBox = editor.snapshot.get(gesture.button);
-    gesture.buttonBox.x  = gesture.buttonBox.x + x + gesture.anchorShiftX 
-    gesture.buttonBox.left  = gesture.buttonBox.left + x + gesture.anchorShiftX
-    gesture.buttonBox.y  = gesture.buttonBox.y + y + gesture.anchorShiftY
-    gesture.buttonBox.top  = gesture.buttonBox.top + y + gesture.anchorShiftY
+
+    editor.snapshot.setStyle(gesture.button, 'left')
+    editor.snapshot.setStyle(gesture.button, 'top')
 
     gesture.link.setAttributeNS("http://www.w3.org/1999/xlink", 'href', '#resize-section-icon')
 
@@ -241,19 +226,15 @@ Editor.Pointer = function(editor, content) {
       y = 0;
     }
     if (gesture.before) {
-      var beforeBox = editor.snapshot.get(gesture.beforeForeground);
-      var box = editor.snapshot.get(gesture.foreground);
-      box.y      = gesture.foregroundFinalBox.y;
-      box.top    = gesture.foregroundFinalBox.top;
-      box.height = gesture.foregroundFinalBox.height;
-      beforeBox.height = gesture.beforeForegroundFinalBox.height;
-
-      if (y < 0) {
-        Editor.Snapshot.shiftChildren(editor, gesture.section, y)
-      }
-      if (y > - gesture.beforeForegroundDistance - 10) {
-        Editor.Snapshot.shiftChildren(editor, gesture.section, (gesture.beforeForegroundDistance + 10 + y))
-      }
+      editor.snapshot.setStyle(gesture.beforeForeground, 'height')
+      editor.snapshot.setStyle(gesture.foreground, 'top')
+      editor.snapshot.setStyle(gesture.foreground, 'height')
+      //if (y < 0) {
+      //  Editor.Snapshot.shiftChildren(editor, gesture.section, y)
+      //}
+      //if (y > - gesture.beforeForegroundDistance - 10) {
+      //  Editor.Snapshot.shiftChildren(editor, gesture.section, (gesture.beforeForegroundDistance + 10 + y))
+      //}
     }
 
     if (isMovingContent) {
@@ -288,9 +269,9 @@ Editor.Pointer = function(editor, content) {
       else
         gesture.section.parentNode.insertBefore(gesture.section, gesture.anchor)
 
-    } else if (gesture.before) {
-      editor.snapshot = editor.snapshot.animate();
     }
+    editor.snapshot.manipulated = false;
+
     editor.fire('saveSnapshot');
   })
 

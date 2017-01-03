@@ -63,6 +63,9 @@ article > section > *:not(.kx){
   align-self: auto;
 }
 
+.content style {
+  display: none !important;
+}
 
 @media (min-width: 800px) {
   section[pattern="two-images"] {

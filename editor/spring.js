@@ -43,7 +43,7 @@ Spring.prototype.compute = function(now, from) {
   velocity = this[6];
   position = old = this[2];
   Tv = this[8];
-  Tp = this[9];
+  Tp = this[9] || position;
   Pv = this[10];
   Pp = this[11];
   STEP = Spring.prototype.STEP;
@@ -51,8 +51,8 @@ Spring.prototype.compute = function(now, from) {
   while (this[5] >= STEP) {
     this[5] -= STEP;
     if (this[5] < STEP) {
-      this[10] = velocity;
-      this[11] = position;
+      Pv = this[10] = velocity;
+      Pp = this[11] = position;
     }
     Av = velocity;
     Aa = (tension * (goal - Tp)) - friction * velocity;
@@ -74,8 +74,8 @@ Spring.prototype.compute = function(now, from) {
     velocity += dvdt * STEP;
   }
   if (interpolation = this[5] / STEP) {
-    position = position * interpolation + this[10] * (1 - interpolation);
-    velocity = velocity * interpolation + this[11] * (1 - interpolation);
+    position = position * interpolation + Pp * (1 - interpolation);
+    velocity = velocity * interpolation + Pv * (1 - interpolation);
   }
   this[6] = velocity;
   this[8] = Tv;
@@ -89,12 +89,14 @@ Spring.prototype.compute = function(now, from) {
     return position;
   } else {
     this[15] += diff;
-    if (this[7] > 0 && Math.abs(this[6]) < Spring.prototype.REST_THRESHOLD) {
+    if ((this[7] > 0 && Math.abs(this[6]) < Spring.prototype.REST_THRESHOLD) || 
+       (Math.abs(position - goal) < Spring.prototype.DISPLACEMENT_THRESHOLD)) {
       this.clean();
-      this[7] = -1;
-      if (position !== goal) {
-        return goal;
-      }
+
+      this[7] = 0;
+      this[2] = goal;
+      this[6] = 0;
+      return goal;
     }
   }
 };

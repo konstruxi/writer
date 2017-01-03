@@ -55,13 +55,15 @@ Editor.Container.measure = function(editor, scroll) {
 
 
 Editor.Container.isBoxIntersecting = function(box, another) {
-  var top = box.top;
-  var bottom = box.top + box.height
+  var top = box.currentTop != null ? box.currentTop : box.top;
+  var height = box.currentHeight != null ? box.currentHeight : box.height;
+  var bottom = top + height
   var topmost = another.top 
   var bottomost = another.top + another.height;
 
-  var left = box.left;
-  var right = box.left + box.width
+  var left = box.currentLeft != null ? box.currentLeft : box.left;
+  var width = box.currentWidth != null ? box.currentWidth : box.width;
+  var right = left + width
   var leftmost = another.left
   var rightmost = another.left + another.width;
 

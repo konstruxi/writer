@@ -289,17 +289,32 @@ function rightNow(callback) {
 
 
 function setUIColors(editor, section, type) {
-  var old, current;
-  for (var i = 0; i < document.body.classList.length; i++)
+  var oldPalette, currentPalette;
+  var oldSchema, currentSchema;
+  for (var i = 0; i < document.body.classList.length; i++) {
+
     if (document.body.classList[i].indexOf(type + '-style-palette') > -1)
-      old = document.body.classList[i]
-  for (var i = 0; i < section.classList.length; i++)
-    if (section.classList[i].indexOf('style-palette') > -1)
-      current = type + '-' + section.classList[i];
-  if (current != old) {
-    if (old)
-      document.body.classList.remove(old)
-    if (current)
-      document.body.classList.add(current)
+      oldPalette = document.body.classList[i]
+    if (document.body.classList[i].indexOf('style-schema') > -1)
+      oldSchema = document.body.classList[i]
   }
+  for (var i = 0; i < section.classList.length; i++) {
+    if (section.classList[i].indexOf('style-palette') > -1)
+      currentPalette = type + '-' + section.classList[i];
+    if (section.classList[i].indexOf('style-schema') > -1)
+      currentSchema = section.classList[i];
+  }
+  if (currentPalette != oldPalette) {
+    if (oldPalette)
+      document.body.classList.remove(oldPalette)
+    if (currentPalette)
+      document.body.classList.add(currentPalette)
+  }
+  if (currentSchema != oldSchema) {
+    if (oldSchema)
+      document.body.classList.remove(oldSchema)
+    if (currentSchema)
+      document.body.classList.add(currentSchema)
+  }
+  
 }

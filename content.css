@@ -243,13 +243,9 @@ section.clone {
 }
 .content section,
 .content section .foreground {
-  transition: background-color .3s; 
-  -webkit-transition: background-color .3s
-  
-}
-.content section {
-  transition: opacity .3s 
-  -webkit-transition: opacity .3s 
+  transition: background-color .3s, opacity .3s; 
+  -webkit-transition: background-color .3s, opacity .3s;
+
 }
 
 
@@ -400,6 +396,12 @@ section.large:not(.has-long-text) {
 
 
   section:not(.small):not(.large).has-portrait-image.has-text {
+    min-height: calc(502px + 6rem);
+    justify-content: center;
+    -webkit-justify-content: center;
+  }
+
+  section:not(.small):not(.large).has-portrait-image.has-text picture{
     height: calc(502px + 6rem);
     justify-content: center;
     -webkit-justify-content: center;

@@ -119,6 +119,9 @@ Editor.Snapshot.prototype.animate = function(section, callback) {
 
     if (!snapshot.manipulated || snapshot.manipulated != snapshot.lastManipulated) {
       snapshot.morph(from, (start + Math.floor((time - start) / 1)), start)
+
+      //if (window.debugging)
+      //  debugger
     }
     //console.log('frame', snapshot.animating && snapshot.animating.length)
     if (!migrated) {
@@ -219,7 +222,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
       spring[2] = to[fallback] != null ? to[fallback] : 
                   from[fallback] != null ? from[fallback] :
                   from[property];
-      console.log(property, 'spring from', spring[2], 'to', target)
+      console.log(property, element, 'spring from', spring[2], 'to', target)
     }
     spring[3] = target;
     var value = spring.compute(time, startTime);
@@ -240,7 +243,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
 
   if (value == null) {
     if (to[fallback] != null)
-      return target
+      return to[fallback]
     return spring ? spring[2] : from[property];
   }
   return value;
@@ -258,6 +261,8 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
     if (from && to.fontSize != from.fontSize && from.fontSize && to.fontSize) {
       to.currentFontSize = this.transition(element, from, to, time, startTime, 'currentFontSize', 'fontSize', 'fontSizeSpring');
     }
+    var shiftX = 0;
+    var shiftY = 0;
     if (from && ((to.animated || from.animated) || (from.manipulated || to.manipulated))) {
       if (from.animated)
         to.animated = true
@@ -271,21 +276,19 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
       to.currentWidth  = this.transition(element, from, to, time, startTime, 'currentWidth', 'width', 'widthSpring', 'targetWidth');
       to.currentHeight = this.transition(element, from, to, time, startTime, 'currentHeight', 'height', 'heightSpring', 'targetHeight');
 
+      if (to.up) {
+        shiftY += (to.up.currentTop || to.up.top) - to.up.top;
+        shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
+      }
     } else {
       to.currentWidth  = to.targetWidth != null ? to.targetWidth : to.width
       to.currentHeight = to.targetHeight != null ? to.targetHeight : to.height
       to.currentTop    = to.targetTop != null ? to.targetTop : to.top
       to.currentLeft   = to.targetLeft != null ? to.targetLeft : to.left
     }
-    var shiftX = 0;
-    var shiftY = 0;
-
-    if (to.up) {
-      shiftY += (to.up.currentTop || to.up.top) - to.up.top;
-      shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
-    }
     to.currentX = to.x + (to.currentLeft - to.left) - shiftX;
     to.currentY = to.y + (to.currentTop - to.top) - shiftY;
+
 
     if (!to.static) {
       if (to.visible) {
@@ -298,20 +301,18 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         element.style.margin = '0'
         element.style.zIndex = '';
 
-        if (to.animated || to.manipulated)
-        console.log(element, to.currentY, to.currentTop)
         element.style.top = '0';
         element.style.left = '0';
         element.style.transform = 
         element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
 
-        if (element.tagName == 'SECTION' && to.animated) {
-          element.style.height = (to.currentHeight + 1) + 'px';
-          element.style.borderBottom = '1px solid transparent'
-        } else {
-          element.style.borderBottom = '';
+//        if (element.tagName == 'SECTION' && to.animated) {
+//          element.style.height = (to.currentHeight + 1) + 'px';
+ //         element.style.borderBottom = '1px solid transparent'
+//        } else {
+//          element.style.borderBottom = '';
           element.style.height = to.currentHeight + 'px';
-        }
+//        }
 
         element.style.width = to.currentWidth + 'px';
       } else {
@@ -449,14 +450,14 @@ Editor.Snapshot.prototype.resetElement = function(element, over) {
   element.style.top = ''
   element.style.left = ''
   element.style.position = ''
-  element.style.left = ''
   element.style.fontSize = ''
   element.style.margin = ''
-  element.style.backgroundColor = ''
   if (over) {
     var box = this.get(element)
-    if (box)
+    if (box) {
+      box.manipulated = false;
       box.animated = false;
+    }
     element.style.zIndex = ''
     element.style.visibility = ''
     element.style.transform = ''
@@ -498,13 +499,12 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
 
   if (f) {
     var diffSize = Math.abs(t.width - f.width) + Math.abs(t.height - f.height);
-    diffX = (diffX || 0) + t.left - f.left;
-    diffY = (diffY || 0) + t.top - f.top;
+    var distance = Math.abs((diffX || 0) + t.left - f.left) + Math.abs((diffY || 0) + t.top - f.top) 
+    diffX = t.left - f.left;
+    diffY = t.top - f.top;
   } else {
     diffX = 0;
     diffY = 0
-    var shiftX = t.left - (p ? p.left : 0) ;
-    var shiftY = t.top - (p ? p.top : 0);
   }
 
   var shiftX = t.left - (p ? p.left : 0) ;
@@ -515,16 +515,16 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
       repos = this.normalize(element.children[i], from, repos, - diffX, - diffY, t)
     }
 
-  if (Editor.Content.isParagraph(element) || Editor.Content.isPicture(element) || element.tagName == 'IMG' || element.tagName == 'svg')
-    if (!f || repos|| repositioned  || (Math.abs(diffX) + Math.abs(diffY) > 5) || diffSize > 5) {
+  if (Editor.Content.isParagraph(element) || element.classList.contains('kx'))
+    if (!f || repos|| repositioned  || distance > 5 || diffSize > 5) {
       repositioned = 1;
     }
 
   t.x = shiftX;
   t.y = shiftY;
 
-  if (repositioned)
-    t.animated = true;
+  if (repositioned) 
+    t.animated = repositioned;
 
   // do not reposition content of non-animated sections
   if (!repos && element.tagName == 'SECTION') {

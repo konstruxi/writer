@@ -99,7 +99,7 @@ Editor.Pointer = function(editor, content) {
     }
 
     var action = '#move-icon'
-
+    
     if (e.srcEvent.type == 'touchmove') {
       var myLocation = e.srcEvent.changedTouches[0];
       var realTarget = document.elementFromPoint(myLocation.clientX, myLocation.clientY);
@@ -122,10 +122,10 @@ Editor.Pointer = function(editor, content) {
     editor.snapshot.setStyle(gesture.button, 'top', gesture.buttonBox.top + y + gesture.anchorShiftY)
     
     // reset resizing if dragged too much
-    if (gesture.topmost && gesture.buttonBox.top + y + 40 < gesture.topmost) {
+    if (gesture.topmost && gesture.buttonBox.top + y + 64 < gesture.topmost) {
       y = -1;
     }
-    if  (gesture.bottomost && gesture.buttonBox.top + y - 64 > gesture.bottomost) {
+    if  (gesture.bottomost && gesture.buttonBox.top + y - 44 > gesture.bottomost) {
       y = 0;
     }
     if (gesture.beforeForeground) {
@@ -154,13 +154,14 @@ Editor.Pointer = function(editor, content) {
               Editor.Section.forEachClass(gesture.sectionPalette, element, 'remove')
             }
           })
+
+          if (y < -30)
+            gesture.section.classList.add('growing')
         }
           
         gesture.currentBelow = gesture.below.filter(function(element) {
           Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
         });
-        if (y < -30)
-          gesture.section.classList.add('growing')
         gesture.before.classList.remove('growing')
       } else {
         if (gesture.below.length) {
@@ -182,28 +183,34 @@ Editor.Pointer = function(editor, content) {
               Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
             }
           })
+          if (y > 30)
+            gesture.before.classList.add('growing')
         }
         gesture.currentAbove = gesture.above.filter(function(element) {
           Editor.Section.forEachClass(gesture.sectionPalette, element, 'remove')
         });
-        if (y > 30)
-          gesture.before.classList.add('growing')
         gesture.section.classList.remove('growing')
       }
-      if (!editor.snapshot.timer)
-        editor.snapshot = editor.snapshot.animate()
     }
 
+    if (!editor.snapshot.timer)
+      editor.snapshot = editor.snapshot.animate()
     gesture.link.setAttributeNS("http://www.w3.org/1999/xlink", 'href', action)
     editor.fire('unlockSnapshot')
   })
   editor.gestures.on('panend', function(e) {
     var gesture = editor.gestures.current;
-    document.body.classList.remove('dragging')
     if (!gesture) return;
-
-    gesture.section.classList.remove('below-the-fold')
     editor.gestures.current = null;
+
+    requestAnimationFrame(function() {
+    document.body.classList.remove('dragging')
+    gesture.section.classList.remove('growing')
+    if (gesture.before) {
+      gesture.before.classList.remove('growing')
+      
+    }
+    gesture.section.classList.remove('below-the-fold')
     gesture.button.classList.remove('dragging')
     var x = e.deltaX - gesture.deltaX
     var y = e.deltaY - gesture.deltaY
@@ -266,13 +273,18 @@ Editor.Pointer = function(editor, content) {
       gesture.section.classList.add('forced');
       if (gesture.anchor.previousElementSibling == gesture.section)
         gesture.section.parentNode.insertBefore(gesture.section, gesture.anchor.nextElementSibling)
-      else
+      else if (gesture.anchor.previousElementSibling != gesture.section)
         gesture.section.parentNode.insertBefore(gesture.section, gesture.anchor)
+
 
     }
     editor.snapshot.manipulated = false;
+    if (!editor.snapshot.timer) {
+      editor.snapshot = editor.snapshot.animate()
+    }
 
     editor.fire('saveSnapshot');
+    })
   })
 
   editor.gestures.on('tap', function(e) {

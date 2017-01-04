@@ -112,6 +112,8 @@ Editor.Pointer = function(editor, content) {
       gesture.anchorShiftY = 0
     }
     gesture.anchor = anchor
+    if (gesture.anchor == gesture.section) 
+      splitting = true;
 
     editor.fire('lockSnapshot')
 
@@ -121,76 +123,91 @@ Editor.Pointer = function(editor, content) {
     editor.snapshot.setStyle(gesture.button, 'left', gesture.buttonBox.left + x + gesture.anchorShiftX)
     editor.snapshot.setStyle(gesture.button, 'top', gesture.buttonBox.top + y + gesture.anchorShiftY)
     
-    // reset resizing if dragged too much
-    if (gesture.topmost && gesture.buttonBox.top + y + 64 < gesture.topmost) {
-      y = -1;
-    }
-    if  (gesture.bottomost && gesture.buttonBox.top + y - 44 > gesture.bottomost) {
-      y = 0;
-    }
-    if (gesture.beforeForeground) {
-
+    if (gesture.before) {
+      // reset resizing if dragged too much
+      if (gesture.topmost && gesture.buttonBox.top + y + 64 < gesture.topmost) {
+        y = -1;
+      }
+      if  (gesture.bottomost && gesture.buttonBox.top + y - 44 > gesture.bottomost) {
+        y = 0;
+      }
       // update box dimensions in snapshot
       var box = editor.snapshot.get(gesture.foreground);
       var beforeBox = editor.snapshot.get(gesture.beforeForeground);
       gesture.before.classList.remove('below-the-fold')
-      if (y < 0) {
-        if (gesture.above.length) {
-          if (y < gesture.beforeForegroundDistance + 10) {
-            editor.snapshot.setStyle(gesture.beforeForeground, 'height', gesture.beforeForegroundBox.height - gesture.beforeForegroundDistance - 10 + y)
-          } else {
-            editor.snapshot.setStyle(gesture.beforeForeground, 'height', gesture.beforeForegroundBox.height)
-          }
-          editor.snapshot.setStyle(gesture.foreground, 'top', gesture.foregroundBox.top + y)
-          editor.snapshot.setStyle(gesture.foreground, 'height', gesture.foregroundBox.height - y)
+    }
 
-          // mark selected elements
-          gesture.currentAbove = gesture.above.filter(function(element) {
-            if (Editor.Container.isBoxIntersecting(box, editor.snapshot.get(element))) {
-              action = '#move-down-icon'
-              Editor.Section.forEachClass(gesture.sectionPalette, element, 'add')
-              return element;
-            } else {
-              Editor.Section.forEachClass(gesture.sectionPalette, element, 'remove')
-            }
-          })
+    if (gesture.before && y < 0) {
+      if (gesture.above.length) {
+        if (y < gesture.beforeForegroundDistance + 10) {
+          editor.snapshot.setStyle(gesture.beforeForeground, 'height', gesture.beforeForegroundBox.height - gesture.beforeForegroundDistance - 10 + y)
+        } else {
+          editor.snapshot.setStyle(gesture.beforeForeground, 'height', gesture.beforeForegroundBox.height)
+        }
+        editor.snapshot.setStyle(gesture.foreground, 'top', gesture.foregroundBox.top + y)
+        editor.snapshot.setStyle(gesture.foreground, 'height', gesture.foregroundBox.height - y)
 
-          if (y < -30)
-            gesture.section.classList.add('growing')
-        }
-          
-        gesture.currentBelow = gesture.below.filter(function(element) {
-          Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
-        });
-        gesture.before.classList.remove('growing')
-      } else {
-        if (gesture.below.length) {
-          if (y > - gesture.beforeForegroundDistance - 10) {
-            editor.snapshot.setStyle(gesture.foreground, 'top', gesture.foregroundBox.top + gesture.beforeForegroundDistance + 10 + y)
-            editor.snapshot.setStyle(gesture.foreground, 'height', gesture.foregroundBox.height - gesture.beforeForegroundDistance - 10 - y)
-          } else {
-            editor.snapshot.setStyle(gesture.foreground, 'top', gesture.foregroundBox.top)
-            editor.snapshot.setStyle(gesture.foreground, 'height', gesture.foregroundBox.height)
-          }
-          editor.snapshot.setStyle(gesture.beforeForeground, 'height', gesture.beforeForegroundBox.height + y)
-          // mark selected elements
-          gesture.currentBelow = gesture.below.filter(function(element) {
-            if (Editor.Container.isBoxIntersecting(beforeBox, editor.snapshot.get(element))) {
-              action = '#move-up-icon'
-              Editor.Section.forEachClass(gesture.beforePalette, element, 'add')
-              return element;
-            } else {
-              Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
-            }
-          })
-          if (y > 30)
-            gesture.before.classList.add('growing')
-        }
+        // mark selected elements
         gesture.currentAbove = gesture.above.filter(function(element) {
-          Editor.Section.forEachClass(gesture.sectionPalette, element, 'remove')
-        });
-        gesture.section.classList.remove('growing')
+          if (Editor.Container.isBoxIntersecting(box, editor.snapshot.get(element))) {
+            action = '#move-down-icon'
+            Editor.Section.forEachClass(gesture.sectionPalette, element, 'add')
+            return element;
+          } else {
+            Editor.Section.forEachClass(gesture.sectionPalette, element, 'remove')
+          }
+        })
+
+        if (y < -30)
+          gesture.section.classList.add('growing')
       }
+        
+      gesture.currentBelow = gesture.below.filter(function(element) {
+        Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
+      });
+      gesture.before.classList.remove('growing')
+    } else if (gesture.before) {
+      if (gesture.below.length) {
+        if (y > - gesture.beforeForegroundDistance - 10) {
+          editor.snapshot.setStyle(gesture.foreground, 'top', gesture.foregroundBox.top + gesture.beforeForegroundDistance + 10 + y)
+          editor.snapshot.setStyle(gesture.foreground, 'height', gesture.foregroundBox.height - gesture.beforeForegroundDistance - 10 - y)
+        } else {
+          editor.snapshot.setStyle(gesture.foreground, 'top', gesture.foregroundBox.top)
+          editor.snapshot.setStyle(gesture.foreground, 'height', gesture.foregroundBox.height)
+        }
+        editor.snapshot.setStyle(gesture.beforeForeground, 'height', gesture.beforeForegroundBox.height + y)
+        // mark selected elements
+        gesture.currentBelow = gesture.below.filter(function(element) {
+          if (Editor.Container.isBoxIntersecting(beforeBox, editor.snapshot.get(element))) {
+            action = '#move-up-icon'
+            Editor.Section.forEachClass(gesture.beforePalette, element, 'add')
+            return element;
+          } else {
+            Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
+          }
+        })
+        if (y > 30) {
+          gesture.before.classList.add('growing')
+          splitting = false;
+        }
+      }
+      gesture.currentAbove = gesture.above.filter(function(element) {
+        Editor.Section.forEachClass(gesture.sectionPalette, element, 'remove')
+      });
+      gesture.section.classList.remove('growing')
+    }
+
+    if (splitting) {
+      //gesture.currentBelow = Array.prototype.filter.call(gesture.section.children, function(element) {
+      //  if (Editor.Container.isBoxIntersecting(beforeBox, editor.snapshot.get(element))) {
+      //    action = '#move-up-icon'
+      //    Editor.Section.forEachClass(gesture.beforePalette, element, 'add')
+      //    return element;
+      //  } else {
+      //    Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
+      //  }
+      //})
+      console.log('splitting')
     }
 
     if (!editor.snapshot.timer)

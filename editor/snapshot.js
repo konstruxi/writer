@@ -185,7 +185,7 @@ Editor.Snapshot.prototype.get = function(element, copy) {
 Editor.Snapshot.prototype.transition = function(element, from, to, time, startTime, fallback, property, springName, modifierName) {
   if (to[modifierName] != null) {
     var target = to[modifierName]
-  } else if (from[modifierName] != null) {
+  } else if (from[modifierName] != null && to[modifierName] !== null) {
     var target = to[modifierName] = from[modifierName]
   } else {
     var target = to[property];
@@ -223,7 +223,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
     spring.element = element;
     if (spring[2] == null) { 
       spring[2] = current
-      //console.log(property, element, 'spring from', spring[2], 'to', target)
+      console.log(property, element, 'spring from', spring[2], 'to', target)
     }
     spring[3] = target;
     var value = spring.compute(time, startTime);
@@ -242,8 +242,9 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
     }
   }
 
-  if (value == null)
+  if (value == null) {
     return current;
+  }
   return value;
 }
 
@@ -583,6 +584,8 @@ Editor.Snapshot.prototype.setStyle = function(element, property, value) {
   var to = box;
   var time = this.lastTime;
   var startTime = this.startTime;
+  if (value === undefined)
+    value = null;
   //console.log('setting style', property, value, time, startTime)
   switch (property) {
     case 'top':

@@ -1,5 +1,5 @@
 (function (global){
-var Adjust, CSS, Colors, Contrast, Find, Matrix, Options, Palette, Row, Samples, Schema, Schemes, Space, YIQ, properties, rule,
+var CSS, Colors, Contrast, Find, Matrix, Options, Palette, Row, Samples, Schema, Schemes, Space, YIQ, properties, rule,
   hasProp = {}.hasOwnProperty;
 
 
@@ -110,46 +110,6 @@ function hexToRgb(hex) {
     ] : null;
 }
 
-Adjust = function(colors) {
-  var diff, hsl, Palette, property, value;
-  Palette = {};
-  for (property in colors) {
-    value = colors[property];
-    if (value) {
-      hsl = value.getHsl();
-      if (property.indexOf('Dark') > -1) {
-        if (value.getPopulation() < 3000) {
-          if ((diff = hsl[2] - 0.15) > 0) {
-            Palette[property] = new Swatch(Vibrant.hslToRgb(hsl[0], hsl[1], hsl[2] * (1 - diff * 2)), value.getPopulation());
-          }
-        }
-      } else if (property.indexOf('Light') > -1) {
-        if (value.getPopulation() < 6000) {
-          if ((diff = 0.85 - hsl[2]) > 0) {
-            Palette[property] = new Swatch(Vibrant.hslToRgb(hsl[0], hsl[1], hsl[2] * (1 + diff * 2)), value.getPopulation());
-          }
-        }
-      }
-      if (value.getPopulation() < 1000) {
-        if (property.indexOf('Vibrant') > -1) {
-          if (property.indexOf('Light') > -1 || property.indexOf('Dark') > -1) {
-            if ((diff = 0.65 - hsl[1]) > 0) {
-              Palette[property] = new Swatch(Vibrant.hslToRgb(hsl[0], hsl[1] * (1 + diff), hsl[2]), value.getPopulation());
-            }
-          } else {
-            if ((diff = 0.85 - hsl[1]) > 0) {
-              Palette[property] = new Swatch(Vibrant.hslToRgb(hsl[0], hsl[1] * (1 + diff * 2), hsl[2]), value.getPopulation());
-            }
-          }
-        }
-      }
-      if (Palette[property] == null) {
-        Palette[property] = value;
-      }
-    }
-  }
-  return Palette;
-};
 
 Contrast = function(c1, c2) {
   return ciede2000(c1.getLab().fromRgb, c2.getLab().fromRgb)
@@ -300,15 +260,15 @@ PaletteResult = function(swatches, matrix, luma, saturation, preset) {
     }
     if (property === 'foreground') {
       colors = Find(swatches, order, luma, saturation, result, function(a) {
-        return RGBContrast(result.background, a) > 1.4;
+        return Contrast(result.background, a) > 2;
       }, fallback);
     } else if (property === 'accent') {
       colors = Find(swatches, order, luma, saturation, result, function(a) {
-        return RGBContrast(result.background, a) > 1.1 &&
-               RGBContrast(result.foreground, a) > 1.4;
+        return Contrast(result.background, a) > 4 &&
+               Contrast(result.foreground, a) > 4;
       }, function(a, b) {
-        return (RGBContrast(result.background, b) + RGBContrast(result.foreground, b)) - 
-               (RGBContrast(result.background, a) + RGBContrast(result.foreground, a))
+        return (Contrast(result.background, b) + Contrast(result.foreground, b)) - 
+               (Contrast(result.background, a) + Contrast(result.foreground, a))
       }, undefined, 3);
     } else if (property === 'background') {
       colors = Find(swatches, order, luma, saturation, result);
@@ -410,15 +370,24 @@ Colors = function(index, lumas, saturations) {
   var colors, fallback, luma, patterns, saturation;
   colors = [];
   if (index < 2) {
+    // thanks coffeescript
     luma = (lumas != null ? lumas[index] : void 0) || '';
     saturation = (saturations != null ? saturations[index] : void 0) || 'Muted';
-    patterns = [!luma && saturation, luma + saturation].concat(luma ? saturation : (lumas != null ? lumas.indexOf('Dark') : void 0) === -1 ? ['Dark' + saturation, 'Light' + saturation] : ['Light' + saturation, 'Dark' + saturation]).concat(luma + (saturation === 'Vibrant' && 'Muted' || 'Vibrant'));
+    patterns = [!luma && saturation, luma + saturation].concat(
+      luma ? saturation : (lumas != null ? lumas.indexOf('Dark') : void 0) === -1 
+      ? ['Dark' + saturation, 'Light' + saturation] : 
+      ['Light' + saturation, 'Dark' + saturation])
+      .concat(luma + (saturation === 'Vibrant' && 'Muted' || 'Vibrant'));
+    if (patterns.indexOf('LightMuted') == -1)
+      patterns.push('LightMuted')
+    if (patterns.indexOf('DarkMuted') == -1)
+      patterns.push('DarkMuted')
     fallback = [];
     return patterns;
   } else if ((saturations != null ? saturations.indexOf('Vibrant') : void 0) > -1 && lumas) {
     return ['LightVibrant', 'Vibrant', 'DarkVibrant', 'LightMuted', 'DarkMuted'];
   } else {
-    return ['LightVibrant', 'Vibrant', 'DarkVibrant'];
+    return ['Vibrant', 'DarkVibrant', 'LightVibrant', 'LightMuted', 'DarkMuted'];
   }
 };
 
@@ -525,9 +494,9 @@ CSS = function(prefix) {
 "}\n" +
 ".content section." + prefix + " > .foreground {\n" +
 "  background-color: " + this.foreground + ";\n" +
+"  border-color: " + this.accent + ";\n" +
 "}" +
-"body.menu-"    + prefix + " .picker > div:hover," +
-".content section." + prefix + ":hover > .foreground {\n" +
+"body.menu-"    + prefix + " .picker > div:hover {\n" +
 "  border-color: " + this.accent + ";\n" +
 "}" + 
 ".content section." + prefix + " *::selection {\n" +

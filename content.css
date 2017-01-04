@@ -205,8 +205,8 @@ section > a + * {
   top: -50px;
   pointer-events: none;
 }
-.content section:hover > .kx.foreground {
-  border: 1px solid #ccc;
+.content section:not(:hover):not(.focused) > .kx.foreground {
+  border-color: transparent;
 }
 
 section.clone {

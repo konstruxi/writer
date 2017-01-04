@@ -300,13 +300,12 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         element.style.margin = '0'
         element.style.zIndex = '';
 
-   
-          element.style.transform = 
-          element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
-          element.style.top = '0';
-          element.style.left = '0';
-        element.style.height = Math.floor(to.currentHeight) + 'px';
-        element.style.width = Math.floor(to.currentWidth) + 'px';
+        element.style.transform = 
+        element.style.webkitTransform = 'translateX(' + to.currentX + 'px) translateY(' + (to.currentY) + 'px)'
+        element.style.top = '0';
+        element.style.left = '0';
+        element.style.width = to.currentWidth + 'px';
+        element.style.height = to.currentHeight + 'px';
       } else {
         element.style.zIndex = -1;
         element.style.visibility = 'hidden'

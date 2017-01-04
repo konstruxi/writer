@@ -59,6 +59,7 @@ Editor.Pointer = function(editor, content) {
       section.classList.add('below-the-fold')
       var gesture = editor.gestures.current = {
         section: section,
+        box: editor.snapshot.get(section),
         sectionPalette: Editor.Section.getPaletteName(section),
         foreground: foreground,
         foregroundBox: foregroundBox,
@@ -198,16 +199,19 @@ Editor.Pointer = function(editor, content) {
     }
 
     if (splitting) {
-      //gesture.currentBelow = Array.prototype.filter.call(gesture.section.children, function(element) {
-      //  if (Editor.Container.isBoxIntersecting(beforeBox, editor.snapshot.get(element))) {
-      //    action = '#move-up-icon'
-      //    Editor.Section.forEachClass(gesture.beforePalette, element, 'add')
-      //    return element;
-      //  } else {
-      //    Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
-      //  }
-      //})
-      console.log('splitting')
+      var splitBox = Object.create(gesture.box)
+      splitBox.height = (e.deltaY - gesture.deltaY);
+
+      gesture.currentSplit = Array.prototype.filter.call(gesture.section.children, function(element) {
+        if (Editor.Container.isBoxIntersecting(splitBox, editor.snapshot.get(element))) {
+          action = '#move-up-icon'
+          element.classList.add('splitting');
+          return element;
+        } else {
+          element.classList.remove('splitting');
+        }
+      })
+      console.log('splitting', gesture.currentSplit, splitBox)
     }
 
     if (!editor.snapshot.timer)
@@ -218,6 +222,7 @@ Editor.Pointer = function(editor, content) {
   editor.gestures.on('panend', function(e) {
     var gesture = editor.gestures.current;
     if (!gesture) return;
+    debugger
     editor.gestures.current = null;
 
     requestAnimationFrame(function() {

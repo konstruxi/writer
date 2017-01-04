@@ -164,39 +164,39 @@ section > .kx.toolbar {
   margin-bottom: 0;
 }
 .content * + p {
-  margin-top: 0.81rem;
+  margin-top: 14px;
 }
 
 .content * + h1, .content * + h2, .content * + h3, .content * + blockquote, .content * + picture, .content * + a {
-  margin-top: 0.81rem;
+  margin-top: 14px;
 }
 
 .content .kx + * {
   margin-top: 0;
 }
 .content h1 + * {
-  margin-top: 0.81rem;
+  margin-top: 14px;
 }
 .content h2 + * {
-  margin-top: 0.81rem;
+  margin-top: 14px;
 }
 .content h3 + * {
-  margin-top: 0.81rem;
+  margin-top: 14px;
 }
 .content img + * {
-  margin-top: 0.81rem;
+  margin-top: 14px;
 }
 .content picture + * {
-  margin-top: 0.81rem;
+  margin-top: 14px;
 }
 .content blockquote + * {
-  margin-top: 0.81rem;
+  margin-top: 14px;
 }
 section > a {
   display: block;
 }
 section > a + * {
-  margin-top: 0.81rem;
+  margin-top: 14px;
 }
 
 .content .moved {
@@ -344,7 +344,7 @@ section.large:not(.has-long-text) {
     break-inside: avoid-column;         /* IE 11 */
     width: 100%;
     margin: 0;
-    padding: 0 0 0.81rem 0;
+    padding: 0 0 14px 0;
   }
   section.large.has-long-text:not(.has-picture) > h1,
   section.large.has-long-text:not(.has-picture) > h2,
@@ -446,7 +446,7 @@ section.large:not(.has-long-text) {
 }
 .content section > * {
   position: relative;
-  z-index: 2;
+  z-index: 1;
 }
 
 /*
@@ -455,7 +455,7 @@ body.dragging .content section:not(.above-the-fold):not(.below-the-fold) {
 }*/
 
 body.dragging .content section.below-the-fold > .toolbar {
-  z-index: 20;
+  z-index: 200;
 }
 
 

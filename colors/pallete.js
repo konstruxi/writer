@@ -307,9 +307,9 @@ PaletteResult = function(swatches, matrix, luma, saturation, preset) {
         return RGBContrast(result.background, a) > 1.1 &&
                RGBContrast(result.foreground, a) > 1.4;
       }, function(a, b) {
-        return (Contrast(result.background, b) + Contrast(result.foreground, b)) - 
-               (Contrast(result.background, a) + Contrast(result.foreground, a))
-      }, undefined, 2);
+        return (RGBContrast(result.background, b) + RGBContrast(result.foreground, b)) - 
+               (RGBContrast(result.background, a) + RGBContrast(result.foreground, a))
+      }, undefined, 3);
     } else if (property === 'background') {
       colors = Find(swatches, order, luma, saturation, result);
     }
@@ -488,6 +488,7 @@ CSS = function(prefix) {
 ".temp-"    + prefix.replace('.', '.temp-') + " {" +
 "  color: " + this.foregroundAAA + " !important;\n" +
 "  background-color: " + this.foreground + ";\n" +
+"  outline-color: " + this.foreground + " !important;\n" +
 "}\n" +
 "body.menu-"    + prefix.replace('.', '.menu-') + " #sectionizer svg:hover," +
 "body.toolbar-" + prefix.replace('.', '.toolbar-') + " #formatting .cke_button:hover {\n" +

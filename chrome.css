@@ -3,9 +3,11 @@
   color: #000;
 }
 
-.content [class*="temp-has"] {
-  opacity: 0.9;
-  z-index: 40;
+.content [class*="temp-style"] {
+  outline-width: 0.5rem;
+  outline-style: solid;
+  outline-color: transparent;
+  transition: none;
 }
 #formatting {
   opacity: 1;

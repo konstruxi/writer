@@ -16,8 +16,11 @@ Editor.Selection = function(editor, content) {
   document.addEventListener('selectionchange', function(e) {
     if (editor.justcleaned) return;
     if (!editor.dragging) {
-      Editor.Selection.fix(editor)
-      Editor.Selection.onChange(editor)
+      clearTimeout(editor.changingselection);
+      editor.changingselection = setTimeout(function() {
+        Editor.Selection.fix(editor)
+        Editor.Selection.onChange(editor)
+      }, 30);
     }
   })
   editor.on( 'selectionChange', function( evt ) {
@@ -100,6 +103,9 @@ Editor.Selection = function(editor, content) {
 Editor.Selection.fix = function(editor) {
   var selection = editor.getSelection();
   var range = selection.getRanges()[0];
+  //var prev = editor.previouslySelectedRange;
+  //editor.previouslySelectedRange = range;
+
   if (!range) return
   for (var p = range.startContainer.$; p; p = p.parentNode) {
     switch (p.tagName) {

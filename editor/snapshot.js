@@ -223,7 +223,7 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
     spring.element = element;
     if (spring[2] == null) { 
       spring[2] = current
-      console.log(property, element, 'spring from', spring[2], 'to', target)
+      //console.log(property, element, 'spring from', spring[2], 'to', target)
     }
     spring[3] = target;
     var value = spring.compute(time, startTime);
@@ -242,11 +242,8 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
     }
   }
 
-  if (value == null) {
-    if (to[fallback] != null)
-      return to[fallback]
-    return spring ? spring[2] : from[property];
-  }
+  if (value == null)
+    return current;
   return value;
 }
 

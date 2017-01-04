@@ -276,7 +276,18 @@ section.clone {
   width: attr(crop-x px) !important;
 }
 
+.splitting:after {
+  content: '';
+  display: block;
+  position: absolute;
+  bottom: -0.5rem;
+  height: 0.3rem;
+  left: 0;
+  right: 0;
+  background: currentColor;;
+  z-index: 222;
 
+}
 blockquote:before {
   content: '“';
   position: absolute;
@@ -345,6 +356,9 @@ section.large:not(.has-long-text) {
     width: 100%;
     margin: 0;
     padding: 0 0 14px 0;
+  }
+  section.large.has-long-text:not(.has-picture) > .splitting:after {
+    bottom: 0.5rem;
   }
   section.large.has-long-text:not(.has-picture) > h1,
   section.large.has-long-text:not(.has-picture) > h2,

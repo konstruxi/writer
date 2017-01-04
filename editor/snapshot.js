@@ -7,22 +7,6 @@ Editor.Snapshot = function(editor, elements, dimensions, selected, offsetHeight)
   this.offsetHeight = offsetHeight;
 }
 
-Editor.Snapshot.shiftChildren = function(editor, section, y, mutate) {
-  return
-  var els = section.children;
-  for (var i = 0; i < els.length; i++) {
-    var child = editor.snapshot.get(els[i])
-    if (child) {
-      if (mutate) {
-        if (child.yShift)
-          child.y += child.yShift;
-        child.yShift = y;
-      }
-      child.y -= y
-    }
-  }
-}
-
 
 Editor.Snapshot.prototype.freezeContainer = function() {
   if (this.offsetHeight)

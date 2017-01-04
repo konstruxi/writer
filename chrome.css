@@ -251,7 +251,7 @@ section > .toolbar svg {
 }
 
 section > .toolbar svg[icon="#resize-section-icon"] {
-  cursor: row-resize !important;
+  cursor: row-resize;
 }
 
 

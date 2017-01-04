@@ -151,7 +151,7 @@ Editor.Section.findMovableElements = function(source, target, reverse) {
         if (reverse) {
           if (h1 || h2) break loop;
         } else {
-          if (text) break loop;
+          if (text || h2 || h3) break loop;
         }
         break;
       case 'H3':

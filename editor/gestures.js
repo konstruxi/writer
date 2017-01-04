@@ -65,7 +65,10 @@ Editor.Pointer = function(editor, content) {
         foregroundBox: foregroundBox,
         button: toolbar,
         buttonBox: editor.snapshot.get(toolbar),
-        link: link
+        link: link,
+        children: Array.prototype.filter.call(section.children, function(element) {
+          return !element.classList.contains('kx');
+        })
       }
       if (before) {
         gesture.before = before
@@ -138,6 +141,25 @@ Editor.Pointer = function(editor, content) {
       gesture.before.classList.remove('below-the-fold')
     }
 
+
+    if (gesture.children.length > 1 && gesture.anchor == gesture.section) {
+      var splitBox = {top: gesture.box.top, left: gesture.box.left, width: gesture.box.width}
+      splitBox.height = (e.deltaY - gesture.deltaY);
+
+      gesture.currentSplit = gesture.children.filter(function(element) {
+        element.classList.remove('splitting');
+
+        if (Editor.Container.isBoxIntersecting(splitBox, editor.snapshot.get(element))) {
+          return element;
+        }
+      })
+      if (gesture.currentSplit.length && gesture.currentSplit.length < gesture.children.length) {
+        action = '#split-icon'
+      } else {
+        gesture.currentSplit = null;
+      }
+    }
+
     if (gesture.before && y < 0) {
       if (gesture.above.length) {
         if (y < gesture.beforeForegroundDistance + 10) {
@@ -168,6 +190,9 @@ Editor.Pointer = function(editor, content) {
       });
       gesture.before.classList.remove('growing')
     } else if (gesture.before) {
+      if (e.srcEvent.metaKey && gesture.currentSplit)
+        y = 0;
+
       if (gesture.below.length) {
         if (y > - gesture.beforeForegroundDistance - 10) {
           editor.snapshot.setStyle(gesture.foreground, 'top', gesture.foregroundBox.top + gesture.beforeForegroundDistance + 10 + y)
@@ -189,7 +214,7 @@ Editor.Pointer = function(editor, content) {
         })
         if (y > 30) {
           gesture.before.classList.add('growing')
-          splitting = false;
+          gesture.currentSplit = null;
         }
       }
       gesture.currentAbove = gesture.above.filter(function(element) {
@@ -197,23 +222,9 @@ Editor.Pointer = function(editor, content) {
       });
       gesture.section.classList.remove('growing')
     }
-
-    if (splitting) {
-      var splitBox = Object.create(gesture.box)
-      splitBox.height = (e.deltaY - gesture.deltaY);
-
-      gesture.currentSplit = Array.prototype.filter.call(gesture.section.children, function(element) {
-        if (Editor.Container.isBoxIntersecting(splitBox, editor.snapshot.get(element))) {
-          action = '#move-up-icon'
-          element.classList.add('splitting');
-          return element;
-        } else {
-          element.classList.remove('splitting');
-        }
-      })
-      console.log('splitting', gesture.currentSplit, splitBox)
+    if (gesture.currentSplit) {
+      gesture.currentSplit[gesture.currentSplit.length - 1].classList.add('splitting')
     }
-
     if (!editor.snapshot.timer)
       editor.snapshot = editor.snapshot.animate()
     gesture.link.setAttributeNS("http://www.w3.org/1999/xlink", 'href', action)
@@ -222,7 +233,6 @@ Editor.Pointer = function(editor, content) {
   editor.gestures.on('panend', function(e) {
     var gesture = editor.gestures.current;
     if (!gesture) return;
-    debugger
     editor.gestures.current = null;
 
     requestAnimationFrame(function() {
@@ -242,10 +252,28 @@ Editor.Pointer = function(editor, content) {
 
     gesture.link.setAttributeNS("http://www.w3.org/1999/xlink", 'href', '#resize-section-icon')
 
-    var isMovingContent = (gesture.currentBelow && gesture.currentBelow.length) ||
-                          (gesture.currentAbove && gesture.currentAbove.length)
 
     editor.fire('saveSnapshot');
+
+    if (gesture.currentSplit) {
+      
+      gesture.currentSplit[gesture.currentSplit.length - 1].classList.remove('splitting')
+      y = 0;
+
+      var separated = Editor.Section.build(editor)
+      separated.classList.add('forced')
+      gesture.children.forEach(function(child) {
+        if (gesture.currentSplit.indexOf(child) == -1)
+          separated.appendChild(child)
+      })
+      gesture.section.parentNode.insertBefore(separated, gesture.section.nextSibling)
+
+
+    } else {
+
+      var isMovingContent = (gesture.currentBelow && gesture.currentBelow.length) ||
+                            (gesture.currentAbove && gesture.currentAbove.length)
+    }
 
     var distance = (Math.abs(y) + Math.abs(x) / 2);
     // reset resizing if dragged too much
@@ -257,12 +285,6 @@ Editor.Pointer = function(editor, content) {
       editor.snapshot.setStyle(gesture.beforeForeground, 'height')
       editor.snapshot.setStyle(gesture.foreground, 'top')
       editor.snapshot.setStyle(gesture.foreground, 'height')
-      //if (y < 0) {
-      //  Editor.Snapshot.shiftChildren(editor, gesture.section, y)
-      //}
-      //if (y > - gesture.beforeForegroundDistance - 10) {
-      //  Editor.Snapshot.shiftChildren(editor, gesture.section, (gesture.beforeForegroundDistance + 10 + y))
-      //}
     }
 
     if (isMovingContent) {

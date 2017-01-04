@@ -1726,7 +1726,7 @@ global.Vibrant = Vibrant = (function() {
           colors: 80,
           method: 2,
           boxSize: [4, 4],
-          boxPxls: 2,
+          boxPxls: 1,
           initColors: 4096
         };
         q = new this.rgbquant(opts);
@@ -2107,7 +2107,7 @@ global.CanvasImage = CanvasImage = (function() {
 
 
 })(this);(function (global){
-var Adjust, CSS, Colors, Contrast, Find, Matrix, Options, Palette, Row, Samples, Schema, Schemes, Space, YIQ, properties, rule,
+var CSS, Colors, Contrast, Find, Matrix, Options, Palette, Row, Samples, Schema, Schemes, Space, YIQ, properties, rule,
   hasProp = {}.hasOwnProperty;
 
 
@@ -2118,15 +2118,30 @@ var Palette = global.Palette = function(img) {
     swatches = vibrance.swatches();
   }
   matrix = Matrix(swatches);
-  generator = function(name, I, J) {
+  generator = function(name, I, J, relative) {
+    if (name.match(/\d/)) {
+      var bits = name.split('_')
+      name = Palette.Space[parseInt(bits[0])][parseInt(bits[1])]
+    }
     var cell, i, j, k, l, len, len1, row;
-    for (i = k = 0, len = Space.length; k < len; i = ++k) {
-      row = Space[i];
+    for (i = k = 0, len = Palette.Space.length; k < len; i = ++k) {
+      row = Palette.Space[i];
       for (j = l = 0, len1 = row.length; l < len1; j = ++l) {
         cell = row[j];
         if (j < 7) {
-          if (name === cell || (i === I && j === J)) {
-            return Schemes[cell](swatches, matrix, (I != null ? I : i) / 4, (J != null ? J : j) / 4);
+          if (name === cell || (!relative && i == I && j == J)) {
+            if (relative) {
+              i = (i + I + 5) % 5;
+              j = (j + J + 5) % 5;
+              cell = Palette.Space[i][j];
+            } else if (I != null) {
+              i = I;
+              j = J;
+            }
+            var result = Schemes[cell](swatches, matrix, i / 4, j / 4);
+            result.x = i;
+            result.y = j;
+            return result;
           }
         }
       }
@@ -2203,46 +2218,6 @@ function hexToRgb(hex) {
     ] : null;
 }
 
-Adjust = function(colors) {
-  var diff, hsl, Palette, property, value;
-  Palette = {};
-  for (property in colors) {
-    value = colors[property];
-    if (value) {
-      hsl = value.getHsl();
-      if (property.indexOf('Dark') > -1) {
-        if (value.getPopulation() < 3000) {
-          if ((diff = hsl[2] - 0.15) > 0) {
-            Palette[property] = new Swatch(Vibrant.hslToRgb(hsl[0], hsl[1], hsl[2] * (1 - diff * 2)), value.getPopulation());
-          }
-        }
-      } else if (property.indexOf('Light') > -1) {
-        if (value.getPopulation() < 6000) {
-          if ((diff = 0.85 - hsl[2]) > 0) {
-            Palette[property] = new Swatch(Vibrant.hslToRgb(hsl[0], hsl[1], hsl[2] * (1 + diff * 2)), value.getPopulation());
-          }
-        }
-      }
-      if (value.getPopulation() < 1000) {
-        if (property.indexOf('Vibrant') > -1) {
-          if (property.indexOf('Light') > -1 || property.indexOf('Dark') > -1) {
-            if ((diff = 0.65 - hsl[1]) > 0) {
-              Palette[property] = new Swatch(Vibrant.hslToRgb(hsl[0], hsl[1] * (1 + diff), hsl[2]), value.getPopulation());
-            }
-          } else {
-            if ((diff = 0.85 - hsl[1]) > 0) {
-              Palette[property] = new Swatch(Vibrant.hslToRgb(hsl[0], hsl[1] * (1 + diff * 2), hsl[2]), value.getPopulation());
-            }
-          }
-        }
-      }
-      if (Palette[property] == null) {
-        Palette[property] = value;
-      }
-    }
-  }
-  return Palette;
-};
 
 Contrast = function(c1, c2) {
   return ciede2000(c1.getLab().fromRgb, c2.getLab().fromRgb)
@@ -2289,7 +2264,7 @@ Row = function(name, bg, text) {
         var aaa = new Swatch([0, 0, 0], 0);
       }
   }
-  if (contrast < 4) {
+  if (contrast < 2.5) {
 
       if (yiq < 150) {
         var aa = new Swatch([255, 255, 255], 0);
@@ -2393,16 +2368,16 @@ PaletteResult = function(swatches, matrix, luma, saturation, preset) {
     }
     if (property === 'foreground') {
       colors = Find(swatches, order, luma, saturation, result, function(a) {
-        return Contrast(result.background, a) > 0.2;
+        return Contrast(result.background, a) > 2;
       }, fallback);
     } else if (property === 'accent') {
       colors = Find(swatches, order, luma, saturation, result, function(a) {
-        return Contrast(result.background, a) > 1 &&
-               Contrast(result.foreground, a) > 2;
+        return Contrast(result.background, a) > 3 &&
+               Contrast(result.foreground, a) > 3;
       }, function(a, b) {
         return (Contrast(result.background, b) + Contrast(result.foreground, b)) - 
                (Contrast(result.background, a) + Contrast(result.foreground, a))
-      }, undefined, 2);
+      }, undefined, 4);
     } else if (property === 'background') {
       colors = Find(swatches, order, luma, saturation, result);
     }
@@ -2427,11 +2402,11 @@ PaletteResult = function(swatches, matrix, luma, saturation, preset) {
   return result;
 };
 
-global.Space = Space = ("DM+DM DM+LM DV+M  DV+V DV+LV\n"+ 
-        "DM+M  M+DM  M+DV  M+V  V+M\n" + 
-        "DM+V   M+LV  M+LM  V+DM V+LV\n"+ 
-        "LM+V  LM+DM LM+M  LV+M V+V\n"+ 
-        "LM+LM LM+LV LV+LM LV+V LV+LV").split(/\n/g).map(function(line) {
+Palette.Space = ("DM_DM DM_LM DV_M  DV_V DV_LV\n"+ 
+        "DM_M  M_DM  M_DV  M_V  V_M\n" + 
+        "DM_V   M_LV  M_LM  V_DM V_LV\n"+
+        "LM_V  LM_DM LM_M  LV_M V_V\n"+
+        "LM_LM LM_LV LV_LM LV_V LV_LV").split(/\n/g).map(function(line) {
   return line.split(/\s+/g);
 });
 
@@ -2476,7 +2451,7 @@ Schema = function(name, lumas, saturations) {
 Schema.fromString = function(name) {
   var bit, index, k, l, len, len1, letter, lumas, ref, saturations;
   lumas = saturations = null;
-  ref = name.split('+');
+  ref = name.split('_');
   for (index = k = 0, len = ref.length; k < len; index = ++k) {
     bit = ref[index];
     for (l = 0, len1 = bit.length; l < len1; l++) {
@@ -2503,15 +2478,24 @@ Colors = function(index, lumas, saturations) {
   var colors, fallback, luma, patterns, saturation;
   colors = [];
   if (index < 2) {
+    // thanks coffeescript
     luma = (lumas != null ? lumas[index] : void 0) || '';
     saturation = (saturations != null ? saturations[index] : void 0) || 'Muted';
-    patterns = [!luma && saturation, luma + saturation].concat(luma ? saturation : (lumas != null ? lumas.indexOf('Dark') : void 0) === -1 ? ['Dark' + saturation, 'Light' + saturation] : ['Light' + saturation, 'Dark' + saturation]).concat(luma + (saturation === 'Vibrant' && 'Muted' || 'Vibrant'));
+    patterns = [!luma && saturation, luma + saturation].concat(
+      luma ? saturation : (lumas != null ? lumas.indexOf('Dark') : void 0) === -1 
+      ? ['Dark' + saturation, 'Light' + saturation] : 
+      ['Light' + saturation, 'Dark' + saturation])
+      .concat(luma + (saturation === 'Vibrant' && 'Muted' || 'Vibrant'));
+    if (patterns.indexOf('LightMuted') == -1)
+      patterns.push('LightMuted')
+    if (patterns.indexOf('DarkMuted') == -1)
+      patterns.push('DarkMuted')
     fallback = [];
     return patterns;
   } else if ((saturations != null ? saturations.indexOf('Vibrant') : void 0) > -1 && lumas) {
     return ['LightVibrant', 'Vibrant', 'DarkVibrant', 'LightMuted', 'DarkMuted'];
   } else {
-    return ['LightVibrant', 'Vibrant', 'DarkVibrant'];
+    return ['Vibrant', 'DarkVibrant', 'LightVibrant', 'LightMuted', 'DarkMuted'];
   }
 };
 
@@ -2572,42 +2556,60 @@ Palette.example = function(colors, level) {
 
 CSS = function(prefix) {
   return (
-"body" + prefix + " #formatting," +
-"body" + prefix + " #formatting .cke_button {\n" +
+"body.toolbar-" + prefix.replace('.', '.toolbar-') + " #formatting," +
+"body.menu-"    + prefix.replace('.', '.menu-') + " #sectionizer svg," +
+"body.toolbar-" + prefix.replace('.', '.toolbar-') + " #formatting .cke_button {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
-"body" + prefix + " #formatting-shadow {\n" +
-"  border-color: " + this.accent + ";\n" +
+".temp-"    + prefix.replace('.', '.temp-') + " {" +
+"  color: " + this.foregroundAAA + " !important;\n" +
+"  background-color: " + this.foreground + ";\n" +
+"  outline-color: " + this.foreground + " !important;\n" +
 "}\n" +
-"body" + prefix + " #formatting .cke_button:hover {\n" +
+"body.menu-"    + prefix.replace('.', '.menu-') + " #sectionizer svg:hover," +
+"body.toolbar-" + prefix.replace('.', '.toolbar-') + " #formatting .cke_button:hover {\n" +
 "  color: " + this.foreground + ";\n" +
 "  background-color: " + this.accent + ";\n" +
 "}\n" +
-".content section" + prefix + " {\n" +
-"  background-color: " + this.foreground + ";\n" +
-"  color: " + this.foregroundAAA + ";\n" +
-"  outline-color: " + this.accent + ";\n" +
-"}\n" +
-".content section" + prefix + " .toolbar x-panel {\n" +
+"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " article," +
+"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " section," +
+"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " .foreground {" +
 "  background-color: " + this.background + ";\n" +
-"  border-color: " + this.background + ";\n" +
+"}\n" +
+"body.menu-"    + prefix.replace('.', '.menu-') + " .picker," +
+".content section." + prefix + " {\n" +
+"  background-color: " + this.background + ";\n" +
+"  color: " + this.foregroundAAA + ";\n" +
+"}\n" +
+".content section." + prefix + " .toolbar  svg{\n" +
+"  background-color: " + this.background + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
-".content section" + prefix + " .toolbar svg:hover {\n" +
-"  border-color: " + this.accent + ";\n" +
+".content section." + prefix + " .toolbar svg:hover {\n" +
 "  background-color: " + this.accent + ";\n" +
 "  color: " + this.background + ";\n" +
 "}\n" +
-".content section" + prefix + " h1,\n" +
-".content section" + prefix + " h2,\n" +
-".content section" + prefix + " h3 {\n" +
+".content section." + prefix + " h1,\n" +
+".content section." + prefix + " h2,\n" +
+".content section." + prefix + " h3 {\n" +
 "  color: " + this.foregroundAA + ";\n" +
 "}\n" +
-".content section" + prefix + " a, .content section" + prefix + ":after {\n" +
+".content section." + prefix + " a {\n" +
 "  color: " + this.accent + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
+"}\n" +
+".content section." + prefix + " > .foreground {\n" +
+"  background-color: " + this.foreground + ";\n" +
+"  border-color: " + this.accent + ";\n" +
+"}" +
+"body.menu-"    + prefix + " .picker > div:hover {\n" +
+"  border-color: " + this.accent + ";\n" +
+"}" + 
+".content section." + prefix + " *::selection {\n" +
+"  background-color: " + this.accent.toString().replace('rgb', 'rgba').replace(')', ',0.5)') + ";\n" +
+"  color: " + this.accentAAA + ";\n" +
 "}")
 };
 
@@ -2620,8 +2622,8 @@ Schemes = {};
 
 (function() {
   var cell, i, j, k, l, len, len1, luma, lumas, ref, ref1, ref2, results, row, saturation, saturations;
-  for (i = k = 0, len = Space.length; k < len; i = ++k) {
-    row = Space[i];
+  for (i = k = 0, len = Palette.Space.length; k < len; i = ++k) {
+    row = Palette.Space[i];
     for (j = l = 0, len1 = row.length; l < len1; j = ++l) {
       cell = row[j];
       Schemes[cell] = Schema.fromString(cell);
@@ -2646,7 +2648,7 @@ Schemes = {};
   return results;
 })();
 
-})(this);// https://github.com/nodeca/pica
+})(typeof window == undefined ? this : window);// https://github.com/nodeca/pica
 // https://github.com/nodeca/pica/blob/master/lib/js/resize_array.js
 // LICENSE: MIT
 

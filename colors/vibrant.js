@@ -323,7 +323,7 @@ global.Vibrant = Vibrant = (function() {
           colors: 80,
           method: 2,
           boxSize: [4, 4],
-          boxPxls: 2,
+          boxPxls: 1,
           initColors: 4096
         };
         q = new this.rgbquant(opts);

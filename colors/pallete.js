@@ -264,12 +264,21 @@ PaletteResult = function(swatches, matrix, luma, saturation, preset) {
       }, fallback);
     } else if (property === 'accent') {
       colors = Find(swatches, order, luma, saturation, result, function(a) {
-        return Contrast(result.background, a) > 4 &&
-               Contrast(result.foreground, a) > 4;
+        return Contrast(result.background, a) > 3 &&
+               Contrast(result.foreground, a) > 3;
       }, function(a, b) {
         return (Contrast(result.background, b) + Contrast(result.foreground, b)) - 
                (Contrast(result.background, a) + Contrast(result.foreground, a))
       }, undefined, 3);
+      if (!colors || !colors.length) {
+        colors = Find(swatches, order, luma, saturation, result, function(a) {
+          return RGBContrast(result.background, a) > 1.2 &&
+                 RGBContrast(result.foreground, a) > 1.4;
+        }, function(a, b) {
+          return (Contrast(result.background, b) + Contrast(result.foreground, b)) - 
+                 (Contrast(result.background, a) + Contrast(result.foreground, a))
+        }, undefined, 3)
+      }
     } else if (property === 'background') {
       colors = Find(swatches, order, luma, saturation, result);
     }

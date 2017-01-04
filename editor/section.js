@@ -57,10 +57,8 @@ Editor.Section.star = function(editor, section) {
     section.classList.add('starred')
 
   Editor.Section.analyze(editor, section, true)
-  setTimeout(function() {
 
     Editor.Chrome.update(editor)
-  }, 50)
   editor.fire('saveSnapshot')
 }
 

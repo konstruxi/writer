@@ -505,11 +505,8 @@ CSS = function(prefix) {
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
 "}\n" +
-".content section." + prefix + " .toolbar  {\n" +
-"  background-color: " + this.background + ";\n" +
-"  color: " + this.accent + ";\n" +
-"}\n" +
 ".content section." + prefix + " .toolbar  svg{\n" +
+"  background-color: " + this.background + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
 ".content section." + prefix + " .toolbar svg:hover {\n" +

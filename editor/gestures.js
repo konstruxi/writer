@@ -71,7 +71,11 @@ Editor.Pointer = function(editor, content) {
         })
       }
       if (before) {
-        gesture.before = before
+        gesture.before = before,
+        gesture.beforeBox = editor.snapshot.get(before)
+        gesture.beforeChildren = Array.prototype.filter.call(before.children, function(element) {
+          return !element.classList.contains('kx');
+        })
         gesture.beforePalette = Editor.Section.getPaletteName(before)
         gesture.beforeForeground = beforeForeground
         gesture.beforeForegroundBox = beforeBox
@@ -141,14 +145,13 @@ Editor.Pointer = function(editor, content) {
       gesture.before.classList.remove('below-the-fold')
     }
 
-
+    // 1. split below
     if (gesture.children.length > 1 && gesture.anchor == gesture.section) {
       var splitBox = {top: gesture.box.top, left: gesture.box.left, width: gesture.box.width}
       splitBox.height = (e.deltaY - gesture.deltaY);
 
       gesture.currentSplit = gesture.children.filter(function(element) {
         element.classList.remove('splitting');
-
         if (Editor.Container.isBoxIntersecting(splitBox, editor.snapshot.get(element))) {
           return element;
         }
@@ -161,7 +164,29 @@ Editor.Pointer = function(editor, content) {
     }
 
     if (gesture.before && y < 0) {
+      // 2. split above
+      if (gesture.beforeChildren.length > 1 && gesture.anchor == gesture.before) {
+        var splitBox = {top: gesture.beforeBox.top, left: gesture.beforeBox.left, width: gesture.beforeBox.width}
+        splitBox.height = gesture.beforeBox.height + (e.deltaY - gesture.deltaY);
+
+        gesture.currentSplit = gesture.beforeChildren.filter(function(element) {
+          element.classList.remove('splitting');
+          if (Editor.Container.isBoxIntersecting(splitBox, editor.snapshot.get(element))) {
+            return element;
+          }
+        })
+        if (gesture.currentSplit.length && gesture.currentSplit.length < gesture.beforeChildren.length) {
+          action = '#split-icon'
+        } else {
+          gesture.currentSplit = null;
+        }
+      }
+
+      // 3. resize above
       if (gesture.above.length) {
+        if (e.srcEvent.metaKey && gesture.currentSplit)
+          y = 0;
+
         if (y < gesture.beforeForegroundDistance + 10) {
           editor.snapshot.setStyle(gesture.beforeForeground, 'height', gesture.beforeForegroundBox.height - gesture.beforeForegroundDistance - 10 + y)
         } else {
@@ -181,14 +206,18 @@ Editor.Pointer = function(editor, content) {
           }
         })
 
-        if (y < -30)
+        if (y < -30) {
           gesture.section.classList.add('growing')
+          gesture.currentSplit = null;
+        }
       }
         
       gesture.currentBelow = gesture.below.filter(function(element) {
         Editor.Section.forEachClass(gesture.beforePalette, element, 'remove')
       });
       gesture.before.classList.remove('growing')
+
+    // 4. resize below
     } else if (gesture.before) {
       if (e.srcEvent.metaKey && gesture.currentSplit)
         y = 0;
@@ -262,11 +291,12 @@ Editor.Pointer = function(editor, content) {
 
       var separated = Editor.Section.build(editor)
       separated.classList.add('forced')
-      gesture.children.forEach(function(child) {
+      var children = gesture.anchor == gesture.section ? gesture.children : gesture.beforeChildren;
+      children.forEach(function(child) {
         if (gesture.currentSplit.indexOf(child) == -1)
           separated.appendChild(child)
       })
-      gesture.section.parentNode.insertBefore(separated, gesture.section.nextSibling)
+      gesture.anchor.parentNode.insertBefore(separated, gesture.anchor.nextSibling)
 
 
     } else {

@@ -151,7 +151,7 @@ Editor.Pointer = function(editor, content) {
       })
 
     // 1. split below
-    if (gesture.children.length > 1 && gesture.anchor == gesture.section) {
+    if (gesture.children.length > 1 && gesture.anchor == gesture.section && !e.srcEvent.altKey) {
       var splitBox = {top: gesture.box.top, left: gesture.box.left, width: gesture.box.width}
       splitBox.height = (e.deltaY - gesture.deltaY);
 
@@ -165,7 +165,7 @@ Editor.Pointer = function(editor, content) {
 
     if (gesture.before && y < 0) {
       // 2. split above
-      if (gesture.beforeChildren.length > 1 && gesture.anchor == gesture.before) {
+      if (gesture.beforeChildren.length > 1 && gesture.anchor == gesture.before && !e.srcEvent.altKey) {
         var splitBox = {top: gesture.beforeBox.top, left: gesture.beforeBox.left, width: gesture.beforeBox.width}
         splitBox.height = gesture.beforeBox.height + (e.deltaY - gesture.deltaY);
 
@@ -179,7 +179,7 @@ Editor.Pointer = function(editor, content) {
 
       // 3. resize above
       if (gesture.above.length) {
-        if (e.srcEvent.metaKey && gesture.currentSplit)
+        if (e.srcEvent.altKey || (e.srcEvent.metaKey && gesture.currentSplit))
           y = 0;
 
         if (y < gesture.beforeForegroundDistance + 10) {
@@ -214,7 +214,7 @@ Editor.Pointer = function(editor, content) {
 
     // 4. resize below
     } else if (gesture.before) {
-      if (e.srcEvent.metaKey && gesture.currentSplit)
+      if (e.srcEvent.altKey || (e.srcEvent.metaKey && gesture.currentSplit))
         y = 0;
 
       if (gesture.below.length) {

@@ -137,6 +137,9 @@ body {
 body.dragging *{
   cursor: none !important;
 }
+body.dragging .toolbar:not(.dragging) {
+  opacity: 0 !important;
+}
 
 
 #sectionizer svg {
@@ -239,6 +242,7 @@ section > .toolbar {
   height: 2.3rem;
   width: 2.3rem;
   border-radius: 50%;
+  transition: opacity 0.3s;
 }
 
 .content section.starred > .toolbar svg{

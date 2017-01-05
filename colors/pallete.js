@@ -475,9 +475,7 @@ CSS = function(prefix) {
 "}\n" +
 "body.toolbar-"    + prefix.replace('.', '.toolbar-') + " article," +
 "body.toolbar-"    + prefix.replace('.', '.toolbar-') + " section," +
-"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " .foreground {" +
-"  background-color: " + this.background + ";\n" +
-"}\n" +
+"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " .foreground," +
 "body.menu-"    + prefix.replace('.', '.menu-') + " .picker," +
 ".content section." + prefix + " {\n" +
 "  background-color: " + this.background + ";\n" +

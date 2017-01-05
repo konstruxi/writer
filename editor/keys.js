@@ -47,18 +47,16 @@ Editor.Keys = function(editor) {
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]
       if (!range) return;
-
       if (range.checkStartOfBlock()) {
         var container = range.startContainer.$
         for (; container.parentNode; container = container.parentNode) {
-          if (Editor.Section.getFirstChild(container.parentNode).firstChild != container)
+          if (Editor.Section.getFirstChild(container.parentNode) != container)
             break;
           // backspace at start of forced section (after virtual "hr") 
           // removes the boundary
           if (container.parentNode.tagName == 'SECTION') {
             if (container.parentNode.classList.contains('forced')) {
               container.parentNode.classList.remove('forced');
-              Editor.Section(editor);
               return false;
             }
           }

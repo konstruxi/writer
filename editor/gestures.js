@@ -108,10 +108,10 @@ Editor.Pointer = function(editor, content) {
 
     var action = '#move-icon'
 
+    var x = e.deltaX - gesture.deltaX
+    var y = e.deltaY - gesture.deltaY
     if (e.srcEvent.type == 'touchmove') {
-      var myLocation = e.srcEvent.changedTouches[0];
-      var realTarget = document.elementFromPoint(myLocation.clientX, myLocation.clientY);
-      var anchor = Editor.Section.get(realTarget);
+      var anchor = Editor.Section.fromPoint(editor, gesture.buttonBox.left + x, gesture.buttonBox.top + y);
       gesture.anchorShiftX = -36
       gesture.anchorShiftY = -18
     } else {
@@ -125,8 +125,6 @@ Editor.Pointer = function(editor, content) {
 
     editor.fire('lockSnapshot')
 
-    var x = e.deltaX - gesture.deltaX
-    var y = e.deltaY - gesture.deltaY
 
     editor.snapshot.setStyle(gesture.button, 'left', gesture.buttonBox.left + x + gesture.anchorShiftX)
     editor.snapshot.setStyle(gesture.button, 'top', gesture.buttonBox.top + y + gesture.anchorShiftY)
@@ -259,8 +257,14 @@ Editor.Pointer = function(editor, content) {
   editor.gestures.on('panend', function(e) {
     var gesture = editor.gestures.current;
     if (!gesture) return;
-    editor.gestures.current = null;
+    var x = e.deltaX - gesture.deltaX
+    var y = e.deltaY - gesture.deltaY
 
+    // work around silly ios
+    if (e.srcEvent.type == 'touchend') 
+      gesture.anchor = Editor.Section.fromPoint(editor, gesture.buttonBox.left + x, gesture.buttonBox.top + y);
+      
+    editor.gestures.current = null;
     requestAnimationFrame(function() {
     document.body.classList.remove('dragging')
     gesture.section.classList.remove('growing')
@@ -270,8 +274,6 @@ Editor.Pointer = function(editor, content) {
     }
     gesture.section.classList.remove('below-the-fold')
     gesture.button.classList.remove('dragging')
-    var x = e.deltaX - gesture.deltaX
-    var y = e.deltaY - gesture.deltaY
     var buttonBox = editor.snapshot.get(gesture.button);
     editor.snapshot.setStyle(gesture.button, 'left')
     editor.snapshot.setStyle(gesture.button, 'top')

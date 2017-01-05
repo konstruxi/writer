@@ -381,6 +381,16 @@ Editor.Section.get = function(target) {
   return element;
 }
 
+Editor.Section.fromPoint = function(editor, x, y) {
+  for (var i = 0; i < editor.snapshot.elements.length; i++) {
+    var el = editor.snapshot.elements[i];
+    if (el.tagName == 'SECTION') {
+      if (Editor.Container.isBoxIntersecting({left: x, top: y, height: 1, width: 1}, editor.snapshot.dimensions[i]))
+        return el;
+    }
+  }
+}
+
 Editor.Section.getFirstChild = function(section) {
   var first = section.firstElementChild;
   while (first.classList.contains('kx') || first.tagName == 'HR')

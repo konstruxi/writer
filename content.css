@@ -35,11 +35,6 @@ body,html {
   margin: 0 auto;
 }
 
-.content picture.avatar {
-  //display: inline-block;
-  outline: 1px dashed red;
-}
-
 .content a.picture {
   display: block;
 }
@@ -87,8 +82,24 @@ body,html {
 }
 
 .meta picture {
-  width: 4rem;
-  height: 4rem;
+  width: 3rem;
+  height: 3rem;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 50%;
+  margin-right: 0.3rem;
+}
+
+.content ul.meta {
+  padding: 0;
+}
+
+.meta > li {
+  display: inline-block;
+  white-space: nowrap;
+}
+.meta > li + li {
+  margin-left: 1rem;
 }
 
 #image-cropper {
@@ -194,17 +205,6 @@ section > a {
 }
 section > a + * {
   margin-top: 14px;
-}
-
-.content .moved {
-  opacity: 0.5;
-}
-#dragzone {
-  position: absolute;
-  border-top: 5px dashed rgba(20,20,70,0.5);
-  cursor: pointer;
-  top: -50px;
-  pointer-events: none;
 }
 .content section:not(:hover):not(.focused) > .kx.foreground {
   border-color: transparent;
@@ -450,7 +450,10 @@ section.large:not(.has-long-text) {
   }
 }
 
-.content section.small picture {
+.content section.small > picture {
+  height: calc(400px - 2rem);
+}
+.content section.small > a > picture {
   height: calc(400px - 2rem);
 }
 .content section.small picture img{
@@ -458,7 +461,7 @@ section.large:not(.has-long-text) {
 }
 .content section > * {
   position: relative;
-  z-index: 1;
+  z-index: 3;
 }
 
 /*

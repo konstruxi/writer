@@ -192,7 +192,9 @@ Editor.Snapshot.prototype.transition = function(element, from, to, time, startTi
       else
         var spring = to[springName] = new Spring(74, 12);
     } else if (property == 'fontSize') {
-      var spring = to[springName] = new Spring(50, 8);
+      var spring = to[springName] = new Spring(60, 12);
+    } else if (property == 'fontSize') {
+      var spring = to[springName] = new Spring(100, 12);
     } else if (property == 'top') {
       var spring = to[springName] = new Spring(34, 9);
     } else {
@@ -247,7 +249,8 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         to.static = false;
       }
 
-      to.currentFontSize = this.transition(element, from, to, time, startTime, 'currentFontSize', 'fontSize', 'fontSizeSpring');
+      to.currentFontSize   = this.transition(element, from, to, time, startTime, 'currentFontSize', 'fontSize', 'fontSizeSpring');
+      to.currentLineHeight = this.transition(element, from, to, time, startTime, 'currentLineHeight', 'lineHeight', 'lineHeightSpring');
       to.currentTop    = this.transition(element, from, to, time, startTime, 'currentTop', 'top', 'topSpring', 'targetTop');
       to.currentLeft   = this.transition(element, from, to, time, startTime, 'currentLeft', 'left', 'leftSpring', 'targetLeft');
       to.currentWidth  = this.transition(element, from, to, time, startTime, 'currentWidth', 'width', 'widthSpring', 'targetWidth');
@@ -258,7 +261,8 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
       }
     } else {
-      to.currentFontSize = parseFloat(to.styles['font-size'])
+      to.currentFontSize = to.fontSize
+      to.currentLineHeight = to.lineHeight
       to.currentWidth  = to.targetWidth != null ? to.targetWidth : to.width
       to.currentHeight = to.targetHeight != null ? to.targetHeight : to.height
       to.currentTop    = to.targetTop != null ? to.targetTop : to.top
@@ -272,6 +276,8 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
       if (to.visible) {
         if (to.currentFontSize)
           element.style.fontSize = to.currentFontSize + 'px'
+        if (to.currentLineHeight)
+          element.style.lineHeight = to.currentLineHeight + 'px'
 
 
         element.style.visibility = ''
@@ -355,6 +361,7 @@ Editor.Snapshot.take = function(editor, reset, focused) {
 
     box.styles = window.getComputedStyle(elements[i]);
     box.fontSize = parseFloat(box.styles['font-size'])
+    box.lineHeight = parseFloat(box.styles['line-height'])
 
     if (!box.up)
       box.up = dimensions[elements.indexOf(elements[i].parentNode)]
@@ -424,6 +431,7 @@ Editor.Snapshot.prototype.resetElement = function(element, over) {
   element.style.left = ''
   element.style.position = ''
   element.style.fontSize = ''
+  element.style.lineHeight = ''
   element.style.margin = ''
   if (over) {
     var box = this.get(element)
@@ -491,7 +499,7 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
     }
 
   if (Editor.Content.isParagraph(element) || element.tagName == 'IMG' || Editor.Content.isPicture(element) || element.classList.contains('kx'))
-    if (!f || repos|| repositioned  || distance > 5 || diffSize > 5 || (f && f.fontSize != t.fontSize)) {
+    if (!f || repos|| repositioned  || distance > 5 || diffSize > 5 || (f && (f.fontSize != t.fontSize || f.lineHeight != t.lineHeight))) {
       repositioned = 1;
     }
 

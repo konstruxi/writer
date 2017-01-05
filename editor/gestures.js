@@ -344,7 +344,7 @@ Editor.Pointer = function(editor, content) {
           })
         }
       }
-    } else if (gesture.anchor && gesture.anchor != gesture.section && distance > 100) {
+    } else if (gesture.anchor && gesture.anchor != gesture.section && distance > 50) {
       editor.dragbookmark = editor.getSelection().createBookmarks()
       gesture.section.classList.add('forced');
       if (gesture.anchor.previousElementSibling == gesture.section)

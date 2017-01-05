@@ -349,12 +349,6 @@ Editor.Snapshot.take = function(editor, reset, focused) {
   }
 
 
-  // Hack: Animating when image is selected is uber choppy, just move caret
-  var selection = editor.getSelection();
-  var range = selection.getRanges()[0]
-  if (range && !editor.justcleared && !editor.clearcursor && Editor.Content.isPicture(range.startContainer.$)) {
-    Editor.Selection.saveImageSelection(editor, range, true)
-  }
 
 
 

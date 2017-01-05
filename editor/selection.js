@@ -50,11 +50,7 @@ Editor.Selection = function(editor, content) {
   content.addEventListener('mousedown', function(e) {
     for (var p = e.target; p; p = p.parentNode) {
       if (p.tagName == 'PICTURE') {
-        if (p.parentNode.parentNode.tagName == 'A')
-          editor.getSelection().selectElement(new CKEDITOR.dom.element(p.parentNode))
-        else
-          editor.getSelection().selectElement(new CKEDITOR.dom.element(p))
-
+        Editor.Selection.selectPicture(editor, p, true);
         Editor.Selection.onChange(editor, true, true)
         e.preventDefault();
         e.stopPropagation();
@@ -111,10 +107,16 @@ Editor.Selection.fix = function(editor) {
   for (var p = range.startContainer.$; p; p = p.parentNode) {
     switch (p.tagName) {
       case 'PICTURE':
-        return selection.selectElement(new CKEDITOR.dom.element(p))
+        return Editor.Selection.selectPicture(editor, p)
       case 'X-DIV': case 'svg': case 'use':
         return Editor.Selection.moveToFollowingParagraph(editor, range);    
     }
+  }
+
+  if (editor.selectedPicture) {
+  
+  //  editor.selectedPicture.classList.remove('selected')
+    editor.selectedPicture = null;
   }
 }
 Editor.Selection.moveToNewParagraphAfterPicture = function(editor, range) {
@@ -152,8 +154,21 @@ Editor.Selection.moveToAfterParagraph = function(editor, range) {
   }
 }
 
-Editor.Selection.saveImageSelection = function(editor, range) {
-  editor.getSelection().selectElement(range.startContainer)
+
+Editor.Selection.selectPicture = function(editor, picture, force) {
+  if (editor.selectedPicture == picture && !force)
+    return;
+  var selection = editor.getSelection();
+  var range = selection.getRanges()[0] || editor.createRange();
+
+
+  range.setStartAt( new CKEDITOR.dom.element(picture), CKEDITOR.POSITION_AFTER_START );
+  range.setEndAt( new CKEDITOR.dom.element(picture), CKEDITOR.POSITION_BEFORE_END );
+
+
+//  picture.classList.add('selected')
+  editor.selectedPicture = picture;
+  range.select()
 }
 
 

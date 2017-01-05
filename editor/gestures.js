@@ -145,21 +145,21 @@ Editor.Pointer = function(editor, content) {
       gesture.before.classList.remove('below-the-fold')
     }
 
+    if (gesture.currentSplit)
+      gesture.currentSplit.forEach(function(el) {
+        el.classList.remove('splitting');
+      })
+
     // 1. split below
     if (gesture.children.length > 1 && gesture.anchor == gesture.section) {
       var splitBox = {top: gesture.box.top, left: gesture.box.left, width: gesture.box.width}
       splitBox.height = (e.deltaY - gesture.deltaY);
 
       gesture.currentSplit = gesture.children.filter(function(element) {
-        element.classList.remove('splitting');
-        if (Editor.Container.isBoxIntersecting(splitBox, editor.snapshot.get(element))) {
-          return element;
-        }
+        return Editor.Container.isBoxIntersecting(splitBox, editor.snapshot.get(element))
       })
       if (gesture.currentSplit.length && gesture.currentSplit.length < gesture.children.length) {
         action = '#split-icon'
-      } else {
-        gesture.currentSplit = null;
       }
     }
 
@@ -170,15 +170,10 @@ Editor.Pointer = function(editor, content) {
         splitBox.height = gesture.beforeBox.height + (e.deltaY - gesture.deltaY);
 
         gesture.currentSplit = gesture.beforeChildren.filter(function(element) {
-          element.classList.remove('splitting');
-          if (Editor.Container.isBoxIntersecting(splitBox, editor.snapshot.get(element))) {
-            return element;
-          }
+          return Editor.Container.isBoxIntersecting(splitBox, editor.snapshot.get(element))
         })
         if (gesture.currentSplit.length && gesture.currentSplit.length < gesture.beforeChildren.length) {
           action = '#split-icon'
-        } else {
-          gesture.currentSplit = null;
         }
       }
 
@@ -251,8 +246,10 @@ Editor.Pointer = function(editor, content) {
       });
       gesture.section.classList.remove('growing')
     }
-    if (gesture.currentSplit) {
+    if (gesture.currentSplit && action == '#split-icon') {
       gesture.currentSplit[gesture.currentSplit.length - 1].classList.add('splitting')
+    } else {
+      gesture.currentSplit = null;
     }
     if (!editor.snapshot.timer)
       editor.snapshot = editor.snapshot.animate()
@@ -291,11 +288,17 @@ Editor.Pointer = function(editor, content) {
 
       var separated = Editor.Section.build(editor)
       separated.classList.add('forced')
-      var children = gesture.anchor == gesture.section ? gesture.children : gesture.beforeChildren;
-      children.forEach(function(child) {
-        if (gesture.currentSplit.indexOf(child) == -1)
-          separated.appendChild(child)
-      })
+      if (gesture.anchor == gesture.section) {
+        gesture.children.forEach(function(child) {
+          if (gesture.currentSplit.indexOf(child) == -1)
+            separated.appendChild(child)
+        })
+      } else if (gesture.anchor == gesture.before) {
+        gesture.beforeChildren.forEach(function(child) {
+          if (gesture.currentSplit.indexOf(child) == -1)
+            separated.appendChild(child)
+        })
+      }
       gesture.anchor.parentNode.insertBefore(separated, gesture.anchor.nextSibling)
 
 

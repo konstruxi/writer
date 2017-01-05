@@ -414,8 +414,11 @@ Editor.Section.build = function(editor, section) {
 }
 
 Editor.Section.place = function(editor, parent, previous, child, current, root, selected, context) {
-  if (previous && !Editor.Content.isEmpty(previous)) {
-    if (Editor.Section.needsSplitterBetween(previous, child)) {
+  var p = previous;
+  while (p && Editor.Content.isEmpty(p))
+    p = p.previousElementSibling
+  if (p) {
+    if (Editor.Section.needsSplitterBetween(p, child)) {
       var section = (current || Editor.Section.build(editor));
       if (parent.parentNode) 
         if (section.parentNode != parent.parentNode || section.previousSibling != parent)

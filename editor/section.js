@@ -182,7 +182,8 @@ Editor.Section.split = function(editor, root) {
   var selected = selection.getStartElement();
   if (selected) {
     selected = Editor.Content.getEditableAscender(selected.$);
-    var result = Editor.Section.get(selected);
+    if (selected)
+      var result = Editor.Section.get(selected);
   }
 
   context = {}

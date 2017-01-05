@@ -17,8 +17,8 @@ Editor.Selection = function(editor, content) {
     if (editor.justcleaned) return;
     if (!editor.dragging) {
       clearTimeout(editor.changingselection);
+      Editor.Selection.fix(editor)
       editor.changingselection = setTimeout(function() {
-        Editor.Selection.fix(editor)
         Editor.Selection.onChange(editor)
       }, 30);
     }

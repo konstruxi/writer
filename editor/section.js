@@ -413,7 +413,7 @@ Editor.Section.build = function(editor, section) {
 }
 
 Editor.Section.place = function(editor, parent, previous, child, current, root, selected, context) {
-  if (previous) {
+  if (previous && !Editor.Content.isEmpty(previous)) {
     if (Editor.Section.needsSplitterBetween(previous, child)) {
       var section = (current || Editor.Section.build(editor));
       if (parent.parentNode) 

@@ -44,7 +44,6 @@ Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
       box.animated = true;
       var old = snapshot.get(before)
       if (!snapshot.get(after)) {
-      debugger
         snapshot.elements.push(after)
         snapshot.dimensions.push(old)
       }

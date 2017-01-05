@@ -368,7 +368,7 @@ section.large:not(.has-long-text) {
   section.large.large.has-long-text:not(.has-picture) > ol,
   section.large.large.has-long-text:not(.has-picture) > blockquote {
     margin-left: 1.3rem;
-    margin-top: 0.5rem;
+    padding-top: 0.5rem;
   }
 }
 

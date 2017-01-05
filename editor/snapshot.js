@@ -20,22 +20,20 @@ Editor.Snapshot.prototype.unfreezeContainer = function() {
 
 // attempt to restore identity of selected elements between snapshots
 Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
-
   if (snapshot.selected && this.selected) {
+
     var selected = this.selected.slice();
-    for (var i = 0; i < selected.length; i += 2) {
+    for (var i = 0; i < selected.length; i += 1) {
       var after = selected[i];
-      var afterSize = selected[i + 1];
 
       if (snapshot.selected.indexOf(after) > -1) {
-        selected.splice(i, 2);
-        i -= 2;
+        selected.splice(i, 1);
+        i -= 1;
         continue;
       }
       if (snapshot.get(after) || this.get(before))
         continue;
       var before = snapshot.selected[i];
-      var beforeSize = snapshot.selected[i + 1];
 
       if (this.get(before))
         continue;
@@ -43,13 +41,10 @@ Editor.Snapshot.prototype.migrateSelectedElements = function(snapshot) {
       var box = this.get(after);
       if (!box)
        continue;
-
+      box.animated = true;
       var old = snapshot.get(before)
-      if (old) {
-        old.fontSize = parseFloat(beforeSize);
-        box.fontSize = parseFloat(afterSize);
-      }
       if (!snapshot.get(after)) {
+      debugger
         snapshot.elements.push(after)
         snapshot.dimensions.push(old)
       }
@@ -97,6 +92,11 @@ Editor.Snapshot.prototype.animate = function(section, callback) {
   if (snapshot.reanimate)
     cancelAnimationFrame(snapshot.reanimate)
   var onSingleFrame = function() {
+    if (!migrated) {
+      migrated = true;
+      snapshot.migrateSelectedElements(from)
+      snapshot.freezeContainer();
+    }
     var time = + new Date;
     var start = snapshot.startTime || time
     snapshot.lastTime = time;
@@ -108,11 +108,7 @@ Editor.Snapshot.prototype.animate = function(section, callback) {
       //  debugger
     }
     //console.log('frame', snapshot.animating && snapshot.animating.length)
-    if (!migrated) {
-      migrated = true;
-      snapshot.migrateSelectedElements(from)
-      snapshot.freezeContainer();
-    }
+    
 
     if (!snapshot.startTime)
       snapshot.startTime = time;
@@ -241,9 +237,6 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
     if (from && from.visible)
       to.visible = true;
 
-    if (from && to.fontSize != from.fontSize && from.fontSize && to.fontSize) {
-      to.currentFontSize = this.transition(element, from, to, time, startTime, 'currentFontSize', 'fontSize', 'fontSizeSpring');
-    }
     var shiftX = 0;
     var shiftY = 0;
     if (from && ((to.animated || from.animated) || (from.manipulated || to.manipulated))) {
@@ -254,6 +247,7 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         to.static = false;
       }
 
+      to.currentFontSize = this.transition(element, from, to, time, startTime, 'currentFontSize', 'fontSize', 'fontSizeSpring');
       to.currentTop    = this.transition(element, from, to, time, startTime, 'currentTop', 'top', 'topSpring', 'targetTop');
       to.currentLeft   = this.transition(element, from, to, time, startTime, 'currentLeft', 'left', 'leftSpring', 'targetLeft');
       to.currentWidth  = this.transition(element, from, to, time, startTime, 'currentWidth', 'width', 'widthSpring', 'targetWidth');
@@ -264,6 +258,7 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
       }
     } else {
+      to.currentFontSize = parseFloat(to.styles['font-size'])
       to.currentWidth  = to.targetWidth != null ? to.targetWidth : to.width
       to.currentHeight = to.targetHeight != null ? to.targetHeight : to.height
       to.currentTop    = to.targetTop != null ? to.targetTop : to.top
@@ -357,6 +352,10 @@ Editor.Snapshot.take = function(editor, reset, focused) {
       height: elements[i].offsetHeight, 
       width: elements[i].offsetWidth, 
       parent: elements[i].parentNode}
+
+    box.styles = window.getComputedStyle(elements[i]);
+    box.fontSize = parseFloat(box.styles['font-size'])
+
     if (!box.up)
       box.up = dimensions[elements.indexOf(elements[i].parentNode)]
     
@@ -388,11 +387,11 @@ Editor.Snapshot.rememberSelected = function(editor, bookmark, focused) {
     if (bookmark && bookmark.length == 1) {
       var ancestor = Editor.Content.getEditableAscender(bookmark[0].startNode.$);
       if (ancestor)
-        var selected = [ancestor, window.getComputedStyle(ancestor)['font-size']]
+        var selected = [ancestor]
     } else if (range.startContainer.$ == range.endContainer.$) {
       var ancestor = Editor.Content.getEditableAscender(range.startContainer.$);
       if (ancestor)
-        var selected = [ancestor, window.getComputedStyle(ancestor)['font-size']]
+        var selected = [ancestor]
       else
         var selected = [];
     } else {
@@ -405,8 +404,7 @@ Editor.Snapshot.rememberSelected = function(editor, bookmark, focused) {
         if (el && el.tagName && el.tagName == el.tagName.toUpperCase() &&
             !el.classList.contains('kx') && !el.parentNode.classList.contains('kx')) {
           if (!focused) focused = el;
-          var fontSize = window.getComputedStyle(el)['font-size'];
-          selected.push(el, fontSize)
+          selected.push(el)
         }
       }
     }
@@ -436,6 +434,8 @@ Editor.Snapshot.prototype.resetElement = function(element, over) {
     element.style.zIndex = ''
     element.style.visibility = ''
     element.style.transform = ''
+    if (element.getAttribute('style') === '')
+      element.removeAttribute('style')
   }
 }
 Editor.Snapshot.prototype.reset = function(elements, over) {
@@ -491,9 +491,11 @@ Editor.Snapshot.prototype.normalize = function(element, from, repositioned, diff
     }
 
   if (Editor.Content.isParagraph(element) || element.tagName == 'IMG' || Editor.Content.isPicture(element) || element.classList.contains('kx'))
-    if (!f || repos|| repositioned  || distance > 5 || diffSize > 5) {
+    if (!f || repos|| repositioned  || distance > 5 || diffSize > 5 || (f && f.fontSize != t.fontSize)) {
       repositioned = 1;
     }
+
+  console.lo
 
   t.x = shiftX;
   t.y = shiftY;

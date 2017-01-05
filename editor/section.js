@@ -403,8 +403,9 @@ Editor.Section.needsSplitterBetween = function(left, right) {
 
 
 Editor.Section.build = function(editor, section) {
-  if (!section)
+  if (!section) {
     section = document.createElement('section');
+  }
   
   Editor.Chrome.Toolbar(editor, section)
 

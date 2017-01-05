@@ -549,4 +549,4 @@ Schemes = {};
   return results;
 })();
 
-})(typeof window == undefined ? this : window);
+})(typeof window == 'undefined' ? self : window);

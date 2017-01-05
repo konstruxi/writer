@@ -235,6 +235,7 @@ section.clone {
 
 .content * {
   box-sizing: border-box;
+  font-size: 1em;
 }
 .content section p,
 .content section li,

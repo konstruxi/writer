@@ -27,7 +27,10 @@ Editor.Selection = function(editor, content) {
     if (editor.justcleaned) return;
     if ( editor.readOnly )
       return;
+    Editor.Content.cleanEmpty(editor)
     Editor.Selection.onChange(editor)
+    Editor.Chrome.update(editor)
+
     var range = editor.getSelection().getRanges()[0];
     if (range)
       Editor.Section.setActive(editor, range.startContainer.$)
@@ -180,23 +183,5 @@ Editor.Selection.moveToFollowingParagraph = function(editor, range) {
 // clean up empty content if it's not in currently focused section
 Editor.Selection.onChange = function(editor, force, blur) {
   editor.fire('customSelectionChange')
-
-  Editor.Chrome.update(editor)
-  if (editor.clearcursor) return;
-  editor.clearcursor = setTimeout(function() {
-    cancelAnimationFrame(editor.clearcursor)
-    editor.clearcursor = requestAnimationFrame(function() {
-      editor.clearcursor = null;
-      editor.justchangedselection = true;
-
-      if (editor.doNotBlur)
-        return
-      
-      editor.justcleaned = setTimeout(function() {
-        editor.justcleaned = null;
-      }, 100)
-      Editor.Content.cleanEmpty(editor, force, blur)
-    })
-  }, 100)
 
 }

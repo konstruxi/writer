@@ -473,8 +473,8 @@ CSS = function(prefix) {
 "  color: " + this.foreground + ";\n" +
 "  background-color: " + this.accent + ";\n" +
 "}\n" +
-"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " article," +
-"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " section," +
+"body.last-"    + prefix.replace('.', '.last-') + " article," +
+"body.last-"    + prefix.replace('.', '.last-') + " section," +
 "body.toolbar-"    + prefix.replace('.', '.toolbar-') + " .foreground," +
 "body.menu-"    + prefix.replace('.', '.menu-') + " .picker," +
 ".content section." + prefix + " {\n" +

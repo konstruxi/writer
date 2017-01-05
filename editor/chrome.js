@@ -104,6 +104,7 @@ Editor.Chrome.Toolbar.open = function(editor, section, button) {
   }
   editor.currentToolbar = section;
   setUIColors(editor, section, 'menu');
+  setUIColors(editor, section, 'last');
   sectionizer.style.top = offsetTop + 'px'
   sectionizer.style.left = offsetLeft + 'px';
   sectionizer.className = section.className
@@ -242,6 +243,7 @@ Editor.Chrome.update = function(editor, force) {
   editor.currentButton = button;
   
   setUIColors(editor, startSection, 'toolbar');
+  setUIColors(editor, startSection, 'last');
   
   // update formatting buttons
   var buttons = formatting.querySelectorAll('.cke_toolbar:nth-child(2) .cke_button');

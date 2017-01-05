@@ -49,15 +49,17 @@ Editor.Keys = function(editor) {
       if (!range) return;
       if (range.checkStartOfBlock()) {
         var container = range.startContainer.$
-        for (; container.parentNode; container = container.parentNode) {
-          if (Editor.Section.getFirstChild(container.parentNode) != container)
-            break;
-          // backspace at start of forced section (after virtual "hr") 
-          // removes the boundary
-          if (container.parentNode.tagName == 'SECTION') {
-            if (container.parentNode.classList.contains('forced')) {
-              container.parentNode.classList.remove('forced');
-              return false;
+        if (range.startOffset == range.endOffset) {
+          for (; container.parentNode; container = container.parentNode) {
+            if (Editor.Section.getFirstChild(container.parentNode) != container)
+              break;
+            // backspace at start of forced section (after virtual "hr") 
+            // removes the boundary
+            if (container.parentNode.tagName == 'SECTION') {
+              if (container.parentNode.classList.contains('forced')) {
+                container.parentNode.classList.remove('forced');
+                return false;
+              }
             }
           }
         }

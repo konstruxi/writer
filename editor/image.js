@@ -38,11 +38,13 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded, arg) {
   return image;
 }
 
-Editor.Image.proxy = function(editor, src, callback) {
+Editor.Image.proxy = function(editor, src, callback, dontTryFirst) {
   var x = new XMLHttpRequest();
-  if (src.indexOf('ytimg.com') > -1)
-    src = src.replace('hqdefault', 'maxresdefault')
-  x.open('GET', 'http://cors-anywhere.herokuapp.com/' + src);
+  // try fetching youtube hires thumbnails first, if that fails use standard definition
+  if (src.indexOf('ytimg.com') > -1 && src.indexOf('hqdefault') > -1 && !dontTryFirst) {
+    var tryFirst = src.replace('hqdefault', 'maxresdefault')
+  }
+  x.open('GET', 'http://cors-anywhere.herokuapp.com/' + (tryFirst || src));
   x.responseType = 'blob';
   x.onload = callback;
   x.send();
@@ -50,6 +52,9 @@ Editor.Image.proxy = function(editor, src, callback) {
     x.onload = callback;
   } else if (callback) {
     x.onload = function() {
+      if (x.status == 404 && tryFirst) {
+        return Editor.Image.proxy(editor, src, callback, true);
+      }
       var blob = new Blob([x.response], {type: x.getResponseHeader('Content-Type')});
       editor.fire('lockSnapshot');
       callback.src = URL.createObjectURL(blob);
@@ -199,10 +204,10 @@ Editor.Image.insert = function(image, hard) {
       hard = container.parentNode.getElementsByTagName('picture')[0];
     }
 
-    if (container.tagName == 'H1' || container.tagName == 'H2')
+    //if (container.tagName == 'H1' || container.tagName == 'H2')
       var next = container.nextElementSibling
-    else
-      var next = container;
+    //else
+    //  var next = container;
 
     while (next && (next.tagName == 'HR' || Editor.Content.isPicture(next)))
       next = next.nextElementSibling;
@@ -211,6 +216,7 @@ Editor.Image.insert = function(image, hard) {
 
     if (hard) {
       var hr = document.createElement('hr');
+      hr.className = 'small'
       container.parentNode.insertBefore(hr, picture)
     }    
   }

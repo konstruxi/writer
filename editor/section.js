@@ -206,7 +206,6 @@ Editor.Section.split = function(editor, root) {
             current = undefined;
           }
         } else if (last != current) {
-          //grandchildren[j].parentNode.removeChild(grandchildren[j]);
           continue;
         }
         prev = grandchildren[j];
@@ -267,6 +266,8 @@ Editor.Section.analyze = function(editor, node, wasStarred) {
     switch (child.tagName) {
       case 'HR':
         node.classList.add('forced')
+        if (child.classList.contains('small'))
+          node.classList.add('small')
         node.removeChild(child);
         i--;
         break;

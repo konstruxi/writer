@@ -765,6 +765,10 @@ Editor.DTD.processBoundaries = function(editor, element, hasHardBoundaries) {
     if (child.name == 'section' || (child.name == 'hr' && !child.hasClass('soft')))
       hasHardBoundaries = true;
     if (child.name == 'section') {
+      var sectionized = true;
+      var prev = child.previous
+      if (prev && prev.name == 'hr')
+        prev.addClass('small')
       for (var grand; grand = child.children.pop();)
         grand.insertAfter(child)
       child.remove()
@@ -789,19 +793,26 @@ Editor.DTD.processBoundaries = function(editor, element, hasHardBoundaries) {
   if (hasHardBoundaries)
     for (var i = 0; i < element.children.length; i++) {
       var child = element.children[i];
-      if (child.name == 'section') {
-        Editor.DTD.processBoundaries(editor, child, hasHardBoundaries)
       // remove soft boundaries
-      } else if (child.name == 'hr' && child.hasClass('soft')) {
+      if (child.name == 'hr' && child.hasClass('soft')) {
         element.children.splice(i--, 1)
+      // remove double rulers
+      } else if (child.name == 'hr' && element.children[i - 1] && element.children[i - 1].name == 'hr') {
+        if (element.children[i - 1].hasClass('small')) {
+          debugger
+          child.addClass('small')
+        }
+        element.children.splice(--i, 1)
       }
     }
 
   if (hadMeta && element.children[0]) {
     if (element.children[0].name != 'hr')
       new CKEDITOR.htmlParser.element('hr').insertBefore(element.children[0])
-    else
-      element.children[0].removeClass('soft')
+    
+    element.children[0].removeClass('soft')
+    if (sectionized)
+      element.children[0].addClass('small')
     if (element.children[element.children.length - 1].name != 'hr')
       new CKEDITOR.htmlParser.element('hr').insertAfter(element.children[element.children.length - 1])
     else

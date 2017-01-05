@@ -55,7 +55,8 @@ body,html {
 .content picture.added.loading {
   height: 2rem;
   width: 2rem;
-  background:orange;
+  background:currentColor;
+  border-radius: 50%;;
 }
 
 .content picture.added.loading img {
@@ -367,7 +368,7 @@ section.large:not(.has-long-text) {
   section.large.large.has-long-text:not(.has-picture) > ul,
   section.large.large.has-long-text:not(.has-picture) > ol,
   section.large.large.has-long-text:not(.has-picture) > blockquote {
-    margin-left: 1.3rem;
+    padding-left: 2rem;
     padding-top: 0.5rem;
   }
 }

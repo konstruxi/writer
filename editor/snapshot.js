@@ -289,7 +289,14 @@ Editor.Snapshot.prototype.morph = function(snapshot, time, startTime) {
         element.style.top = '0';
         element.style.left = '0';
         element.style.width = to.currentWidth + 'px';
-        element.style.height = to.currentHeight + 'px';
+
+        // allow height-restricted layouts (e.g. css columns)
+        // from spilling over, by not limiting the height
+        if (element.tagName == 'SECTION')
+
+          element.style.minHeight = to.currentHeight + 'px';
+        else
+          element.style.height = to.currentHeight + 'px';
       } else {
         element.style.zIndex = -1;
         element.style.visibility = 'hidden'
@@ -362,9 +369,15 @@ Editor.Snapshot.take = function(editor, reset, focused) {
     box.fontSize = parseFloat(box.styles['font-size'])
     box.lineHeight = getLineHeight(box.styles['line-height'], box.fontSize)
 
+
     if (!box.up)
       box.up = dimensions[elements.indexOf(elements[i].parentNode)]
     
+    // at times height measurement may be incorrect for foreground
+    // e.g. when animating section with css columns
+    if (elements[i].classList.contains('foreground') && box.up) {
+      box.height = box.up.height - (parseInt(box.styles.top) || 0) * 2;
+    }
     for (var parent = elements[i]; parent && (parent != editor.element.$); parent = parent.offsetParent) {
       box.top += parent.offsetTop;
       box.left += parent.offsetLeft;
@@ -425,6 +438,7 @@ Editor.Snapshot.prototype.resetElement = function(element, over) {
   //element.style.transitionDuration = '0s'
   element.style.webkitTransform = ''
   element.style.height = ''
+  element.style.minHeight = ''
   element.style.width = ''
   element.style.top = ''
   element.style.left = ''

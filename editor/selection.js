@@ -27,9 +27,7 @@ Editor.Selection = function(editor, content) {
     if (editor.justcleaned) return;
     if ( editor.readOnly )
       return;
-    Editor.Content.cleanEmpty(editor)
     Editor.Selection.onChange(editor)
-    Editor.Chrome.update(editor)
 
     var range = editor.getSelection().getRanges()[0];
     if (range)
@@ -183,5 +181,7 @@ Editor.Selection.moveToFollowingParagraph = function(editor, range) {
 // clean up empty content if it's not in currently focused section
 Editor.Selection.onChange = function(editor, force, blur) {
   editor.fire('customSelectionChange')
+  Editor.Content.cleanEmpty(editor)
+  Editor.Chrome.update(editor)
 
 }

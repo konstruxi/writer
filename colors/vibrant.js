@@ -352,7 +352,11 @@ global.Vibrant = Vibrant = (function() {
   //      q.sample(sourceImage);
         q.method = 2;
 
-        q.sample(sourceImage);
+        if (typeof ImageData == 'undefined' || !(sourceImage instanceof ImageData)) {
+          q.sample(sourceImage.data, sourceImage.width);
+        }
+        else
+          q.sample(sourceImage);
         palette = q.palette(true, true);
 
         //q.sortPal()

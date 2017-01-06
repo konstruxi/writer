@@ -48,28 +48,73 @@ if (this.Editor) {
       }
     };
     worker.addEventListener('message', listener);
-    console.time('postmessage')
     worker.postMessage(data)
-    console.timeEnd('postmessage')
   }
 } else {
   self.addEventListener('message', function(e) {
     var data = e.data;
 
-    var palette = Palette(data)
+    var width = data.width;
+    var height = data.height;
+    var ratio = width / height;
 
-    var beforeCrop = new Date;
-    smartcrop.crop(data, {
+    // Resize image if necessary 
+    if (width > 1440 || height > 900) {
+      width = Math.min(1440, width)
+      height = Math.floor(width / ratio);
+      if (height > 900) {
+        width = Math.floor(width / (height / 900));
+        height = 900
+      }
+      console.time('Image: resize ' + data.width + 'x' + data.height + ' to ' + width + 'x' + height);
+      var resized = {
+        width: width,
+        height: height,
+        data: resizeImage({
+          src: data.data,
+          width: data.width,
+          height: data.height,
+          toWidth: width,
+          toHeight: height,
+          dest: new Uint8ClampedArray(width * height * 4),
+          quality: 3
+        })
+      }
+      console.timeEnd('Image: resize ' + data.width + 'x' + data.height + ' to ' + width + 'x' + height);
+      var unsharpAmount = 20;
+      console.time('Image: unsharp after resize ' + width + 'x' + height + ' by ' + unsharpAmount)
+      unsharpImage(resized.data, width, height, unsharpAmount, 0.5, 3);
+      console.timeEnd('Image: unsharp after resize ' + width + 'x' + height + ' by ' + unsharpAmount)
+    }
+
+    console.time('Image: quantize ' + width + 'x' + height);
+    var palette = Palette(resized || data)
+    console.timeEnd('Image: quantize ' + width + 'x' + height);
+
+    // Analyze image to pick best square crop
+
+    console.time('Image: crop to square ' + width + 'x' + height);
+    smartcrop.crop(resized || data, {
       imageOperations: IO,
       width: Math.min(data.width, data.height),
       height: Math.min(data.height, data.width)
     }).then(function(result) {
+      console.timeEnd('Image: crop to square ' + width + 'x' + height);
       // send data to main thread to put unto canvas
-      postMessage({
-        palette: palette.toString(),
-        square: result.topCrop,
-        cropTime: new Date - beforeCrop
-      });
+      if (resized) {
+        postMessage({
+          palette: palette.toString(),
+          square: result.topCrop,
+          resized: resized
+        }, [resized.data.buffer]);
+      } else {
+        postMessage({
+          palette: palette.toString(),
+          square: result.topCrop
+        });
+
+      }
+
     })
 
   }, false);

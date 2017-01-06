@@ -456,8 +456,20 @@ section.large:not(.has-long-text) {
 .content section.small > a > picture {
   height: calc(400px - 2rem);
 }
-.content section.small picture img{
-  max-width: 300%;
+.content section.small picture:not(.processed) img{
+  min-width: 100%;
+  max-height: 1440px !important;
+  max-width: 1440px !important;
+  height: 100%;
+  width: auto;
+}
+.content section.small picture.portrait:not(.processed) img{
+  width: 100%;
+  height: auto;
+}
+.content section.small picture.processed img{
+  max-height: 1440px !important;
+  max-width: 1440px !important;
 }
 .content section > * {
   position: relative;

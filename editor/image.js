@@ -69,6 +69,11 @@ Editor.Image.onLoaded = function(editor, image, callback, file) {
   var width = image.naturalWidth || parseInt(image.getAttribute('width')) || width;
   var height = image.naturalHeight || parseInt(image.getAttribute('height')) || height;
 
+  if (height >= width * 1.2) {
+    image.parentNode.classList.add('portrait');
+  } else if (width >= height * 1.2) {
+    image.parentNode.classList.add('landscape');
+  }
   //image.style.width =  width + 'px';
   //image.style.height =  height + 'px';
 
@@ -125,6 +130,7 @@ Editor.Image.schedule = function(editor, image, callback, file) {
         image.src = URL.createObjectURL(blob);
         console.timeEnd('Image: Drawing resized image');
       }, 'image/png', 0.95)
+      canvas = ctx = imageData = null;
       result.resized = null;
     }
     Editor.Image.storage[image.getAttribute('uid')] = result;

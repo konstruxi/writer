@@ -662,6 +662,8 @@ Editor.DTD.processMeta = function(editor, element, parent) {
   var hadMeta = false;
   var currentList;
   var currentClasses;
+  var lists = [];
+
   for (var i = 0; i < element.children.length; i++) {
     var child = element.children[i];
     var prev = element.children[i - 1]
@@ -702,6 +704,7 @@ Editor.DTD.processMeta = function(editor, element, parent) {
             if (!currentList) {
               currentList = new CKEDITOR.htmlParser.element('ul', {class: 'meta'});
               currentList.insertAfter(child)
+              lists.push(currentList)
               hadMeta = true;
             }
             child.name = 'li'
@@ -747,6 +750,27 @@ Editor.DTD.processMeta = function(editor, element, parent) {
     //    for (var )
     //  }
     //}
+  }
+
+  for (var i = 0; i < lists.length; i++) {
+    for (var j = 0; j < lists[i].children.length; j++) {
+      var item = lists[i].children[j]
+      var currentParagraph = null;
+      var children = item.children.slice()
+      for (var k = 0; k < children.length; k++) {
+        var content = children[k];
+        if (content.name == 'picture' || content.name == 'a' && (content.name == 'a' && content.children[0] && content.children[0].name != 'picture')) {
+          currentParagraph = null;
+        } else {
+          if (!currentParagraph) {
+            currentParagraph = new CKEDITOR.htmlParser.element('p');
+            currentParagraph.insertBefore(content)
+          }
+          content.remove()
+          currentParagraph.add(content);
+        }
+      }
+    }
   }
 
   // split pasted content into its own sections

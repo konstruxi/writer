@@ -48,8 +48,8 @@ body,html {
 }
 
 .content picture.added.loading {
-  height: 2rem;
-  width: 2rem;
+  height: 2rem !important;
+  width: 2rem !important;
   background:currentColor;
   border-radius: 50%;;
 }
@@ -97,6 +97,9 @@ body,html {
 .meta > li {
   display: inline-block;
   white-space: nowrap;
+}
+.meta > p {
+  display: inline-block;
 }
 .meta > li + li {
   margin-left: 1rem;

@@ -12,11 +12,18 @@ Editor.Section = function(editor, mutation, observer, changedPlaceholders) {
 
   editor.fire( 'lockSnapshot');
   var content = editor.element.$;
-  var selection = editor.getSelection()
-  if (selection && !editor.dragbookmark && editor.focusManager.hasFocus)
-    editor.dragbookmark = selection.createBookmarks();
+  Editor.Selection.remember(editor);
 
+  var placeholding = Editor.Selection.check(editor, function(el) {
+    return el.classList.contains('kx-placeholder')
+  });
+
+  var old = changedPlaceholders.length;
   Editor.Placeholder(editor, changedPlaceholders);
+  if (placeholding || changedPlaceholders.length && editor.dragbookmark) {
+    Editor.Selection.restore(editor);
+    Editor.Selection.remember(editor);
+  }
 
   var section = Editor.Section.split(editor, content) || editor.justdropped
   for (var i = 0; i < content.children.length; i++) {

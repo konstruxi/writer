@@ -193,6 +193,28 @@ Editor.Content.isEmpty = function(child, includePlaceholders) {
 }
 
 
+Editor.Content.willSelectionBeCleaned = function(editor, elements, options) {
+  for (var e, i = 0; e = elements[i++];) {
+    var tag = e.tagName;
+    switch (e.tagName) {
+      case 'UL': case 'OL':
+        if (options.lists) {
+          return true;
+        }
+        break;
+      case 'LI': case 'H1': case 'H2': case 'H3':
+        if ((e.tagName == 'LI' && options.lists) ||
+            (e.tagName.charAt(0) == 'H' && options.titles)) {
+          return true;
+        }
+        break;
+      case 'BLOCKQUOTE':
+        if (options.quotes && e.firstElementChild && e.firstElementChild.tagName == 'P') {
+          return true;
+        }
+    }
+  }
+}
 Editor.Content.cleanSelection = function (editor, options) {
   var selection = editor.getSelection();
   var range = selection.getRanges()[0];
@@ -217,9 +239,15 @@ Editor.Content.cleanSelection = function (editor, options) {
     elements.push(el);
   }
 
-  if (!start && !end)
+
+  if (!start && !end) {
+    // run read-only cleanse upfront to see if we need heavy bookmarking business
+    if (!Editor.Content.willSelectionBeCleaned(editor, elements, options))
+      return
     var bookmark = selection.createBookmarks()
+  }
   
+
 
   for (var e, i = 0; e = elements[i++];) {
     var tag = e.tagName;
@@ -257,7 +285,7 @@ Editor.Content.cleanSelection = function (editor, options) {
     if (end)
       modified.setEndAfter(end)
     editor.getSelection().selectRanges([modified])
-  } else {
+  } else if (bookmark) {
     selection.selectBookmarks(bookmark);
   }
 }

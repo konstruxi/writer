@@ -61,8 +61,10 @@ Editor.Observer = function(editor) {
     } 
     if (placeholders) {
       for (var i = 0; i < placeholders.length; i++)
-        if (placeholders[i].getAttribute('itempath') != null)
-        Editor.Placeholder.onChange(placeholders[i]);
+        if (placeholders[i].getAttribute('itempath') != null) {
+          if (placeholders[i].parentNode)
+            Editor.Placeholder.onChange(placeholders[i]);
+        }
       if (placeholders.length) {
         console.log(placeholders, 'placeholders changed')
       }

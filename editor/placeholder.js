@@ -74,7 +74,7 @@ Editor.Placeholder = function(editor, changedPlaceholders) {
                           placeholder.previousElementSibling != anchor))
           anchor.parentNode.insertBefore(
             placeholder,
-            anchor && anchor.nextElementSibling || section.firstChild
+            anchor && anchor.nextElementSibling || (i == 0 ? section.firstChild : null)
           );
       anchor = placeholder;
     }
@@ -137,21 +137,30 @@ Editor.Placeholder.getFirstChild = function(content, itempath, tagNames, placeho
 
 Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, placeholders, newPlaceholders, changedPlaceholders) {
   var itempath = field.getAttribute('name');
-
   if (!field.value) 
     var first = Editor.Placeholder.getFirstChild(content, itempath, tagNames, placeholders, newPlaceholders);
+  
   if (first) {
     var element = first;
     var updated = true;
+    // when transforming one placeholder into another (e.g. <p> to <h1>) cleanup old field
+    if (placeholders.indexOf(first) > -1) {
+      var path = first.getAttribute('itempath');
+      if (path && path != field.name) {
+        var other = document.getElementsByName(path)[0]
+        if (other)
+          other.value = '';
+      }
+    }
+      
   } else {
     for (var i = 0; i < placeholders.length; i++) {
       if (placeholders[i].getAttribute('itempath') == itempath) {
-        if (tagNames.indexOf(placeholders[i].tagName) > -1 || tagToBuild == placeholders[i].tagName) {
+        if (!element && (tagNames.indexOf(placeholders[i].tagName) > -1 || tagToBuild == placeholders[i].tagName)) {
           var element = placeholders[i];
           if (field.value && element.getAttribute('value') != field.value)
-            element.value = field.value;
+            updated = true;
 
-          break;
         } else {
           // when placeholder was transformed to another element that doesnt match
           // e.g. <h2> to <h3>, so it's not title anymore, nullify the form value
@@ -192,7 +201,8 @@ Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, plac
   } 
 
   if (updated) {
-    Editor.Placeholder.onChange(element);
+    if (changedPlaceholders.indexOf(element) == -1)
+      changedPlaceholders.push(element)
   }
 
   return element;

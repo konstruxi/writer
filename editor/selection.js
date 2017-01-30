@@ -200,3 +200,40 @@ Editor.Selection.onChange = function(editor, force, blur) {
   Editor.Chrome.update(editor)
 
 }
+
+Editor.Selection.remember = function(editor) {
+
+  if (!editor.dragbookmark && editor.focusManager.hasFocus)
+    editor.dragbookmark = editor.getSelection().createBookmarks();
+
+}
+
+Editor.Selection.restore = function(editor, bookmark) {
+  if (!bookmark) {
+    bookmark = editor.dragbookmark;
+    editor.dragbookmark = null;
+  }
+  if (bookmark && bookmark[0]) {
+    var bm = bookmark[0].startNode.$;
+    for (; bm.parentNode; bm = bm.parentNode) {
+      if (bm == editor.element.$) {
+        editor.getSelection().selectBookmarks(bookmark);
+        break;
+      }
+    }
+  }
+}
+
+
+Editor.Selection.check = function(editor, callback) {
+  var selection = editor.getSelection()
+  if (!selection) return;
+  var range = selection.getRanges()[0];
+  if (!range) return;
+
+  var el = range.startContainer.$;
+  for (; el && el != editor.element.$; el = el.parentNode)
+    if (el.nodeType == 1 && callback.call(editor, el))
+      return true;
+
+}

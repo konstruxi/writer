@@ -55,6 +55,7 @@ Editor.Container.measure = function(editor, scroll) {
 
 
 Editor.Container.isBoxIntersecting = function(box, another) {
+  if (!another || !box) return false;
   var top = box.currentTop != null ? box.currentTop : box.top;
   var height = box.currentHeight != null ? box.currentHeight : box.height;
   var bottom = top + height

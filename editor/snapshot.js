@@ -33,9 +33,9 @@ Kex.prototype.migrateSelectedElements = function(snapshot) {
         i -= 1;
         continue;
       }
-      if (snapshot.get(after) || this.get(before))
-        continue;
       var before = snapshot.selected[i];
+      if (snapshot.get(after))
+        continue;
 
       if (this.get(before))
         continue;
@@ -277,9 +277,9 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
     if (!to.static) {
       var css = '';
       if (to.visible) {
-        if (to.currentFontSize && to.currentFontSize != to.fontSize && element.tagName != 'SECTION')
+        if (to.currentFontSize != to.fontSize && element.tagName != 'SECTION')
           css += 'font-size: ' + to.currentFontSize + 'px; '
-        if (to.currentLineHeight && to.currentLineHeight != to.lineHeight && element.tagName != 'SECTION')
+        if (to.currentLineHeight != to.lineHeight && element.tagName != 'SECTION')
           css += 'line-height:  ' + to.currentLineHeight + 'px; '
 
 
@@ -375,6 +375,7 @@ Kex.take = function(element, options, reset, focused) {
 }
 
 Kex.prototype.saveIdentity = function() {
+  debugger
   this.selected = Kex.getIdentity(this.element, this.options)
 }
 Kex.getIdentity = function(element, options) {
@@ -485,11 +486,12 @@ Kex.prototype.normalize = function(element, from, repositioned, diffX, diffY, p)
   var repos = false;
   if (element.children)
     for (var i = 0; i < element.children.length; i++) {
-      repos = this.normalize(element.children[i], from, repos, - diffX, - diffY, t)
+      repos = this.normalize(element.children[i], from, repos, - diffX, - diffY, t) || repos;
     }
 
   if (!this.options.filter || this.options.filter.call(this, element, f, t))
-    if (!f || repos|| repositioned  || distance > 5 || diffSize > 5 || (f && (f.fontSize != t.fontSize || f.lineHeight != t.lineHeight))) {
+    if (!f || repos|| repositioned  || distance > 2 || diffSize > 2 || 
+    (f && (f.fontSize != t.fontSize || f.lineHeight != t.lineHeight))) {
       repositioned = 1;
     }
 
@@ -501,7 +503,7 @@ Kex.prototype.normalize = function(element, from, repositioned, diffX, diffY, p)
     t.animated = repositioned;
 
   // do not reposition content of non-animated sections
-  if (!repos && element.tagName == 'SECTION') {
+  if (!repos && !repositioned && element.tagName == 'SECTION') {
     var desc = element.getElementsByTagName('*');
     for (var i = 0; i < desc.length; i++) {
       var j = this.elements.indexOf(desc[i]);

@@ -3,28 +3,41 @@ Editor.Observer = function(editor) {
     var removedImages = [];
     var addedImages = [];
     var removed = []
+    var placeholders = [];
     mutations: for (var i = 0; i < mutations.length; i++) {
       var m = mutations[i];
+      for (var t = m.target; t && t != editor.element.$; t = t.parentNode) {
+        if (t.id == 'cke_pastebin') 
+          continue mutations;
+        if (t.classList && t.classList.contains('kx-placeholder')) {
+          if (placeholders.indexOf(t) == -1)
+            placeholders.push(t);
+        } 
+      }
       if (m.type === 'childList') {
-        for (var t = m.target; t && t != editor.element.$; t = t.parentNode) {
-          if (t.id == 'cke_pastebin') 
-            continue mutations;
-        }
         for (var j = 0; j < m.removedNodes.length; j++) {
-          if (m.removedNodes[j].nodeType == 1 &&
-              m.removedNodes[j].tagName != 'SPAN' &&
-              m.removedNodes[j].tagName != 'DIV' &&
-              m.removedNodes[j].tagName != 'STYLE'  ) {
+          var child = m.removedNodes[j];
+          if (child.nodeType == 1 &&
+              child.tagName != 'SPAN' &&
+              child.tagName != 'DIV' &&
+              child.tagName != 'STYLE'  ) {
             var reason = mutations[i];
           }
+          if (child.classList && child.classList.contains('kx-placeholder'))
+            if (placeholders.indexOf(child) == -1)
+              placeholders.push(child);
         }
         for (var j = 0; j < m.addedNodes.length; j++) {
-          if (m.addedNodes[j].nodeType == 1 &&
-              m.addedNodes[j].tagName != 'SPAN' &&
-              m.addedNodes[j].tagName != 'DIV' &&
-              m.addedNodes[j].tagName != 'STYLE') {
+          var child = m.addedNodes[j];
+          if (child.nodeType == 1 &&
+              child.tagName != 'SPAN' &&
+              child.tagName != 'DIV' &&
+              child.tagName != 'STYLE') {
             var reason = mutations[i];
           }
+          if (child.classList && child.classList.contains('kx-placeholder'))
+            if (placeholders.indexOf(child) == -1)
+              placeholders.push(child);
         }
       } else {
         if (m.target != editor.element.$
@@ -40,15 +53,26 @@ Editor.Observer = function(editor) {
         }
       }
     }
+    // new content tag added/removed, class changed
     if (reason){
-      Editor.Section(editor, reason, observer);
-    }
+      Editor.Section(editor, reason, observer, placeholders);
 
+    // placeholders text content update
+    } 
+    if (placeholders) {
+      for (var i = 0; i < placeholders.length; i++)
+        if (placeholders[i].getAttribute('itempath') != null)
+        Editor.Placeholder.onChange(placeholders[i]);
+      if (placeholders.length) {
+        console.log(placeholders, 'placeholders changed')
+      }
+    }
   } );
   observer.observe( editor.element.$ , {
     attributes: true,
     childList: true,
     subtree: true,
+    characterData: true,
     attributeOldValue: true,
     attributeFilter: ['class']
   });

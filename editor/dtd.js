@@ -725,13 +725,33 @@ Editor.DTD.processMeta = function(editor, element, parent) {
             heading.add(child)
           }
         }
-        if (child.hasClass('text-quote')) {
-          if (child.name == 'p') {
-            child.name = 'blockquote';
-          } else if (child.name == 'a' && child.children[0] && child.children[0].name != 'picture') {
-            var heading = new CKEDITOR.htmlParser.element('blockquote');
-            child.replaceWith(heading)
-            heading.add(child)
+        if (child.hasClass('text-quote') 
+              && child.children[0]
+              && child.name != 'picture' 
+              && (child.name != 'a' || child.children[0].name != 'picture')) {
+          if (child.name == 'blockquote') {
+            var quote = child;
+            var quoted = child.children;
+
+            // got quote without <p>, add them
+            if (child.children[0].name != 'p') {
+              var p = new CKEDITOR.htmlParser.element('p');
+              child.children.forEach(function() {
+                p.add(child)
+              })
+              child.children = [];
+              child.add(p)
+            }
+          } else {
+            var quote = new CKEDITOR.htmlParser.element('blockquote');
+            child.replaceWith(quote)
+            if (child.name == 'p') {
+              quote.add(child)
+            } else {
+              var paragraph = new CKEDITOR.htmlParser.element('p');
+              quote.add(paragraph)
+              paragraph.add(child)
+            }
           }
         }
         if (child.children[0] && child.children[0].name == 'picture') {

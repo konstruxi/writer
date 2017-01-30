@@ -1,4 +1,4 @@
-Editor.Section = function(editor, mutation, observer) {
+Editor.Section = function(editor, mutation, observer, changedPlaceholders) {
 
   var options = Object.create(Editor.Snapshot.prototype);
   options.editor = editor;
@@ -12,7 +12,12 @@ Editor.Section = function(editor, mutation, observer) {
 
   editor.fire( 'lockSnapshot');
   var content = editor.element.$;
-  Editor.Placeholder(editor);
+  var selection = editor.getSelection()
+  if (selection && !editor.dragbookmark && editor.focusManager.hasFocus)
+    editor.dragbookmark = selection.createBookmarks();
+
+  Editor.Placeholder(editor, changedPlaceholders);
+
   var section = Editor.Section.split(editor, content) || editor.justdropped
   for (var i = 0; i < content.children.length; i++) {
     Editor.Section.analyze(editor, content.children[i])
@@ -183,8 +188,6 @@ Editor.Section.findMovableElements = function(source, target, reverse) {
 Editor.Section.split = function(editor, root) {
   var children = Array.prototype.slice.call(root.childNodes);
   var selection = editor.getSelection()
-  if (!editor.dragbookmark && editor.focusManager.hasFocus)
-    editor.dragbookmark = selection.createBookmarks();
   var last;
   var prev;
   var selected = selection.getStartElement();

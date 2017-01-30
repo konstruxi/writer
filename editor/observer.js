@@ -40,8 +40,9 @@ Editor.Observer = function(editor) {
         }
       }
     }
-    if (reason)
+    if (reason){
       Editor.Section(editor, reason, observer);
+    }
 
   } );
   observer.observe( editor.element.$ , {

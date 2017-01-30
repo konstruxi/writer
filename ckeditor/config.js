@@ -31,7 +31,7 @@ CKEDITOR.editorConfig = function( config ) {
 	// Dialog windows are also simplified.
 	config.removeDialogTabs = 'link:advanced';
 
-	config.allowedContent = 'picture(loading,added)[uid]; hr h1 h2 h3 h4 h5 blockquote ul li ol; b i code pre abbr; iframe[src]; a[href,title,hidden,aria-hidden]; abbr[title]; img(*)[src,alt,title,uid,palette,width,height,class]; section(*)[*]; '
+	config.allowedContent = 'picture(loading,added)[uid]; hr h1 h2 h3 h4 h5 blockquote ul li ol; b i code pre abbr; iframe[src]; a[href,title,hidden,aria-hidden]; abbr[title]; img(*)[src,alt,title,uid,palette,width,height,class]; section(*)[*];'
 	config.extraAllowedContent = 'div span article section time[datetime]; * (*)[width,height,src,href]{background,background-color,width,height}';
 	config.disallowedContent = 'section(focused);'
 
@@ -44,4 +44,5 @@ CKEDITOR.editorConfig = function( config ) {
 	config.title = false
 	config.startupShowBorders = false;
 	config.disableObjectResizing = true;
+	config.entities_processNumerical = true;
 };

@@ -29,7 +29,7 @@ Editor.Container.onResize = function(editor, soft) {
 Editor.Container.onScroll = function(editor) {
   Editor.Container.measure(editor, true)
   if (editor.snapshot)
-    editor.snapshot.updateVisibility()
+    editor.snapshot.updateVisibility(true)
   Editor.Chrome.update(editor, true)
 }
 

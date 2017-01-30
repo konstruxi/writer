@@ -126,10 +126,16 @@ Editor.Image.schedule = function(editor, image, callback, file) {
       canvas.width = result.resized.width;
       canvas.height = result.resized.height;
       ctx.putImageData(imageData, 0, 0)
-      canvas.toBlob(function(blob) {
-        image.src = URL.createObjectURL(blob);
-        console.timeEnd('Image: Drawing resized image');
-      }, 'image/png', 0.95)
+      if (canvas.toBlob) {
+
+        canvas.toBlob(function(blob) {
+          image.src = URL.createObjectURL(blob);
+          console.timeEnd('Image: Drawing resized image');
+        }, 'image/png', 0.95)
+      } else {
+//        image.src = canvas.toDataURL('image/png', 0.95);
+          console.timeEnd('Image: Drawing resized image');
+      }
       canvas = ctx = imageData = null;
       result.resized = null;
     }

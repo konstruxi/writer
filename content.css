@@ -1,10 +1,117 @@
 @charset "UTF-8";
 
 
-body,html {
-  padding: 0;
-  margin: 0 auto;
+
+
+
+.kx-placeholder:before{
+  content: attr(label);
+  color: #999;
+  display: inline-block;
+  padding-left: 1rem;
+  float: right;
 }
+.kx-placeholder:after {
+  position: absolute;
+  content: '';
+  display: block;
+  background: rgba(0,0,0,0.05);
+  top: -0.96rem;
+  left: -1.03rem;
+  right: -1rem;
+  bottom: -0rem;
+}
+
+.kx-placeholder[itempath*="[summary]"]:after {
+  background: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.015));
+
+}
+
+.content ul.meta.expanded {
+  display: flex;
+  justify-content: stretch;
+}
+.content ul.meta li {
+  position: relative;
+  flex: 1 1 auto;
+}
+
+.content ul.meta.expanded li + li{
+  margin-left: 2.14rem;
+}
+.content ul.meta li.kx-placeholder {
+  margin-top: 0;
+}
+.content ul.meta li.kx-placeholder:after {
+  top: -0.96rem;
+}
+
+
+.content.content .kx-placeholder {
+  min-height: 2.5rem;
+  padding-top: 0.25rem;
+}
+.content.content picture.kx-placeholder {
+  padding-top: 0.25rem;
+}
+.content.content h1.kx-placeholder {
+  padding-top: 0rem;
+  min-height: 3rem;
+}
+.content picture.kx-placeholder {
+  overflow: visible;
+}
+.kx-placeholder {
+  margin-top: 0.5rem;
+  bottom: 0rem;
+}
+ul.meta + .kx-placeholder:after,
+.kx-placeholder + .kx-placeholder:after {
+  top: -0.77rem;
+  bottom: 0rem;
+}
+
+
+
+
+.content.content section:not(.small) picture.kx-placeholder,
+.content.content section:not(.small) a.kx-placeholder,
+.content.content section:not(.small) ul.kx-placeholder {
+  width: calc(50% - 4.2rem);
+  margin-left: 3.15rem;
+}
+
+.content.content section:not(.small) picture.kx-placeholder + ul.kx-placeholder{
+  position: absolute;
+  margin-bottom: auto;
+  margin-top: 0;
+  bottom: auto;
+  top: 2.8rem;
+  left: auto;
+  right: 3.15rem;
+}
+
+
+
+
+form article.content {
+  display: none;
+}
+
+form article.content.cke_editable {
+  display: flex;
+}
+
+form article.content.cke_editable + textarea {
+  display: none;
+}
+
+
+
+
+
+
+
 
 
 .content {
@@ -81,7 +188,7 @@ body,html {
   transition: top 0.3s, left 0.3s;*/
 }
 
-.meta picture {
+.content .meta picture {
   width: 3rem;
   height: 3rem;
   display: inline-block;
@@ -94,14 +201,14 @@ body,html {
   padding: 0;
 }
 
-.meta > li {
+.content .meta > li {
   display: inline-block;
   white-space: nowrap;
 }
-.meta > p {
+.content .meta > p {
   display: inline-block;
 }
-.meta > li + li {
+.content .meta > li + li {
   margin-left: 1rem;
 }
 
@@ -111,12 +218,12 @@ body,html {
   z-index: 2000;
 }
 
-section {
+.content section {
   padding: 3rem 0;
   position: relative;
 }
 
-section picture img{
+.content section picture img{
   position: relative;
   top: 0;
   left: 0;
@@ -128,18 +235,18 @@ section picture img{
   transition: none;
 }
 
-section picture img {
+.content section picture img {
   display: block;
 }
 
-section .toolbar {
+.content section .toolbar {
 
 }
 
-section.forced:before {
+.content section.forced:before {
   border-color: #aaa;
 }
-section > .kx.foreground {
+.content section > .kx.foreground {
   border-color: #aaa;
   background: #fff;
    -moz-user-select: none; 
@@ -289,7 +396,7 @@ section.clone {
   z-index: 222;
 
 }
-blockquote:before {
+.content blockquote:before {
   content: '“';
   position: absolute;
   font-size: 3em;
@@ -297,19 +404,19 @@ blockquote:before {
   width: 0.5em;
   line-height: 0.6em;
 }
-blockquote {
+.content blockquote {
   margin: 0 0 0 1.5rem;
   padding: 0;
 }
-section:first-child:not([pattern*=two]) {
+.content section:first-child:not([pattern*=two]) {
   margin-top: 0;
 }
 
-section[pattern="one-quote"] {
+.content section[pattern="one-quote"] {
   font-size: 1.5em;
 }
 
-section[pattern="one-quote"] > *:not(.toolbar) {
+.content section[pattern="one-quote"] > *:not(.toolbar) {
   width: 500px;
 
 }
@@ -332,13 +439,13 @@ section[pattern="one-quote"] > *:not(.toolbar) {
   z-index: 1;
 }
 
-section.large:not(.has-long-text) {
+.content section.large:not(.has-long-text) {
   font-size: 1.5rem;
 }
 
 @media (min-width: 800px) {
 
-  section.large.has-long-text:not(.has-picture) {
+  .content section.large.has-long-text:not(.has-picture) {
     display: block;
     columns: 2 calc(400px - 2rem);
     -moz-columns: 2 calc(400px - 2rem);
@@ -350,7 +457,7 @@ section.large:not(.has-long-text) {
     padding-left: calc(50vw - 400px);
     padding-right: calc(50vw - 400px);
   }
-  section.large.has-long-text:not(.has-picture) > *:not(.kx) {
+  .content section.large.has-long-text:not(.has-picture) > *:not(.kx) {
     -webkit-column-break-inside: avoid; /* Chrome, Safari */
     page-break-inside: avoid;           /* Theoretically FF 20+ */
     break-inside: avoid-column;         /* IE 11 */
@@ -358,19 +465,19 @@ section.large:not(.has-long-text) {
     margin: 0;
     padding: 0 0 14px 0;
   }
-  section.large.has-long-text:not(.has-picture) > .splitting:after {
+  .content section.large.has-long-text:not(.has-picture) > .splitting:after {
     bottom: 0.5rem;
   }
-  section.large.has-long-text:not(.has-picture) > h1,
-  section.large.has-long-text:not(.has-picture) > h2,
-  section.large.has-long-text:not(.has-picture) > h3 {
+  .content section.large.has-long-text:not(.has-picture) > h1,
+  .content section.large.has-long-text:not(.has-picture) > h2,
+  .content section.large.has-long-text:not(.has-picture) > h3 {
     column-span: all;
     -webkit-column-span: all;
     -moz-column-span: all;
   }
-  section.large.large.has-long-text:not(.has-picture) > ul,
-  section.large.large.has-long-text:not(.has-picture) > ol,
-  section.large.large.has-long-text:not(.has-picture) > blockquote {
+  .content section.large.large.has-long-text:not(.has-picture) > ul,
+  .content section.large.large.has-long-text:not(.has-picture) > ol,
+  .content section.large.large.has-long-text:not(.has-picture) > blockquote {
     padding-left: 2rem;
     padding-top: 0.5rem;
   }
@@ -418,20 +525,20 @@ section.large:not(.has-long-text) {
 
 
 
-  section:not(.small):not(.large).has-portrait-image.has-text {
+  .content section:not(.small):not(.large).has-portrait-image.has-text {
     min-height: calc(502px + 6rem);
     justify-content: center;
     -webkit-justify-content: center;
   }
 
-  section:not(.small):not(.large).has-portrait-image.has-text picture{
+  .content section:not(.small):not(.large).has-portrait-image.has-text picture{
     height: calc(502px + 6rem);
     justify-content: center;
     -webkit-justify-content: center;
   }
 
-  section:not(.small):not(.large).has-portrait-image.has-text > a,
-  section:not(.small):not(.large).has-portrait-image.has-text > picture{
+  .content section:not(.small):not(.large).has-portrait-image.has-text > a,
+  .content section:not(.small):not(.large).has-portrait-image.has-text > picture{
     margin-right: 0;
     margin-top: 0;
     width: calc(400px - 1rem);
@@ -440,14 +547,14 @@ section.large:not(.has-long-text) {
     top: 3rem;
     right: calc(50vw - 400px); 
   }
-  section:not(.small):not(.large).has-portrait-image.has-text picture img{
+  .content section:not(.small):not(.large).has-portrait-image.has-text picture img{
     max-height: 500px;
     width: auto;
     display: block;
     margin-right: 0;
   }
 
-  section:not(.small):not(.large).has-portrait-image.has-text > *:not(a):not(picture):not(.kx){
+  .content section:not(.small):not(.large).has-portrait-image.has-text > *:not(a):not(picture):not(.kx){
     margin-right: calc(50vw + 1rem); 
     width: calc(400px - 1rem);
   }
@@ -489,7 +596,7 @@ body.dragging .content section.below-the-fold > .toolbar {
 }
 
 
-section.growing .foreground {
+.content section.growing .foreground {
   opacity: 0.65;
 }
 .content section.growing {

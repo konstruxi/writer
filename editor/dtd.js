@@ -51,7 +51,7 @@ Editor.DTD = function(editor) {
             for (var i = 0; i < list.length; i++) {
               if (name.indexOf(list[i]) > -1 || element.name == 'section') {
                 var replacement = name.indexOf(list[i]) > -1 
-                                    ? Editor.Content.soundsLikeSemanticClass[list[i]]
+                                    ? Editor.Content.soundsLikeSemanticClass[list[i]] || list[i].indexOf('kx') == 0
                                     : name;
                 if (semantic.indexOf(replacement) == -1) {
                   semantic.push(replacement);
@@ -823,7 +823,6 @@ Editor.DTD.processBoundaries = function(editor, element, hasHardBoundaries) {
       // remove double rulers
       } else if (child.name == 'hr' && element.children[i - 1] && element.children[i - 1].name == 'hr') {
         if (element.children[i - 1].hasClass('small')) {
-          debugger
           child.addClass('small')
         }
         element.children.splice(--i, 1)

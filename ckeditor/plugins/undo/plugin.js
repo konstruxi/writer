@@ -785,8 +785,9 @@
 
 			editor.fire( 'beforeUndoImage' );
 
-			// YAROSLAFF FEDIN HACK: Ignore style attribute changes
-			var contents = editor.getSnapshot().replace(/\s(?:style)="[^"]*?"/gi, '');;
+			// YAROSLAFF FEDIN HACK: Ignore style attribute changes, ignore blobs
+			var contents = editor.getSnapshot().replace(/\s(?:style)="[^"]*?"/gi, '')
+																				 .replace(/\s(?:src)="data:[^"]*?"/gi, 'src="data:blob"');;
 
 			// In IE, we need to remove the expando attributes.
 			if ( CKEDITOR.env.ie && contents )

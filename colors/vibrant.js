@@ -352,7 +352,7 @@ global.Vibrant = Vibrant = (function() {
   //      q.sample(sourceImage);
         q.method = 2;
 
-        if (typeof ImageData == 'undefined' || !(sourceImage instanceof ImageData)) {
+        if (false&& (typeof ImageData == 'undefined' || !(sourceImage instanceof ImageData))) {
           q.sample(sourceImage.data, sourceImage.width);
         }
         else

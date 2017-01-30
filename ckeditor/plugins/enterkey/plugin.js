@@ -351,6 +351,10 @@
 				} else {
 					newBlock = new CKEDITOR.dom.element('p')
 				}
+				// YAROSLAFF FEDIN HACK: Splitting makes clean style
+				// Not REALLY used
+				if (newBlock) 
+					newBlock.removeAttribute('class')
 
 				if ( !newBlock ) {
 					// We have already created a new list item. (#6849)

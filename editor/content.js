@@ -1,4 +1,3 @@
-
 CKEDITOR.dom.elementPath.prototype.isContextFor = function() {
   return true;
 }
@@ -60,7 +59,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
             var bookmark = selection.createBookmarks();
 
         cleaned.push(children[i])
-      } else if (!children[i].classList.contains('kx')) {
+      } else if (!children[i].classList.contains('kx') && !children[i].classList.contains('kx-placeholder')) {
         var els = []
         var grandchildren = children[i].children;
         for (var j = 0; j < grandchildren.length; j++) {
@@ -176,9 +175,9 @@ Editor.Content.isInside = function(element, another) {
   }
 }
 
-Editor.Content.isEmpty = function(child) {
+Editor.Content.isEmpty = function(child, includePlaceholders) {
   if (child.tagName == 'IMG' || child.tagName == 'HR' || (child.tagName == 'PICTURE' && child.getElementsByTagName('img')[0])
-  || child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && child.classList.contains('kx')))
+  || child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && (child.classList.contains('kx') || (!includePlaceholders && child.classList.contains('kx-placeholder')))))
     return false;
   //if (child.tagName == 'P') {
     var text = child.textContent
@@ -190,7 +189,7 @@ Editor.Content.isEmpty = function(child) {
           return false;
       }
   //}
-  return child.nodeType != 1 || !child.querySelector('img, video, iframe');
+  return child.nodeType != 1 || !child.querySelector('img, video, iframe, .kx-placeholder');
 }
 
 
@@ -275,9 +274,11 @@ Editor.Content.soundsLikeSemanticClass = {
 
   'avatar':    'avatar',
   'timestamp': 'timestamp',
+  'post__time_published':  'timestamp',
   'datetime':  'timestamp',
   'date':      'maybe-timestamp',
   'time':      'maybe-timestamp',
+
 
   'title':     'title',
   'heading':   'title',
@@ -348,7 +349,8 @@ Editor.Content.soundsLikeUIClass = {
   'ufiaddcomment': 1, // fb add comment section
   'ufilikesentence': 1, // fb reactions section
   'u-hiddenvisually': 1,//twitter class for hidden stuff
-  'shelf-annotation': 1 // youtube chrome text
+  'shelf-annotation': 1, // youtube chrome text
+  'discussion-sidebar': 1 //github issues sidebar
 }
 Editor.Content.soundsLikeUIText = {
 '': 1,
@@ -363,11 +365,15 @@ Editor.Content.soundsLikeUIText = {
 'view': 1,
 'views': 1,
 'new': 1,
+'vote': 1,
+'upvote': 1,
+'downvote': 1,
 'edit': 1,
 'delete': 1,
 'add': 1,
 'friend': 1,
 'favorites': 1,
+'favorite': 1,
 'follow': 1,
 'share': 1,
 'shares': 1,
@@ -409,6 +415,8 @@ Editor.Content.soundsLikeUIText = {
 'to': 1,
 'by': 1,
 'go': 1,
+'down': 1,
+'up': 1,
 'card': 1,
 'dismiss': 1,
 'this': 1,

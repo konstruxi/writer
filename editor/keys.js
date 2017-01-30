@@ -41,7 +41,7 @@ Editor.Keys = function(editor) {
         }
       }
       if (editor.snapshot)
-        editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
+        editor.snapshot.saveIdentity()
     }
     if (e.data.keyCode == 8) {
       var selection = editor.getSelection()

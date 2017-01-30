@@ -1,10 +1,18 @@
 Editor.Section = function(editor, mutation, observer) {
 
-  var snapshot = editor.snapshot || Editor.Snapshot.take(editor);
+  var options = Object.create(Editor.Snapshot.prototype);
+  options.editor = editor;
+
+
+  var snapshot = editor.snapshot;
+  if (!snapshot) {
+    var snapshot = editor.snapshot = Editor.Snapshot.take(editor.element.$, options);
+  }
   //editor.stylesnapshot = undefined;
 
   editor.fire( 'lockSnapshot');
   var content = editor.element.$;
+  Editor.Placeholder(editor);
   var section = Editor.Section.split(editor, content) || editor.justdropped
   for (var i = 0; i < content.children.length; i++) {
     Editor.Section.analyze(editor, content.children[i])
@@ -393,7 +401,7 @@ Editor.Section.fromPoint = function(editor, x, y) {
 
 Editor.Section.getFirstChild = function(section) {
   var first = section.firstElementChild;
-  while (first.classList.contains('kx') || first.tagName == 'HR')
+  while (first && (first.classList.contains('kx') || first.tagName == 'HR'))
     first = first.nextElementSibling;
   return first;
 }

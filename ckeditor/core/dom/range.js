@@ -2450,7 +2450,7 @@ CKEDITOR.dom.range = function( root ) {
 			function checkNodesEditable( node, anotherEnd ) {
 				while ( node ) {
 					if ( node.type == CKEDITOR.NODE_ELEMENT ) {
-						if ( node.getAttribute( 'contentEditable' ) == 'false' && !node.data( 'cke-editable' ) )
+						if ( node.getAttribute( 'contentEditable' ) == 'false' && !node.data( 'cke-editable' ) ) 
 							return 0;
 
 						// Range enclosed entirely in an editable element.

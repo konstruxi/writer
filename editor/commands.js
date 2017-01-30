@@ -36,42 +36,42 @@ Editor.Commands = function(editor) {
 
   editor.on('instanceReady', function() {
     editor.commands.paragraph.on('exec', function() {
-      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
+      editor.snapshot.saveIdentity()
       //editor.stylesnapshot = snapshotStyles(editor);
     })
     editor.commands.heading.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {lists: true, quotes: true})
-      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
+      editor.snapshot.saveIdentity()
     })
     editor.commands.subtitle.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {lists: true, quotes: true})
-      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
+      editor.snapshot.saveIdentity()
     })
     editor.commands.title.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {lists: true, quotes: true})
-      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
+      editor.snapshot.saveIdentity()
     })
     editor.commands.bulletedlist.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {titles: true, quotes: true})
-      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
+      editor.snapshot.saveIdentity()
     }, null, null, 1)
     editor.commands.numberedlist.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {titles: true, quotes: true})
-      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
+      editor.snapshot.saveIdentity()
     })
     editor.commands.blockquote.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
       Editor.Content.cleanSelection(editor, {titles: true, lists: true})
-      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
+      editor.snapshot.saveIdentity()
     })
     editor.commands.outdent.on('exec', function() {
       //editor.stylesnapshot = snapshotStyles(editor);
-      editor.snapshot.selected = Editor.Snapshot.rememberSelected(editor)
+      editor.snapshot.saveIdentity()
     }, null, null, 1)
     editor.commands.bold.on('exec', function() {
       if (editor.commands.italic.state == 1)

@@ -11,11 +11,14 @@ Editor.Placeholder = function(editor, changedPlaceholders) {
     }, true)
   }
 
+  if (!content.getAttribute('name') || content.getAttribute('name').indexOf('[content]') == -1)
+    return changedPlaceholders;
 
+  debugger
 
   if (form) {
 
-    var oldPlaceholders = Array.prototype.slice.call(content.getElementsByClassName('kx-placeholder'));
+    var oldPlaceholders = Array.prototype.slice.call(content.querySelectorAll('[itempath]'));
     var newPlaceholders = [];
 
 
@@ -70,18 +73,19 @@ Editor.Placeholder = function(editor, changedPlaceholders) {
       var placeholder = newPlaceholders[i];
       if (meta.indexOf(placeholder) > -1)
         continue;
-      if (placeholder && (placeholder.parentNode != anchor.parentNode ||
-                          placeholder.previousElementSibling != anchor))
-          anchor.parentNode.insertBefore(
+      var next = anchor && anchor.nextElementSibling || (i == 0 ? section.firstChild : null);
+      if (placeholder && (placeholder.parentNode != section ||
+                          placeholder.nextElementSibling != next))
+          section.insertBefore(
             placeholder,
-            anchor && anchor.nextElementSibling || (i == 0 ? section.firstChild : null)
+            next
           );
       anchor = placeholder;
     }
     // remove old placeholders
     for (var i = 0; i < oldPlaceholders.length; i++)
       if (newPlaceholders.indexOf(oldPlaceholders[i]) == -1) {
-        if (oldPlaceholders[i].classList.contains('kx-placeholder')) {
+        if (oldPlaceholders[i].getAttribute('itempath')) {
           oldPlaceholders[i].parentNode.removeChild(oldPlaceholders[i])
         }
       }
@@ -137,7 +141,10 @@ Editor.Placeholder.getFirstChild = function(content, itempath, tagNames, placeho
 
 Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, placeholders, newPlaceholders, changedPlaceholders) {
   var itempath = field.getAttribute('name');
-  if (!field.value) 
+
+  // When placeholder value was changed, do not match content tag.
+  // (Otherwise splitting title would eat up 2nd line)
+  if (!field.value || !changedPlaceholders.filter(function(e) { return e.getAttribute('itempath') == field.name})[0]) 
     var first = Editor.Placeholder.getFirstChild(content, itempath, tagNames, placeholders, newPlaceholders);
   
   if (first) {
@@ -171,7 +178,6 @@ Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, plac
 
           placeholders[i].removeAttribute('itempath')
           placeholders[i].removeAttribute('label')
-          placeholders[i].classList.remove('kx-placeholder');
           placeholders[i].classList.remove('kx-placeholder-shown');
 
         }
@@ -191,9 +197,7 @@ Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, plac
 
   element.setAttribute('itempath', itempath)
   element.setAttribute('tabindex', 0)
-  element.classList.add('kx-placeholder');
   if (hasContent) {
-    element.className = 'kx-placeholder';
     element.classList.remove('kx-placeholder-shown');
   } else if (element.childNodes.length == 0) {
     element.innerHTML = '<br />'
@@ -241,19 +245,35 @@ Editor.Placeholder.onChange = function(placeholder) {
 
 }
 Editor.Placeholder.write = function(editor, content, form) {
-  var placeholders = Array.prototype.slice.call(content.getElementsByClassName('kx-placeholder'));
+  var placeholders = Array.prototype.slice.call(content.querySelectorAll('[itempath]'));
   for (var i = 0; i < placeholders.length; i++) {
     Editor.Placeholder.onChange(placeholders[i])
   }
   var input = document.querySelector('textarea.rich[name="' + content.getAttribute('name') + '"]')
   if (input) {
-    Editor.Placeholder.dummy.innerHTML = editor.getData().replace(/\&nbsp;/g, '&#160;');
-    Array.prototype.forEach.call(Editor.Placeholder.dummy.querySelectorAll('.kx, .kx-placeholder, .meta.expanded'), function(el) {
+    Editor.Placeholder.dummy.innerHTML = editor.getData()
+    Array.prototype.forEach.call(Editor.Placeholder.dummy.querySelectorAll('.kx.toolbar'), function(el) {
       el.parentNode.removeChild(el);
+    })
+    Array.prototype.forEach.call(Editor.Placeholder.dummy.querySelectorAll('[itempath]'), function(el) {
+      if (Editor.Content.isEmpty(el, true)) {
+        el.parentNode.removeChild(el);
+      } else {
+        el.classList.remove('kx-placeholder')
+        el.removeAttribute('tabindex')
+      }
+    })
+    Array.prototype.forEach.call(Editor.Placeholder.dummy.querySelectorAll('.meta.expanded'), function(el) {
+      if (Editor.Content.isEmpty(el, true))
+        el.parentNode.removeChild(el);
+      else
+        el.classList.remove('expanded')
     })
     Array.prototype.forEach.call(Editor.Placeholder.dummy.children, function(el) {
       if (el.tagName != 'SECTION') el.parentNode.removeChild(el);
     });
     input.value = Editor.Placeholder.dummy.innerHTML
+                    .replace(/\&nbsp;/g, '&#160;')
+                    .replace(/(<img[^>]*[^\/])>/g, '$1/>');
   }
 }

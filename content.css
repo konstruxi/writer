@@ -4,14 +4,14 @@
 
 
 
-.kx-placeholder:before{
+[itempath]:before{
   content: attr(label);
   color: #999;
   display: inline-block;
   padding-left: 1rem;
   float: right;
 }
-.kx-placeholder:after {
+[itempath]:after {
   position: absolute;
   content: '';
   display: block;
@@ -23,12 +23,12 @@
   z-index: -1;
 }
 
-.kx-placeholder[itempath*="[summary]"]:after {
+[itempath*="[summary]"]:after {
   background: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.015));
 
 }
 
-.content ul.meta.expanded {
+.content ul.meta {
   display: flex;
   justify-content: stretch;
 }
@@ -37,37 +37,37 @@
   flex: 1 1 33%;
 }
 
-.content ul.meta.expanded li + li{
+.content ul.meta li + li{
   margin-left: 2.14rem;
 }
-.content ul.meta li.kx-placeholder {
+.content ul.meta li[itempath] {
   margin-top: 0;
 }
-.content ul.meta li.kx-placeholder:after {
+.content ul.meta li[itempath]:after {
   top: -0.96rem;
 }
 
 
-.content.content .kx-placeholder {
+.content.content [itempath] {
   min-height: 2.5rem;
   padding-top: 0.25rem;
 }
-.content.content picture.kx-placeholder {
+.content.content picture[itempath] {
   padding-top: 0.25rem;
 }
-.content.content h1.kx-placeholder {
+.content.content h1[itempath] {
   padding-top: 0rem;
   min-height: 3rem;
 }
-.content picture.kx-placeholder {
+.content picture[itempath] {
   overflow: visible;
 }
-.content .kx-placeholder {
+.content [itempath] {
   margin-top: 14px;
   bottom: 0rem;
 }
-ul.meta + .kx-placeholder:after,
-.kx-placeholder + .kx-placeholder:after {
+ul.meta + [itempath]:after,
+[itempath] + [itempath]:after {
   top: -0.77rem;
   bottom: 0rem;
 }
@@ -75,14 +75,14 @@ ul.meta + .kx-placeholder:after,
 
 
 
-.content.content section:not(.small) picture.kx-placeholder,
-.content.content section:not(.small) a.kx-placeholder,
-.content.content section:not(.small) ul.kx-placeholder {
+.content.content section:not(.small) picture[itempath],
+.content.content section:not(.small) a[itempath],
+.content.content section:not(.small) ul[itempath] {
   width: calc(50% - 4.2rem);
   margin-left: 3.15rem;
 }
 
-.content.content section:not(.small) picture.kx-placeholder + ul.kx-placeholder{
+.content.content section:not(.small) picture[itempath] + ul[itempath]{
   position: absolute;
   margin-bottom: auto;
   margin-top: 0;
@@ -95,7 +95,7 @@ ul.meta + .kx-placeholder:after,
 
 
 
-form article.content {
+form article.content] {
   display: none;
 }
 

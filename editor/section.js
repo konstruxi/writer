@@ -15,7 +15,7 @@ Editor.Section = function(editor, mutation, observer, changedPlaceholders) {
   Editor.Selection.remember(editor);
 
   var placeholding = Editor.Selection.check(editor, function(el) {
-    return el.classList.contains('kx-placeholder')
+    return el.getAttribute('itempath')
   });
 
   var old = changedPlaceholders.length;

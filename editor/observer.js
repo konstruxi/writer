@@ -9,7 +9,7 @@ Editor.Observer = function(editor) {
       for (var t = m.target; t && t != editor.element.$; t = t.parentNode) {
         if (t.id == 'cke_pastebin') 
           continue mutations;
-        if (t.classList && t.classList.contains('kx-placeholder')) {
+        if (t.classList && t.attributes.itempath) {
           if (placeholders.indexOf(t) == -1)
             placeholders.push(t);
         } 
@@ -23,7 +23,7 @@ Editor.Observer = function(editor) {
               child.tagName != 'STYLE'  ) {
             var reason = mutations[i];
           }
-          if (child.classList && child.classList.contains('kx-placeholder'))
+          if (child.classList && child.attributes.itempath)
             if (placeholders.indexOf(child) == -1)
               placeholders.push(child);
         }
@@ -35,7 +35,7 @@ Editor.Observer = function(editor) {
               child.tagName != 'STYLE') {
             var reason = mutations[i];
           }
-          if (child.classList && child.classList.contains('kx-placeholder'))
+          if (child.classList && child.attributes.itempath)
             if (placeholders.indexOf(child) == -1)
               placeholders.push(child);
         }

@@ -666,6 +666,8 @@ Editor.DTD.processMeta = function(editor, element, parent) {
 
   for (var i = 0; i < element.children.length; i++) {
     var child = element.children[i];
+    if (child.parent != element)
+      child.parent = element; // ? seems .add is not two way
     var prev = element.children[i - 1]
     if (!currentClasses) currentClasses = metaClasses.map(function(kls) {
       return Editor.DTD.getElementByClassName(element, kls, i)

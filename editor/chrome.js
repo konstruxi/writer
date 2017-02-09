@@ -56,7 +56,7 @@ Editor.Chrome = function(editor, content) {
 
 }
 
-Editor.Chrome.Toolbar = function(editor, section) {
+Editor.Chrome.Toolbar = function(editor, section, iconname) {
   if (!section.getElementsByClassName('foreground')[0]) {
     var bg = document.createElement('x-div');
     bg.classList.add('kx')
@@ -86,7 +86,9 @@ Editor.Chrome.Toolbar = function(editor, section) {
     //toolbar.setAttribute('contenteditable', 'false')
 
     var link = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#resize-section-icon');
+    if (typeof iconname == 'function')
+      iconname = iconname(section)
+    link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + (iconname || 'resize-section-icon'));
     icon.appendChild(link)
     toolbar.appendChild(icon)
     section.insertBefore(toolbar, section.firstChild)
@@ -94,6 +96,7 @@ Editor.Chrome.Toolbar = function(editor, section) {
 }
 
 Editor.Chrome.Toolbar.open = function(editor, section, button) {
+
   var indexF = editor.snapshot.elements.indexOf(section.getElementsByClassName('toolbar')[0]);
   if (indexF > -1) {
     var box = editor.snapshot.dimensions[indexF]
@@ -110,6 +113,7 @@ Editor.Chrome.Toolbar.open = function(editor, section, button) {
   sectionizer.className = section.className
   sectionizer.removeAttribute('hidden')
 }
+
 
 Editor.Chrome.Toolbar.close = function(editor) {
   sectionizer.setAttribute('hidden', 'hidden')

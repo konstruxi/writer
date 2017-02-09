@@ -5,7 +5,7 @@ document.documentElement.className +=
 
 
 
-function Editor(content) {
+function Editor(content, options) {
   CKEDITOR.dom.domObject.prototype.is = function() { return false}
   CKEDITOR.dom.domObject.prototype.getParent = function() { return null}
   // Turn off automatic editor creation first.
@@ -15,6 +15,8 @@ function Editor(content) {
   var editor = CKEDITOR.inline(content, {
     floatSpaceDockedOffsetY: 10
   });
+
+  editor.options = options
 
   editor.on('loaded', function() {
     Editor.Commands(editor, content)

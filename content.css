@@ -4,14 +4,14 @@
 
 
 
-[itempath]:before{
+[contenteditable] [itempath]:before{
   content: attr(label);
   color: #999;
   display: inline-block;
   padding-left: 1rem;
   float: right;
 }
-[itempath]:after {
+[contenteditable] [itempath]:after {
   position: absolute;
   content: '';
   display: block;
@@ -23,32 +23,32 @@
   z-index: -1;
 }
 
-[itempath*="[summary]"]:after {
+[contenteditable] [itempath*="[summary]"]:after {
   background: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.015));
 
 }
 
-.content ul.meta {
+.content[contenteditable]  ul.meta {
   display: flex;
   justify-content: stretch;
 }
-.content ul.meta li {
+.content[contenteditable]  ul.meta li {
   position: relative;
   flex: 1 1 33%;
 }
 
-.content ul.meta li + li{
+.content[contenteditable]  ul.meta li + li{
   margin-left: 2.14rem;
 }
-.content ul.meta li[itempath] {
+.content[contenteditable]  ul.meta li[itempath] {
   margin-top: 0;
 }
-.content ul.meta li[itempath]:after {
+.content[contenteditable]  ul.meta li[itempath]:after {
   top: -0.96rem;
 }
 
 
-.content.content [itempath] {
+.content.content[contenteditable]  [itempath] {
   min-height: 2.5rem;
   padding-top: 0.25rem;
 }
@@ -59,10 +59,10 @@
   padding-top: 0rem;
   min-height: 3rem;
 }
-.content picture[itempath] {
+.content[contenteditable]  picture[itempath] {
   overflow: visible;
 }
-.content [itempath] {
+.content[contenteditable]  [itempath] {
   margin-top: 14px;
   bottom: 0rem;
 }
@@ -75,14 +75,14 @@ ul.meta + [itempath]:after,
 
 
 
-.content.content section:not(.small) picture[itempath],
-.content.content section:not(.small) a[itempath],
-.content.content section:not(.small) ul[itempath] {
+.content.content[contenteditable]  section:not(.small) picture[itempath],
+.content.content[contenteditable]  section:not(.small) a[itempath],
+.content.content[contenteditable]  section:not(.small) ul[itempath] {
   width: calc(50% - 4.2rem);
   margin-left: 3.15rem;
 }
 
-.content.content section:not(.small) picture[itempath] + ul[itempath]{
+.content.content[contenteditable]  section:not(.small) picture[itempath] + ul[itempath]{
   position: absolute;
   margin-bottom: auto;
   margin-top: 0;
@@ -95,7 +95,7 @@ ul.meta + [itempath]:after,
 
 
 
-form article.content] {
+form article.content {
   display: none;
 }
 
@@ -115,10 +115,10 @@ form article.content.cke_editable + textarea {
 
 
 
-.content {
-  margin: 4rem 0 2rem 0;
+.content + .content{
+  padding: 4rem 0 2rem 0;
   box-sizing: border-box;
-  transition: filter 0.6s;
+  border-top: 1px solid #ccc;
 }
 
 .content [unselectable="on"] {

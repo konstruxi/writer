@@ -14,7 +14,6 @@ Editor.Placeholder = function(editor, changedPlaceholders) {
   if (!content.getAttribute('name') || content.getAttribute('name').indexOf('[content]') == -1)
     return changedPlaceholders;
 
-  debugger
 
   if (form) {
 
@@ -252,6 +251,9 @@ Editor.Placeholder.write = function(editor, content, form) {
   var input = document.querySelector('textarea.rich[name="' + content.getAttribute('name') + '"]')
   if (input) {
     Editor.Placeholder.dummy.innerHTML = editor.getData()
+      .replace(/\s(?:style)="[^"]*?"/gi, '')
+      .replace(/\s(?:src)="data:[^"]*?"/gi, 'src="data:blob"');
+    
     Array.prototype.forEach.call(Editor.Placeholder.dummy.querySelectorAll('.kx.toolbar'), function(el) {
       el.parentNode.removeChild(el);
     })
@@ -273,7 +275,8 @@ Editor.Placeholder.write = function(editor, content, form) {
       if (el.tagName != 'SECTION') el.parentNode.removeChild(el);
     });
     input.value = Editor.Placeholder.dummy.innerHTML
-                    .replace(/\&nbsp;/g, '&#160;')
-                    .replace(/(<img[^>]*[^\/])>/g, '$1/>');
+      .replace(/\&nbsp;/gi, '&#160;')
+      .replace(/(<img[^>]*[^\/])>/gi, '$1/>')
+      .replace(/<(hr|br)\s*>/ig, '$1/>');
   }
 }

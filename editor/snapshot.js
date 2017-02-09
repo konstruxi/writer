@@ -6,7 +6,7 @@ Kex = function(element, options, elements, dimensions, selected, offsetHeight) {
   this.selected = selected || [];
   this.offsetHeight = offsetHeight;
   if (element)
-    Kex.measureContainer(element, options);
+    Kex.measureContainer(element, this.options);
 }
 
 
@@ -172,9 +172,28 @@ Kex.prototype.transition = function(element, from, to, time, startTime, fallback
   } else {
     var target = to[property];
   }
-  var current = to[fallback] != null ? to[fallback] : 
-                from[fallback] != null ? from[fallback] :
-                from[property];
+  if (from.wasHidden) {
+    var current = to[fallback] != null ? to[fallback] : 
+                    this.options.getAppearanceStyles 
+                      ? this.options.getAppearanceStyles.apply(this, arguments)
+                      : (property == 'top' ? target - 50 : 
+                         property == 'left' ? target : 
+                         property == 'width' ? target : 
+                         property == 'height' ? target :  from[property] || 0);
+  } else if (to.wasHidden && !from.wasHidden) {
+    var current = to[fallback] != null ? to[fallback] : 
+                  from[fallback] != null ? from[fallback] :
+                  from[property];
+    if (property != 'opacity')
+      target = from[property] - (property == 'top' ? 50 : 0)
+    //if (property == 'fontSize')
+    //  target = current * 0.75;
+  } else {
+    var current = to[fallback] != null ? to[fallback] : 
+                  from[fallback] != null ? from[fallback] :
+                  from[property];
+  }
+
   if (to[springName] === false && to[fallback] === target) {
     return target
   } else if (to[springName]) {
@@ -195,8 +214,8 @@ Kex.prototype.transition = function(element, from, to, time, startTime, fallback
         var spring = to[springName] = new Spring(74, 12);
     } else if (property == 'fontSize') {
       var spring = to[springName] = new Spring(100, 12);
-    } else if (property == 'fontSize') {
-      var spring = to[springName] = new Spring(100, 12);
+    } else if (property == 'opacity') {
+      var spring = to[springName] = new Spring(80, 9);
     } else if (property == 'top') {
       var spring = to[springName] = new Spring(34, 9);
     } else {
@@ -207,7 +226,7 @@ Kex.prototype.transition = function(element, from, to, time, startTime, fallback
     spring.element = element;
     if (spring[2] == null) { 
       spring[2] = current
-      console.log(property, element, 'spring from', spring[2], 'to', target)
+      console.log(property, element, 'spring from', spring[2], 'to', target, from && from.wasHidden)
     }
     spring[3] = target;
     var value = spring.compute(time, startTime);
@@ -243,7 +262,7 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
 
     var shiftX = 0;
     var shiftY = 0;
-    if (from && ((to.animated || from.animated) || (from.manipulated || to.manipulated))) {
+    if (from && (to.wasHidden || (to.animated || from.animated) || (from.manipulated || to.manipulated))) {
       if (from.animated)
         to.animated = true
       if (from.manipulated) {
@@ -257,12 +276,13 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
       to.currentLeft   = this.transition(element, from, to, time, startTime, 'currentLeft', 'left', 'leftSpring', 'targetLeft');
       to.currentWidth  = this.transition(element, from, to, time, startTime, 'currentWidth', 'width', 'widthSpring', 'targetWidth');
       to.currentHeight = this.transition(element, from, to, time, startTime, 'currentHeight', 'height', 'heightSpring', 'targetHeight');
-
+      to.currentOpacity   = this.transition(element, from, to, time, startTime, 'currentOpacity', 'opacity', 'opacitySpring');
       if (to.up) {
         shiftY += (to.up.currentTop || to.up.top) - to.up.top;
         shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
       }
     } else {
+      to.currentOpacity = to.opacity
       to.currentFontSize = to.fontSize
       to.currentLineHeight = to.lineHeight
       to.currentWidth  = to.targetWidth != null ? to.targetWidth : to.width
@@ -274,8 +294,14 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
     to.currentY = to.y + (to.currentTop - to.top) - shiftY;
 
 
+    var css = '';
+    if (to.visible && (!to.static || to.wasHidden)) {
+      if (to.wasHidden && from && !from.wasHidden)
+        css += 'display: block; '
+      if (to.currentOpacity != to.opacity) 
+        css += 'opacity: ' + Math.max(0, Math.min(1, to.currentOpacity)) + '; '
+    }
     if (!to.static) {
-      var css = '';
       if (to.visible) {
         if (to.currentFontSize != to.fontSize && element.tagName != 'SECTION')
           css += 'font-size: ' + to.currentFontSize + 'px; '
@@ -302,8 +328,9 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
       } else {
         css = 'z-index: -1; visibility: hidden';
       }
-      element.style.cssText = css;
     }
+    if (!to.static || to.wasHidden)
+      element.style.cssText = css;
 
     //if (!to.topSpring && !to.leftSpring && !to.heightSpring && !to.widthSpring && !to.fontSizeSpring)
     //  to.animated = false;
@@ -316,7 +343,7 @@ Kex.take = function(element, options, reset, focused) {
     options = {};
 
   if (!options.selector)
-    options.selector = 'section, div, ul, li, ol, h1, h2, h3, h4, h5, dl, dt, dd, p';
+    options.selector = 'section, div, ul, li, ol, h1, h2, h3, h4, h5, dl, dt, dd, p, nav, dl, header, footer, main, article, details, summary, aside, button, form';
   if (!options.getElements)
     options.getElements = function() {
       return Array.prototype.slice.call(element.querySelectorAll(options.selector))
@@ -341,14 +368,25 @@ Kex.take = function(element, options, reset, focused) {
       width: elements[i].offsetWidth, 
       parent: elements[i].parentNode}
 
-    box.styles = window.getComputedStyle(elements[i]);
+
+    box.styles = window.getComputedStyle(elements[i]);;
+
     box.fontSize = parseFloat(box.styles['font-size'])
+    box.opacity = parseFloat(box.styles['opacity']);
     box.lineHeight = getLineHeight(box.styles['line-height'], box.fontSize)
 
 
     if (!box.up)
       box.up = dimensions[elements.indexOf(elements[i].parentNode)]
     
+    if (box.height == 0 || box.width == 0 ) {
+      //for (var up = box; up = up.up;)
+      //  if (up.wasHidden)
+      //    break;
+      //if (!up) {
+        box.wasHidden = true;
+      //}
+    }
     // at times height measurement may be incorrect for foreground
     // e.g. when animating section with css columns
     if (elements[i].classList.contains('foreground') && box.up) {
@@ -358,9 +396,22 @@ Kex.take = function(element, options, reset, focused) {
       box.top += parent.offsetTop;
       box.left += parent.offsetLeft;
     }
+
+
     //if (elements[i].tagName == 'SECTION')
     //  box.client = elements[i].getBoundingClientRect();
     box.visible = Kex.isVisible(element, options, box);
+
+    // should give better subpixel precision 
+    if (box.visible) {
+      box.client = elements[i].getBoundingClientRect()
+      box.width = box.client.width;
+      box.height = box.client.height;
+      box.top = box.client.top + window.scrollY;
+      box.left = box.client.left + window.scrollX
+    }
+
+
     dimensions.push(box)
   }
 
@@ -375,7 +426,6 @@ Kex.take = function(element, options, reset, focused) {
 }
 
 Kex.prototype.saveIdentity = function() {
-  debugger
   this.selected = Kex.getIdentity(this.element, this.options)
 }
 Kex.getIdentity = function(element, options) {
@@ -389,22 +439,17 @@ Kex.prototype.resetElement = function(element, over) {
   //element.style.webkitTransitionDuration = '0s'
   //element.style.transitionDuration = '0s'
   element.style.cssText = '';
-  element.style.margin = ''
   if (over) {
     var box = this.get(element)
     if (box) {
       box.manipulated = false;
       box.animated = false;
     }
-    element.style.zIndex = ''
-    element.style.visibility = ''
-    element.style.transform = ''
     if (element.getAttribute('style') === '')
       element.removeAttribute('style')
   }
 }
 Kex.prototype.reset = function(elements, over) {
-  console.log('resetting')
   if (!elements)
     elements = this.elements;
   for (var i = 0; i < elements.length; i++) {
@@ -427,10 +472,11 @@ Kex.isVisible = function(element, options, box) {
 
 Kex.measureContainer = function(element, options, scroll) {
   if (!scroll) {
-    options.offsetHeight = element.offsetHeight;
-    options.offsetWidth  = element.offsetWidth;
-    options.offsetTop    = element.offsetTop;
-    options.offsetLeft   = element.offsetLeft;
+    var client = element.getBoundingClientRect();
+    options.offsetHeight = client.height//element.offsetHeight;
+    options.offsetWidth  = client.width//element.offsetWidth;
+    options.offsetTop    = client.top + window.scrollY//element.offsetTop;
+    options.offsetLeft   = client.left + window.scrollX//element.offsetLeft;
     options.innerWidth   = window.innerWidth;
     options.innerHeight  = window.innerHeight;
   }
@@ -490,7 +536,7 @@ Kex.prototype.normalize = function(element, from, repositioned, diffX, diffY, p)
     }
 
   if (!this.options.filter || this.options.filter.call(this, element, f, t))
-    if (!f || repos|| repositioned  || distance > 2 || diffSize > 2 || 
+    if (!f || repos|| repositioned  || distance > 3 || diffSize > 3 || 
     (f && (f.fontSize != t.fontSize || f.lineHeight != t.lineHeight))) {
       repositioned = 1;
     }
@@ -499,7 +545,7 @@ Kex.prototype.normalize = function(element, from, repositioned, diffX, diffY, p)
   t.x = shiftX;
   t.y = shiftY;
 
-  if (repositioned) 
+  if (repositioned || (f && f.wasHidden)) 
     t.animated = repositioned;
 
   // do not reposition content of non-animated sections
@@ -623,6 +669,7 @@ var dummies = dummy.getElementsByTagName('i');
 for (var i = 0; i < 100; i++) {
   Kex.lineHeights[i] = dummies[i].offsetHeight
 }
+dummy.innerHTML = '';
 
 
 

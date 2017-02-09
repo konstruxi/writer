@@ -117,7 +117,7 @@
 }
 
 
-#sectionizer svg{
+.circle-menu svg{
   width: 2rem;
   height: 2rem;
   border: 0.2rem solid transparent;
@@ -142,57 +142,57 @@ body.dragging .toolbar:not(.dragging) {
 }
 
 
-#sectionizer svg {
+.circle-menu svg {
   background: #f1f1f1;
   cursor: pointer;
 }
 
 
 section > .toolbar svg:hover,
-#sectionizer svg:hover {
+.circle-menu svg:hover {
   background: #000;
   color: #f1f1f1;
 }
 
-#sectionizer.starred .star{
+.circle-menu.starred .star{
   display: none;
 }
-#sectionizer:not(.starred) .unstar{
+.circle-menu:not(.starred) .unstar{
   display: none;
 }
-#sectionizer svg.unstar:hover,
-#sectionizer svg.star:hover {
+.circle-menu svg.unstar:hover,
+.circle-menu svg.star:hover {
   z-index: 1;
   border: 0.2rem solid transparent;
   margin: 0rem;
 }
 
-#sectionizer svg.unstar,
-#sectionizer svg.star{
+.circle-menu svg.unstar,
+.circle-menu svg.star{
   border: 0.5rem solid transparent;
   margin: -0.3rem;
 }
-#sectionizer svg.settings {
+.circle-menu svg.settings {
   top: -0.45rem;
   left: 2rem;
 }
-#sectionizer svg.palette {
+.circle-menu svg.palette {
   top: -0.45rem;
   left: -2rem;
 }
-#sectionizer svg.split {
+.circle-menu svg.top {
   top: -2.1rem;
 }
-#sectionizer svg.enlarge {
+.circle-menu svg.enlarge {
   top: 1.65rem;
   left: 1.15rem;
 }
-#sectionizer svg.shrink {
+.circle-menu svg.shrink {
   top: 1.65rem;
   left: -1.15rem;
 }
 
-#sectionizer {
+.circle-menu {
   position: absolute;;
   top: 0;
   left: 0;
@@ -201,27 +201,27 @@ section > .toolbar svg:hover,
   z-index: 10;
 }
 
-#sectionizer.large .enlarge {
+.circle-menu.large .enlarge {
   opacity: 0.3;
 }
-#sectionizer.small .shrink {
+.circle-menu.small .shrink {
   opacity: 0.3;
 }
 @media (max-width: 500px) {
-  #sectionizer .enlarge {
+  .circle-menu .enlarge {
     display: none;
   }
-  #sectionizer .shrink {
+  .circle-menu .shrink {
     display: none;
   }
 }
 
-#sectionizer[hidden] {
+.circle-menu[hidden] {
   visibility: hidden;
   display: none;
 }
 
-#sectionizer > svg {
+.circle-menu > svg {
   fill: currentColor;
   position: absolute;
   border-radius: 50%;
@@ -232,7 +232,7 @@ section  svg {
   fill: currentColor;
 }
 
-section > .toolbar {
+.content > section > .toolbar {
   z-index: 2;
   position: absolute;
   position: absolute;

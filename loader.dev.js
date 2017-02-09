@@ -61,11 +61,11 @@ document.write('\
 \
 <div id="formatting" hidden></div>\
 \
-<div id="sectionizer" hidden>\
+<div class="circle-menu" id="sectionizer" hidden>\
   <svg viewBox="-2 0 48 48" class="unstar icon"><use xlink:href="#unstar-icon"></use></svg>\
   <svg viewBox="-2 0 48 48" class="star icon"><use xlink:href="#star-icon"></use></svg>\
   <svg viewBox="-1 0 50 50" class="pick palette icon"><use xlink:href="#palette-icon"></use></svg>\
-  <svg viewBox="0 0 48 48" class="split handler icon"><use xlink:href="#split-section-icon"></use></svg>\
+  <svg viewBox="0 0 48 48" class="top split handler icon"><use xlink:href="#split-section-icon"></use></svg>\
   <svg viewBox="-1 0 50 50" class="pick settings icon"><use xlink:href="#settings-icon"></use></svg>\
   <svg viewBox="-2 2 48 48" class="shrink zoomer icon"><use xlink:href="#zoom-out-icon"></use></svg>\
   <svg viewBox="-2 2 48 48" class="enlarge zoomer icon"><use xlink:href="#zoom-in-icon"></use></svg>\
@@ -107,7 +107,7 @@ document.write('\
   <script src="' + prefix +  'editor/image.js"></script>\
   <script src="' + prefix +  'editor/placeholder.js"></script>\
   <script>\
-    var editors = document.querySelectorAll(\'article[contenteditable]\');\
+    var editors = document.querySelectorAll(\'.content[contenteditable]\');\
     for (var i = 0; i < editors.length; i++)\
       new Editor(editors[i])\
   </script>');

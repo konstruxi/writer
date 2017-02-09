@@ -57,7 +57,6 @@ Editor.Snapshot.prototype.onTake = function(options, reset, focused) {
       range.moveToElementEditEnd(new CKEDITOR.dom.element(focused))
       options.editor.getSelection().selectRanges([range])
     } else if (bookmark) {
-      debugger
       Editor.Selection.restore(options.editor, bookmark);
     }
     if (bookmark && bookmark[0] && bookmark[0].startNode.$.parentNode)

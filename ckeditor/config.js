@@ -10,6 +10,11 @@ CKEDITOR.editorConfig = function( config ) {
 	config.plugins = 'SimpleLink,sharedspace,blockquote,dialogui,dialog,clipboard,basicstyles,divarea,enterkey,floatingspace,entities,indent,indentlist,list,button,toolbar,undo' // ,magicline;
 	config.skin = 'none';
 	// %REMOVE_END%
+	
+	config.customConfig = ''; //no config.js
+	config.stylesSet = false; //no styles.js
+	config.defaultLanguage = 'en'; //default language
+	config.language = 'en'; //ui language
 
 	// Define changes to default configuration here.
 	// For complete reference see:
@@ -31,14 +36,14 @@ CKEDITOR.editorConfig = function( config ) {
 	// Dialog windows are also simplified.
 	config.removeDialogTabs = 'link:advanced';
 
-	config.allowedContent = 'picture(loading,added)[uid]; hr h1 h2 h3 h4 h5 blockquote ul li ol; b i code pre abbr; iframe[src]; a[href,title,hidden,aria-hidden]; abbr[title]; img(*)[src,alt,title,uid,palette,width,height,class]; section(*)[*];'
-	config.extraAllowedContent = 'div span article section time[datetime]; * (*)[width,height,src,href,itempath]{background,background-color,width,height}';
+	config.allowedContent = 'x-div picture(loading,added)[uid]; hr h1 h2 h3 h4 h5 blockquote ul li ol; b i code pre abbr; iframe[src]; a[href,title,hidden,aria-hidden]; abbr[title]; img(*)[src,alt,title,uid,palette,width,height,class]; section(*)[*];'
+	config.extraAllowedContent = 'header; style; svg[width,height,viewbox,unselectable]; use[*]; div svg span article section time[datetime]; * (*)[width,height,src,href,itempath,itemlabel,itemvalue,itemindex,itemtable,itemname,kx-html,kx-text,contenteditable,marked-to-delete]{background,background-color,width,height}';
 	config.disallowedContent = 'section(focused);'
 
 	config.shiftEnterMode = CKEDITOR.ENTER_P
 
 	config.sharedSpaces = {
-	    top: 'formatting',
+	    top: 'formatting'
 	}
 	config.undoStackSize = 150;
 	config.title = false

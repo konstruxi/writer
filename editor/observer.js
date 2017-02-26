@@ -12,9 +12,10 @@ Editor.Observer = function(editor) {
         if (t.classList && t.attributes.itempath) {
           if (placeholders.indexOf(t) == -1)
             placeholders.push(t);
-        } 
+        }
       }
       if (m.type === 'childList') {
+        if (m.target.tagName == 'svg') continue;
         for (var j = 0; j < m.removedNodes.length; j++) {
           var child = m.removedNodes[j];
           if (child.nodeType == 1 &&

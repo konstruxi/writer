@@ -1,18 +1,20 @@
 Editor.Snapshot = function(element, options, elements, dimensions, selected, offsetHeigh) {
-  return Kex(element, options, elements, dimensions, selected, offsetHeigh)
+  if (element == undefined)
+    return this;
+  return new Kex(element, this, elements, dimensions, selected, offsetHeigh);
 }
 Editor.Snapshot.prototype = new Kex;
 Editor.Snapshot.take = Kex.take;
-
-Editor.Snapshot.prototype.getElements = function(element, options) {
-  return Editor.Content(options.editor)
-}
+Editor.Snapshot.prototype.selector = 'section, div, ul, li, ol, h1, h2, h3, h4, h5, dl, dt, dd, p, nav, dl, header, footer, main, article, details, summary, aside, button, form, input, label, summary a, select, textarea, x-div, section > a, img, picture, blockquote'
+//Editor.Snapshot.prototype.getElements = function(element, options) {
+//  return Editor.Content(options.editor)
+//}
 Editor.Snapshot.prototype.onInvalidate = function(callback) {
   this.options.editor.snapshot = callback();
 }
 
 Editor.Snapshot.prototype.filter = function(element) {
-  return Editor.Content.isParagraph(element) || element.tagName == 'IMG' || Editor.Content.isPicture(element) || element.classList.contains('kx')
+  return true//element.tagName == 'ARTICLE' || element.tagName == 'SECTION' || element.tagName == 'DIV' || Editor.Content.isParagraph(element) || element.tagName == 'IMG' || Editor.Content.isPicture(element) || element.classList.contains('kx')
 }
 Editor.Snapshot.prototype.onProcess = function(snapshot) {
 
@@ -32,7 +34,8 @@ Editor.Snapshot.prototype.onProcess = function(snapshot) {
 
 }
 Editor.Snapshot.prototype.onTake = function(options, reset, focused) {
-
+  if (!options.editor)
+    return;
   var bookmark = options.editor.dragbookmark;
 
   if (options.editor.refocusing) {
@@ -52,10 +55,9 @@ Editor.Snapshot.prototype.onTake = function(options, reset, focused) {
     var selection = options.editor.getSelection();
 
     if (focused) {
-      var selection = options.editor.getSelection()
-      var range = selection.getRanges()[0] || options.editor.createRange()
+      var range = options.editor.createRange()
       range.moveToElementEditEnd(new CKEDITOR.dom.element(focused))
-      options.editor.getSelection().selectRanges([range])
+      range.select()
     } else if (bookmark) {
       Editor.Selection.restore(options.editor, bookmark);
     }
@@ -65,21 +67,24 @@ Editor.Snapshot.prototype.onTake = function(options, reset, focused) {
 }
 
 Editor.Snapshot.prototype.onBeforeMutate = function() {
-  this.options.editor.fire('lockSnapshot')
+  if (this.options.editor)
+    this.options.editor.fire('lockSnapshot')
 }
 
 Editor.Snapshot.prototype.onAfterMutate = function() {
-  this.options.editor.fire('unlockSnapshot')
+  if (this.options.editor)
+    this.options.editor.fire('unlockSnapshot')
 }
 
 Editor.Snapshot.prototype.onFinish = function() {
-  this.options.editor.fire('transitionEnd')
+  if (this.options.editor)
+    this.options.editor.fire('transitionEnd')
 }
 
 
 Editor.Snapshot.prototype.getIdentity = function(options, bookmark, focused) {
-
-  var selection = options.editor.getSelection()
+  var selection = options.editor && options.editor.getSelection()
+  if (!selection) return;
   var range = selection.getRanges()[0];
   if (range) {
     if (bookmark && bookmark.length == 1) {

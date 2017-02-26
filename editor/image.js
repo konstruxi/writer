@@ -23,6 +23,7 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded, arg) {
       Editor.Image.onLoaded(editor, this, onImageProcessed, file)
     }
     image.src = URL.createObjectURL(file);
+    (editor.images || (editor.images = {}))[image.src] = file;
   } else if (image.complete && image.src && image.naturalWidth) {
     Editor.Image.onLoaded(editor, image, onImageProcessed)
   } else {
@@ -126,10 +127,17 @@ Editor.Image.schedule = function(editor, image, callback, file) {
       canvas.width = result.resized.width;
       canvas.height = result.resized.height;
       ctx.putImageData(imageData, 0, 0)
+      debugger
       if (canvas.toBlob) {
 
-        canvas.toBlob(function(blob) {
+        var blob = canvas.toBlob(function(blob) {
+          debugger
+          blob.name = editor.images[image.src].name
+          blob.lastModified = editor.images[image.src].lastModified
+          URL.revokeObjectURL(image.src);
+          delete editor.images[image.src];
           image.src = URL.createObjectURL(blob);
+          editor.images[image.src] = blob;
           console.timeEnd('Image: Drawing resized image');
         }, 'image/png', 0.95)
       } else {
@@ -159,8 +167,8 @@ Editor.Image.applyChanges = function(data, image) {
 
   var generator = Palette(image)
   var uid = image.getAttribute('uid');
-  Editor.Style.store(this, 'palette', uid, generator);
-  var schema = Editor.Style.get(this, section, 'schema');
+  Editor.Style.store(this, 'palette', uid, generator)
+  var schema = Editor.Style.get(this, section, 'schema', 'DV_V');
   var result = generator(schema)
 
   var width = parseInt(image.getAttribute('width'));
@@ -200,9 +208,11 @@ Editor.Image.applyChanges = function(data, image) {
 
 
 Editor.Image.unload = function(editor, image) {
-  var src = image;
+  var src = image.src;
   setTimeout(function() {
     URL.revokeObjectURL(src)
+    if (editor.images)
+      editor.images[src] = undefined
   }, 2000);
 }
 

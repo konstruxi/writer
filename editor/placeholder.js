@@ -1,23 +1,62 @@
 Editor.Placeholder = function(editor, changedPlaceholders) {
   var content = editor.element.$;
-  var form = Editor.Placeholder.getForm(content)
+  var form = editor.options.form || (editor.options.form = Editor.Placeholder.getForm(content))
   if (editor && form && editor.$form != form) {
     editor.$form = form;
     editor.on('blur', function() {
       //Editor.Placeholder.write(editor, content, form);
     })
+    form.onfakesubmit = function(data) {
+      Editor.Placeholder.write(editor, content, form, data);
+    }
     form.addEventListener('submit', function() {
       Editor.Placeholder.write(editor, content, form);
     }, true)
-  }
 
-  if (!content.getAttribute('name') || content.getAttribute('name').indexOf('[content]') == -1)
+    editor.element.$.addEventListener('keydown', function(e) {
+      if (e.keyCode == 9 || (e.keyCode == 13 && !e.shiftKey)) {
+        var selection = editor.getSelection();
+        if (!selection) return;
+        var range = selection.getRanges()[0]
+        var placeholders = editor.element.$.querySelectorAll('[itempath]');
+        for (var p = range.startContainer.$; p; p = p.parentNode) {
+          if (p.nodeType == 1 && p.getAttribute('itempath')) {
+            var offset = e.shiftKey ? -1 : 1;
+            debugger
+            var next = placeholders[Array.prototype.indexOf.call(placeholders, p) + offset];
+            
+          }
+        }
+
+        // tab within content moves focus to placeholder
+        if (offset == null && e.keyCode == 9) {
+          next = e.shiftKey ? placeholders[placeholders.length - 1] : placeholders[0];
+        }
+
+        if (next) {
+          Editor.Placeholder.focus(editor, next)
+          e.stopPropagation()
+          return e.preventDefault();
+        }
+      }
+    }, true);
+  }
+  if (editor.options.placeholders === false)
+    return changedPlaceholders;
+
+  if (content.getAttribute('name') && content.getAttribute('name').indexOf('[content]') == -1)
     return changedPlaceholders;
 
 
   if (form) {
-
-    var oldPlaceholders = Array.prototype.slice.call(content.querySelectorAll('[itempath]'));
+    var first = content.querySelector('section')
+    var oldPlaceholders = Array.prototype.slice.call(first ? first.querySelectorAll('[itempath]') : []).filter(function(placeholder) {
+      for (var p = placeholder; p = p.parentNode;) {
+        if (p.tagName == 'ARTICLE' && p != content)
+          return false;
+        if (p == content) return true;
+      }
+    });
     var newPlaceholders = [];
 
 
@@ -91,11 +130,25 @@ Editor.Placeholder = function(editor, changedPlaceholders) {
   }
 }
 
+Editor.Placeholder.focus = function(editor, element) {
+  var selection = editor.getSelection();
+  if (selection) {
+    var range = selection.getRanges()[0];
+    range.moveToPosition( new CKEDITOR.dom.element(element), CKEDITOR.POSITION_BEFORE_END );
+    range.select(true)
+    console.log(element, 555555555)
+  }
+}
+
 Editor.Placeholder.create = function(editor, content, form, field, placeholders, newPlaceholders, changedPlaceholders) {
   var section = content.getElementsByTagName('section')[0] || content;
+  var root = editor.options.form;
+  while (root.parentNode && root.tagName != 'HTML')
+    root = root.parentNode;
+  var label = Editor.Placeholder.getLabel(field, root)
 
-  var label = Editor.Placeholder.getLabel(field)
-
+  if (field.name && field.name.indexOf('[service_id]') > -1)
+    return;
   if ((field.tagName == 'INPUT' && field.type == 'text') && field.name && field.name.match(/\[?(?:title|name)\]?$/)) {
     var placeholder = Editor.Placeholder.resolve(content, field, ['H1', 'H2'], 'H1', placeholders, newPlaceholders, changedPlaceholders)
   } else {
@@ -111,7 +164,12 @@ Editor.Placeholder.create = function(editor, content, form, field, placeholders,
 
   }
   if (placeholder) 
-    placeholder.setAttribute('label', label && label.textContent)
+    placeholder.setAttribute('itemlabel', label && label.textContent.trim())
+
+  if (field.parentNode.classList.contains('errored')) {
+    if (field.parentNode.querySelector('.error'))
+      placeholder.setAttribute('error', field.parentNode.querySelector('.error').textContent)
+  }
 
   return placeholder
 };
@@ -176,7 +234,7 @@ Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, plac
 
 
           placeholders[i].removeAttribute('itempath')
-          placeholders[i].removeAttribute('label')
+          placeholders[i].removeAttribute('itemlabel')
           placeholders[i].classList.remove('kx-placeholder-shown');
 
         }
@@ -185,7 +243,15 @@ Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, plac
   }
   if (!element) {
     element = document.createElement(tagToBuild);
-    element.textContent = field.value.trim();
+    if (field.tagName == 'SELECT') {
+      var option = field.querySelector('option[value="' + field.value + '"]');
+    }
+    if (option) {
+      element.textContent = option.textContent.trim();
+      element.setAttribute('itemvalue', field.value)  
+    } else {
+      element.textContent = field.value.trim();
+    }
     var updated = true;
   }
   for (var i = 0; i < element.childNodes.length; i++) {
@@ -195,7 +261,7 @@ Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, plac
   }
 
   element.setAttribute('itempath', itempath)
-  element.setAttribute('tabindex', 0)
+  //element.setAttribute('tabindex', 0)
   if (hasContent) {
     element.classList.remove('kx-placeholder-shown');
   } else if (element.childNodes.length == 0) {
@@ -211,8 +277,8 @@ Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, plac
   return element;
 }
 
-Editor.Placeholder.getLabel = function(input) {
-  return document.querySelector('[for="' + input.id + '"]');
+Editor.Placeholder.getLabel = function(input, doc) {
+  return (doc || document).querySelector('[for="' + input.id + '"]');
 }
 
 Editor.Placeholder.getForm = function(content) {
@@ -223,60 +289,62 @@ Editor.Placeholder.getForm = function(content) {
 }
 
 Editor.Placeholder.getFields = function(form) {
-  return Array.prototype.slice.call(form.querySelectorAll('[name]'));
+  return Array.prototype.slice.call(form.querySelectorAll('[name]')).filter(function(el) {
+    return el.getAttribute('name').indexOf('][') == -1 // skip nested fields
+  });
 }
 
 
 Editor.Placeholder.dummy = document.createElement('div')
 
-Editor.Placeholder.onChange = function(placeholder) {
-  var field = document.getElementsByName(placeholder.getAttribute('itempath'))[0];
+Editor.Placeholder.onChange = function(placeholder, data) {
+  var editor = Editor.get(placeholder);
+  if (!editor || !editor.options || !editor.options.form || editor.options.placeholders === false) return;
+  var root = editor.options.form;
+  while (root.parentNode && root.tagName != 'HTML')
+    root = root.parentNode;
+  var field = root.querySelector('[name="' + placeholder.getAttribute('itempath') + '"]');
   if (field.tagName == 'INPUT' && field.type == 'text' || field.tagName == 'TEXTAREA') {
     Editor.Placeholder.dummy.innerHTML = placeholder.innerHTML
       .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '*$1*')
       .replace(/<b[^>]*>(.*?)<\/b>/gi, '*$1*')
       .replace(/<em[^>]*>(.*?)<\/em>/gi, '~$1~')
       .replace(/<i[^>]*>(.*?)<\/i>/gi, '~$1~')
-      .replace(/<a[^>]*href=\"([^"]+)\"[^>]*>(.*?)<\/a>/gi, '$2 ($1)');
+      .replace(/<a[^>]*href=\"([^"]+)\"[^>]*>(.*?)<\/a>/gi, 
+        placeholder.getAttribute('itempath').match(/(?:\[name\]|\[title\])$/) ? '$2' : '$2 ($1)');
     field.value = Editor.Placeholder.dummy.textContent;
     field.setAttribute('value', field.value)
+    if (data)
+      data.set(field.name, field.value)
   }
 
 }
-Editor.Placeholder.write = function(editor, content, form) {
-  var placeholders = Array.prototype.slice.call(content.querySelectorAll('[itempath]'));
+Editor.Placeholder.write = function(editor, content, form, data) {
+  var first = content.querySelector('section')
+  var placeholders = Array.prototype.slice.call(first && first.querySelectorAll('[itempath]') || []);
   for (var i = 0; i < placeholders.length; i++) {
-    Editor.Placeholder.onChange(placeholders[i])
+    Editor.Placeholder.onChange(placeholders[i], data)
   }
-  var input = document.querySelector('textarea.rich[name="' + content.getAttribute('name') + '"]')
+  if (content.getAttribute('name'))
+    var input = form.querySelector('textarea.rich[name="' + content.getAttribute('name') + '"]')
+  else
+    var input = form.querySelector('textarea.rich[name$="[content]"]')
   if (input) {
-    Editor.Placeholder.dummy.innerHTML = editor.getData()
-      .replace(/\s(?:style)="[^"]*?"/gi, '')
-      .replace(/\s(?:src)="data:[^"]*?"/gi, 'src="data:blob"');
-    
-    Array.prototype.forEach.call(Editor.Placeholder.dummy.querySelectorAll('.kx.toolbar'), function(el) {
-      el.parentNode.removeChild(el);
-    })
-    Array.prototype.forEach.call(Editor.Placeholder.dummy.querySelectorAll('[itempath]'), function(el) {
-      if (Editor.Content.isEmpty(el, true)) {
-        el.parentNode.removeChild(el);
-      } else {
-        el.classList.remove('kx-placeholder')
-        el.removeAttribute('tabindex')
+    var value = Editor.Content.export(editor, content);
+
+    if (data) {
+      if (editor.images) {
+        for (var src in editor.images) {
+          if (value.indexOf(src) == -1) continue
+          var file = editor.images[src];
+          data.append(input.name.substring(0, input.name.length - 1) + '_embeds][]', file, file.name + '?date=' + file.lastModified);
+          
+          while (value.indexOf(src) > -1)
+            value = value.replace(src, './' + file.name)
+        }
       }
-    })
-    Array.prototype.forEach.call(Editor.Placeholder.dummy.querySelectorAll('.meta.expanded'), function(el) {
-      if (Editor.Content.isEmpty(el, true))
-        el.parentNode.removeChild(el);
-      else
-        el.classList.remove('expanded')
-    })
-    Array.prototype.forEach.call(Editor.Placeholder.dummy.children, function(el) {
-      if (el.tagName != 'SECTION') el.parentNode.removeChild(el);
-    });
-    input.value = Editor.Placeholder.dummy.innerHTML
-      .replace(/\&nbsp;/gi, '&#160;')
-      .replace(/(<img[^>]*[^\/])>/gi, '$1/>')
-      .replace(/<(hr|br)\s*>/ig, '$1/>');
+      data.set(input.name, value)
+    }
+
   }
 }

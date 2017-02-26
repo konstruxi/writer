@@ -6,7 +6,15 @@ Editor.Section = function(editor, mutation, observer, changedPlaceholders) {
 
   var snapshot = editor.snapshot;
   if (!snapshot) {
-    var snapshot = editor.snapshot = Editor.Snapshot.take(editor.element.$, options);
+    if (editor.options && editor.options.snapshot)
+      var snapshot = editor.options.snapshot;
+    else
+      var snapshot = editor.snapshot = Editor.Snapshot.take(editor.element.$, options);
+  }
+  snapshot.options.editor = editor;
+  if (editor.options && editor.options.processInitially === false) {
+    editor.options.processInitially = null;
+    return;
   }
   //editor.stylesnapshot = undefined;
 
@@ -18,24 +26,28 @@ Editor.Section = function(editor, mutation, observer, changedPlaceholders) {
     return el.getAttribute('itempath')
   });
 
+  if (!changedPlaceholders) changedPlaceholders = []
   var old = changedPlaceholders.length;
   Editor.Placeholder(editor, changedPlaceholders);
-  if (placeholding || changedPlaceholders.length && editor.dragbookmark) {
+  if (placeholding || old && editor.dragbookmark) {
     Editor.Selection.restore(editor);
     Editor.Selection.remember(editor);
   }
 
-  var section = Editor.Section.split(editor, content) || editor.justdropped
+  var section = Editor.Section.split(editor, content)
   for (var i = 0; i < content.children.length; i++) {
     Editor.Section.analyze(editor, content.children[i])
+    Editor.Section.clean(editor, content.children[i], i)
   }
   Editor.Section.group(content)
 
-
+  console.error('animate section')
   editor.snapshot = snapshot.animate(section);
-
+  if (window.snapshot == snapshot)
+    window.snapshot = editor.snapshot
   for (var i = 0; i < content.children.length; i++) 
-    Editor.Section.lookaround(editor, content.children[i], editor.snapshot)
+    if (content.children[i].tagName == 'SECTION')
+      Editor.Section.lookaround(editor, content.children[i], editor.snapshot)
 
   //updateToolbar(editor, true)
   //togglePicker(editor, true)
@@ -52,25 +64,25 @@ Editor.Section = function(editor, mutation, observer, changedPlaceholders) {
 
 Editor.Section.enlarge = function(editor, section) {
   
-  editor.fire('saveSnapshot')
+  editor.fire('saveSnapshot', {contentOnly: true})
   if (section.classList.contains('small'))
     section.classList.remove('small')
   else
     section.classList.add('large')
-  editor.fire('saveSnapshot')
+  editor.fire('saveSnapshot', {contentOnly: true})
 }
 
 Editor.Section.shrink = function(editor, section) {
-  editor.fire('saveSnapshot')
+  editor.fire('saveSnapshot', {contentOnly: true})
   if (section.classList.contains('large'))
     section.classList.remove('large')
   else
     section.classList.add('small')
-  editor.fire('saveSnapshot')
+  editor.fire('saveSnapshot', {contentOnly: true})
 }
 
 Editor.Section.star = function(editor, section) {
-  editor.fire('saveSnapshot')
+  editor.fire('saveSnapshot', {contentOnly: true})
   if (section.classList.contains('starred'))
     section.classList.remove('starred')
   else
@@ -79,7 +91,7 @@ Editor.Section.star = function(editor, section) {
   Editor.Section.analyze(editor, section, true)
 
     Editor.Chrome.update(editor)
-  editor.fire('saveSnapshot')
+  editor.fire('saveSnapshot', {contentOnly: true})
 }
 
 Editor.Section.setActive = function(editor, target, force) {
@@ -108,20 +120,21 @@ Editor.Section.setActive = function(editor, target, force) {
   }
 }
 
-Editor.Section.insertBefore = function(editor, section) {
-
-  var a = Editor.Section.getFirstChild(section);
-  var b = editor.currentToolbar.previousElementSibling 
-       && Editor.Section.getFirstChild(section.previousElementSibling);
-
+Editor.Section.insertBefore = function(editor, section, parent) {
+  if (section) {
+    var a = Editor.Section.getFirstChild(section);
+    var b = section.previousElementSibling 
+         && Editor.Section.getFirstChild(section.previousElementSibling);
+  }
   if ((!a || !Editor.Content.isEmpty(a)) 
    && (!b || !Editor.Content.isEmpty(b))) {
     var sect = Editor.Section.build(editor);
     sect.classList.add('forced')
     var focused = document.createElement('p');
-    editor.refocusing = focused;
+    if (editor)
+      editor.refocusing = focused;
     sect.appendChild(focused);
-    editor.currentToolbar.parentNode.insertBefore(sect, section);
+    (parent || section.parentNode).insertBefore(sect, section);
     if (sect.nextElementSibling)
       sect.nextElementSibling.classList.add('forced')
   }
@@ -135,7 +148,7 @@ Editor.Section.getSectionAbove = function(editor, section, snapshot) {
   if (box)
   while (before) {
     var bbox = snapshot.get(before)
-    if (bbox.top > box.top || Math.abs(bbox.top - box.top) < 30) {
+    if (before.tagName != 'SECTION' || bbox.top > box.top || Math.abs(bbox.top - box.top) < 30) {
       before = before.previousElementSibling;
     } else {
       break;
@@ -197,7 +210,7 @@ Editor.Section.split = function(editor, root) {
   var selection = editor.getSelection()
   var last;
   var prev;
-  var selected = selection.getStartElement();
+  var selected = selection && selection.getStartElement();
   if (selected) {
     selected = Editor.Content.getEditableAscender(selected.$);
     if (selected)
@@ -207,6 +220,12 @@ Editor.Section.split = function(editor, root) {
   context = {}
   for (var i = 0; i < children.length; i++) {
     var child = children[i];
+    if (child.tagName == 'DIV' && child.classList.contains('list')) {
+      Editor.Section.split(editor, child);
+      continue;
+    }
+    if (child.tagName == 'ARTICLE' || child.tagName == 'HEADER')
+      continue;
     if (child.tagName == 'SECTION') {
       if (child.classList.contains('forced')) 
         last = child;
@@ -258,6 +277,7 @@ Editor.Section.getPaletteName = function(node) {
 }
 Editor.Section.lookaround = function(editor, node, snapshot) {
   var link = node.querySelector('.toolbar svg use')
+  if (!link) return;
   var icon = '#menu-icon';
   if (!node.classList.contains('small')) {
     var before = Editor.Section.getSectionAbove(editor, node, snapshot);
@@ -273,6 +293,12 @@ Editor.Section.lookaround = function(editor, node, snapshot) {
     link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', icon);
   }
   link.parentNode.setAttribute('icon', icon)
+}
+Editor.Section.clean = function(editor, section, index) {
+  if (index == 0) return;
+  var placeholders = section.querySelectorAll('[itempath]')
+  for (var i = 0; i < placeholders.length; i++)
+    placeholders[i].removeAttribute('itempath')
 }
 Editor.Section.analyze = function(editor, node, wasStarred) {
   var tags = [];

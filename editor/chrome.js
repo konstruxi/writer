@@ -9,6 +9,10 @@ Editor.Chrome = function(editor, content) {
     }
   })
 
+  editor.on('focus', function() {
+    formatting.removeAttribute('hidden')
+  })
+
   editor.on('instanceReady', function() {
     var upload = document.querySelector('#cke_upload');
     upload.addEventListener('change', function(e) {
@@ -57,7 +61,7 @@ Editor.Chrome = function(editor, content) {
 }
 
 Editor.Chrome.Toolbar = function(editor, section, iconname) {
-  if (!section.getElementsByClassName('foreground')[0]) {
+  if (section.tagName != 'HEADER' && !section.getElementsByClassName('foreground')[0]) {
     var bg = document.createElement('x-div');
     bg.classList.add('kx')
     bg.classList.add('foreground')
@@ -71,6 +75,10 @@ Editor.Chrome.Toolbar = function(editor, section, iconname) {
     section.insertBefore(bg, section.firstChild)
   }
   if (!section.getElementsByClassName('toolbar')[0]) {
+    if (typeof iconname == 'function') {
+      iconname = iconname(section)
+      if (!iconname) return;
+    }
     var toolbar = document.createElement('x-div');
     toolbar.setAttribute('unselectable', 'on')
     toolbar.classList.add('kx')
@@ -86,8 +94,6 @@ Editor.Chrome.Toolbar = function(editor, section, iconname) {
     //toolbar.setAttribute('contenteditable', 'false')
 
     var link = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    if (typeof iconname == 'function')
-      iconname = iconname(section)
     link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + (iconname || 'resize-section-icon'));
     icon.appendChild(link)
     toolbar.appendChild(icon)
@@ -100,8 +106,12 @@ Editor.Chrome.Toolbar.open = function(editor, section, button) {
   var indexF = editor.snapshot.elements.indexOf(section.getElementsByClassName('toolbar')[0]);
   if (indexF > -1) {
     var box = editor.snapshot.dimensions[indexF]
-    var offsetTop = box.top + editor.offsetTop;
-    var offsetLeft = box.left + editor.offsetLeft;
+    var offsetTop = box.top;
+    var offsetLeft = box.left;
+    if (editor.snapshot.element == editor.element.$) {
+      offsetTop += editor.offsetTop;
+      offsetLeft += editor.offsetLeft;
+    }
   } else {
     return;
   }
@@ -110,7 +120,7 @@ Editor.Chrome.Toolbar.open = function(editor, section, button) {
   setUIColors(editor, section, 'last');
   sectionizer.style.top = offsetTop + 'px'
   sectionizer.style.left = offsetLeft + 'px';
-  sectionizer.className = section.className
+  sectionizer.className = section.className + ' circle-menu'
   sectionizer.removeAttribute('hidden')
 }
 
@@ -145,6 +155,7 @@ Editor.Chrome.deferUpdate = function(editor) {
 Editor.Chrome.update = function(editor, force) {
   var selection = editor.getSelection();
   if (!selection) return;
+  if (!editor.snapshot) return;
 
   var range = selection.getRanges()[0];
   if (!range || !range.startContainer) return;
@@ -179,8 +190,12 @@ Editor.Chrome.update = function(editor, force) {
   if (index > -1 && indexS > -1 && indexF > -1) {
     var offsetHeight = editor.snapshot.dimensions[index].height;
     var offsetWidth = editor.snapshot.dimensions[indexS].width;
-    var offsetTop = editor.snapshot.dimensions[index].top + editor.offsetTop;
-    var offsetLeft = editor.snapshot.dimensions[indexF].left + editor.offsetLeft;
+    var offsetTop = editor.snapshot.dimensions[index].top;
+    var offsetLeft = editor.snapshot.dimensions[indexF].left;
+    if (editor.snapshot.element == editor.element.$) {
+      offsetTop += editor.offsetTop;
+      offsetLeft += editor.offsetLeft;
+    }
   } else {
     return;
   }

@@ -1,5 +1,7 @@
 Editor.Keys = function(editor) {
   editor.on('key', function(e) {
+    if (e.data.domEvent.$.defaultPrevented)
+      return false;
     if (e.data.keyCode == 13) {
       var selection = editor.getSelection()
       var range = selection.getRanges()[ 0 ]

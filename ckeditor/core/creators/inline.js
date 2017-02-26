@@ -74,7 +74,9 @@
 			editor.ui.contentsElement = element;
 
 			// Load and process editor data.
-			editor.setData( editor.getData( 1 ) );
+			// YAROSLAFF FEDIN HACK: Add flag to avoid initial redraw
+			if (!editor.doNotParseInitially)
+				editor.setData( editor.getData( 1 ) );
 
 			// Clean on startup.
 			editor.resetDirty();

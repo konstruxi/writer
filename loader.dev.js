@@ -6,6 +6,17 @@ if (script) {
 }
 
 
+if (window.LOAD_DEV_CKEDITOR || true) {
+  var CKEDITOR_BASEPATH = prefix + 'ckeditor/';
+  var CKEDITOR_FILE = 'ckeditor/ckeditor.js'
+} else {
+  var CKEDITOR_BASEPATH = prefix + 'release/ckeditor/';
+  var CKEDITOR_FILE = 'release/ckeditor/ckeditor.js'
+}
+
+window.KX_STATIC_PREFIX = prefix;
+
+
 document.write('\
 <svg style="display: none" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">\
 <defs>\
@@ -20,6 +31,9 @@ document.write('\
 \
 <g id="palette-icon">\
   <path d="M24,5 C14.06,5 6,13.06 6,23 C6,32.94 14.06,41 24,41 C25.66,41 27,39.66 27,38 C27,37.22 26.7,36.52 26.22,35.98 C25.76,35.46 25.46,34.76 25.46,34 C25.46,32.34 26.8,31 28.46,31 L32,31 C37.52,31 42,26.52 42,21 C42,12.16 33.94,5 24,5 Z M13,23 C11.34,23 10,21.66 10,20 C10,18.34 11.34,17 13,17 C14.66,17 16,18.34 16,20 C16,21.66 14.66,23 13,23 Z M19,15 C17.34,15 16,13.66 16,12 C16,10.34 17.34,9 19,9 C20.66,9 22,10.34 22,12 C22,13.66 20.66,15 19,15 Z M29,15 C27.34,15 26,13.66 26,12 C26,10.34 27.34,9 29,9 C30.66,9 32,10.34 32,12 C32,13.66 30.66,15 29,15 Z M35,23 C33.34,23 32,21.66 32,20 C32,18.34 33.34,17 35,17 C36.66,17 38,18.34 38,20 C38,21.66 36.66,23 35,23 Z"></path>\
+</g>\
+<g id="link-icon">\
+<path d="M7.8 24c0-3.42 2.78-6.2 6.2-6.2h8V14h-8C8.48 14 4 18.48 4 24s4.48 10 10 10h8v-3.8h-8c-3.42 0-6.2-2.78-6.2-6.2zm8.2 2h16v-4H16v4zm18-12h-8v3.8h8c3.42 0 6.2 2.78 6.2 6.2s-2.78 6.2-6.2 6.2h-8V34h8c5.52 0 10-4.48 10-10s-4.48-10-10-10z"/>\
 </g>\
 \
 <g id="settings-icon">\
@@ -64,16 +78,67 @@ document.write('\
 <div class="circle-menu" id="sectionizer" hidden>\
   <svg viewBox="-2 0 48 48" class="unstar icon"><use xlink:href="#unstar-icon"></use></svg>\
   <svg viewBox="-2 0 48 48" class="star icon"><use xlink:href="#star-icon"></use></svg>\
-  <svg viewBox="-1 0 50 50" class="pick palette icon"><use xlink:href="#palette-icon"></use></svg>\
+  <svg viewBox="-1 0 50 50" class="left pick palette icon"><use xlink:href="#palette-icon"></use></svg>\
   <svg viewBox="0 0 48 48" class="top split handler icon"><use xlink:href="#split-section-icon"></use></svg>\
-  <svg viewBox="-1 0 50 50" class="pick settings icon"><use xlink:href="#settings-icon"></use></svg>\
-  <svg viewBox="-2 2 48 48" class="shrink zoomer icon"><use xlink:href="#zoom-out-icon"></use></svg>\
-  <svg viewBox="-2 2 48 48" class="enlarge zoomer icon"><use xlink:href="#zoom-in-icon"></use></svg>\
+  <svg viewBox="-1 0 50 50" class="right pick settings icon"><use xlink:href="#settings-icon"></use></svg>\
+  <svg viewBox="-2 2 48 48" class="bottom-left shrink zoomer icon"><use xlink:href="#zoom-out-icon"></use></svg>\
+  <svg viewBox="-2 2 48 48" class="bottom-right enlarge zoomer icon"><use xlink:href="#zoom-in-icon"></use></svg>\
 </div>\
 ');
+function exportConfig() {
+
+  CKEDITOR.editorConfig = function( config ) {
+    
+    // %REMOVE_START%
+    // The configuration options below are needed when running CKEditor from source files.
+    config.plugins = 'SimpleLink,sharedspace,blockquote,dialogui,dialog,clipboard,basicstyles,divarea,enterkey,floatingspace,entities,indent,indentlist,list,button,toolbar,undo' // ,magicline;
+    config.skin = 'none';
+    // %REMOVE_END%
+    
+    config.customConfig = ''; //no config.js
+    config.stylesSet = false; //no styles.js
+    config.defaultLanguage = 'en'; //default language
+    config.language = 'en'; //ui language
+
+    // Define changes to default configuration here.
+    // For complete reference see:
+    // http://docs.ckeditor.com/#!/api/CKEDITOR.config
+
+    // The toolbar groups arrangement, optimized for a single toolbar row.
+    config.toolbarGroups = [
+      { name: 'metas',       groups: [ 'meta'] },
+      { name: 'foormatting', groups: [ 'basicstyles', 'cleanup' , 'structural', 'blocks', 'list', 'indent' ] },
+      { name: 'objects',     groups: [ 'objects', 'links' ] }
+      
+    ];
+
+    // The default plugins included in the basic setup define some buttons that
+    // are not needed in a basic editor. They are removed here.
+    config.removeButtons = 'Cut,Copy,Paste,Undo,Redo,Anchor,Underline,Strike,Subscript,Superscript';
+
+    config.pasteFilter = 'semantic-content'
+    // Dialog windows are also simplified.
+    config.removeDialogTabs = 'link:advanced';
+
+    config.allowedContent = 'x-div picture(loading,added)[uid]; hr h1 h2 h3 h4 h5 blockquote ul li ol; b i code pre abbr; iframe[src]; a[href,title,hidden,aria-hidden]; abbr[title]; img(*)[src,alt,title,uid,palette,width,height,class]; section(*)[*];'
+    config.extraAllowedContent = 'svg[width,height,viewbox,unselectable]; use[*]; div svg span article section time[datetime]; * (*)[width,height,src,href,itempath,itemlabel,kx-html,kx-text,contenteditable]{background,background-color,width,height}';
+    config.disallowedContent = 'section(focused);'
+
+    config.shiftEnterMode = CKEDITOR.ENTER_P
+
+    config.sharedSpaces = {
+        top: 'formatting'
+    }
+    config.undoStackSize = 150;
+    config.title = false
+    config.startupShowBorders = false;
+    config.disableObjectResizing = true;
+    config.entities_processNumerical = true;
+  };
+}
 
 document.write('\
-  <script src="' + prefix +  './ckeditor/ckeditor.js"></script>\
+  <script src="' + prefix +  CKEDITOR_FILE + '"></script>\
 \
   <script src="' + prefix +  'colors/rgbquant.js"></script>\
   <script src="' + prefix +  'colors/quantize.js"></script>\
@@ -107,7 +172,9 @@ document.write('\
   <script src="' + prefix +  'editor/image.js"></script>\
   <script src="' + prefix +  'editor/placeholder.js"></script>\
   <script>\
+    exportConfig();\
     var editors = document.querySelectorAll(\'.content[contenteditable]\');\
     for (var i = 0; i < editors.length; i++)\
-      new Editor(editors[i])\
+      new Editor(editors[i], {})\
   </script>');
+

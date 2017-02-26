@@ -20,6 +20,74 @@ Kex.prototype.unfreezeContainer = function() {
   
 }
 
+
+Kex.generateId = function(element) {
+  var itemtype = element.getAttribute('itemtype');
+  var itemid = (element.getAttribute('itemid') || element.getAttribute('itemindex'))
+  return (itemtype || '') + (itemid || '')
+}
+Kex.generateIds = function(root, result, prefix) {
+  for (var i = 0; i < root.children.length; i++) {
+    var id = Kex.generateId(root.children[i]);
+    if (!id) {
+      var index = 0;
+      for (var j = i; j--;) {
+        if (root.children[j].tagName == root.children[i].tagName)
+          index++;
+      }
+      if (root.children[i].tagName == 'X-DIV')
+        id = root.children[i].className
+      else
+        id = root.children[i].tagName + ':' + index
+
+    }
+    result.elements.push(root.children[i]);
+    result.ids.push(prefix + id);
+    Kex.generateIds(root.children[i], result, prefix + id);
+  }
+  return result;
+};
+
+// apply new content, try to find positions matches with old elements 
+Kex.prototype.migrate = function(from, to) {
+  var selectors = ['li', 'p', 'h1', 'h2', 'h3', 'ul', 'ol', 'blockquote', 'x-div.foreground', 'article', 'section'];
+
+  var f = Kex.generateIds(from, {elements: [], ids: []}, '');
+  var t = Kex.generateIds(to, {elements: [], ids: []}, '');
+
+  var before = from.querySelectorAll(selectors.join(', '));
+  var after = to.querySelectorAll(selectors.join(', '));
+
+  for (var i = from.childNodes.length; i--;)
+    from.removeChild(from.childNodes[i]);
+  while (to.firstChild)
+    from.appendChild(to.firstChild);
+  for (var i = 0; i < after.length; i++) {
+    var el = after[i];
+    var index = t.elements.indexOf(el);
+    var id = t.ids[index];
+    var oldIndex = f.ids.indexOf(id);
+    if (oldIndex > -1) {
+      if (this.elements.indexOf(el) == -1) {
+        this.elements.push(el)
+        this.dimensions.push(this.get(f.elements[oldIndex]))
+      }
+    }
+  }
+  console.log(f, t)
+
+}
+
+Kex.prototype.appear = function(element) {
+  var index = this.elements.indexOf(element);
+  if (index == -1) {
+    this.elements.push(element)
+    this.dimensions.push({wasHidden: true, styles: {}, height: 0, width: 0, top: 0, left: 0})
+  }
+  for (var i = 0; i < element.children.length; i++)
+    this.appear(element.children[i])
+}
+
 // attempt to restore identity of selected elements between snapshots
 Kex.prototype.migrateSelectedElements = function(snapshot) {
   if (snapshot.selected && this.selected) {
@@ -68,7 +136,7 @@ Kex.prototype.removeElement = function(element) {
   
 }
 Kex.prototype.animate = function(section, callback) {
-  var snapshot = Kex.take(this.element, this.options, true);
+  var snapshot = this.constructor.take(this.element, this.options, true);
   if (callback)
     callback(snapshot)
   this.processElements(snapshot);
@@ -108,7 +176,7 @@ Kex.prototype.animate = function(section, callback) {
       //  snapshot.element.style.display = 'none';
       //}
 
-      snapshot.morph(from, (start + Math.floor((time - start) / 1)), start)
+      snapshot.morph(from, (start + Math.floor((time - start) / (parseFloat((window.location.search.match(/slowdown=([\d.]+)/) || [0, 1])[1])))), start)
       //if (immediate === true)
       //  snapshot.element.style.display = 'block';
 
@@ -201,6 +269,10 @@ Kex.prototype.transition = function(element, from, to, time, startTime, fallback
   } else if (from[springName]) {
     var spring = to[springName] = from[springName];
     from[springName] = undefined
+
+    if ((spring[2] > spring[3]) != (current > target)) {
+      spring.inverted = !spring.inverted;
+    }
   } else if (current != target) {
     if (property == 'height') {
       if (element.classList.contains('added'))
@@ -226,7 +298,6 @@ Kex.prototype.transition = function(element, from, to, time, startTime, fallback
     spring.element = element;
     if (spring[2] == null) { 
       spring[2] = current
-      console.log(property, element, 'spring from', spring[2], 'to', target, from && from.wasHidden)
     }
     spring[3] = target;
     var value = spring.compute(time, startTime);
@@ -253,13 +324,21 @@ Kex.prototype.transition = function(element, from, to, time, startTime, fallback
 
 // apply new styles over given snapshot, at specific time point from 0 to 1
 Kex.prototype.morph = function(snapshot, time, startTime) {
+  Kex.lastMorphed = 0;
+  Kex.lastPositioned = 0;
   for (var i = 0; i < this.elements.length; i++) {
     var element = this.elements[i];
     var to = this.dimensions[i];
+    if (to.parentInvisible)
+      continue;
     var from = snapshot.get(element);
     if (from && from.visible)
       to.visible = true;
 
+
+    if (from && from.wasHidden && to.wasHidden)
+      continue;
+    Kex.lastMorphed++;
     var shiftX = 0;
     var shiftY = 0;
     if (from && (to.wasHidden || (to.animated || from.animated) || (from.manipulated || to.manipulated))) {
@@ -277,9 +356,10 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
       to.currentWidth  = this.transition(element, from, to, time, startTime, 'currentWidth', 'width', 'widthSpring', 'targetWidth');
       to.currentHeight = this.transition(element, from, to, time, startTime, 'currentHeight', 'height', 'heightSpring', 'targetHeight');
       to.currentOpacity   = this.transition(element, from, to, time, startTime, 'currentOpacity', 'opacity', 'opacitySpring');
-      if (to.up) {
-        shiftY += (to.up.currentTop || to.up.top) - to.up.top;
-        shiftX += (to.up.currentLeft || to.up.left) - to.up.left;
+      for (var t = to; t = t.up;) {
+        shiftY += (t.currentTop || t.top) - t.top;
+        shiftX += (t.currentLeft || t.left) - t.left;
+        break // ?????
       }
     } else {
       to.currentOpacity = to.opacity
@@ -303,6 +383,7 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
     }
     if (!to.static) {
       if (to.visible) {
+        Kex.lastPositioned++;
         if (to.currentFontSize != to.fontSize && element.tagName != 'SECTION')
           css += 'font-size: ' + to.currentFontSize + 'px; '
         if (to.currentLineHeight != to.lineHeight && element.tagName != 'SECTION')
@@ -343,7 +424,7 @@ Kex.take = function(element, options, reset, focused) {
     options = {};
 
   if (!options.selector)
-    options.selector = 'section, div, ul, li, ol, h1, h2, h3, h4, h5, dl, dt, dd, p, nav, dl, header, footer, main, article, details, summary, aside, button, form';
+    options.selector = 'section, div, ul, li, ol, h1, h2, h3, h4, h5, dl, dt, dd, p, nav, dl, header, footer, main, article, details, summary, aside, button, form, picture, img, blockquote';
   if (!options.getElements)
     options.getElements = function() {
       return Array.prototype.slice.call(element.querySelectorAll(options.selector))
@@ -356,7 +437,6 @@ Kex.take = function(element, options, reset, focused) {
   var offsetHeight = element.offsetHeight;
   var dimensions = []
   //debugger
-
   if (options.onTake) {
     options.onTake(options, reset, focused)
   }
@@ -368,6 +448,12 @@ Kex.take = function(element, options, reset, focused) {
       width: elements[i].offsetWidth, 
       parent: elements[i].parentNode}
 
+    if (!box.up) {
+      box.up = dimensions[elements.indexOf(elements[i].parentNode)]
+      if (box.up && (!box.up.visible || box.up.parentInvisible || box.up.wasHidden))
+        box.parentInvisible = true;
+    }
+    
 
     box.styles = window.getComputedStyle(elements[i]);;
 
@@ -376,9 +462,6 @@ Kex.take = function(element, options, reset, focused) {
     box.lineHeight = getLineHeight(box.styles['line-height'], box.fontSize)
 
 
-    if (!box.up)
-      box.up = dimensions[elements.indexOf(elements[i].parentNode)]
-    
     if (box.height == 0 || box.width == 0 ) {
       //for (var up = box; up = up.up;)
       //  if (up.wasHidden)
@@ -403,13 +486,13 @@ Kex.take = function(element, options, reset, focused) {
     box.visible = Kex.isVisible(element, options, box);
 
     // should give better subpixel precision 
-    if (box.visible) {
-      box.client = elements[i].getBoundingClientRect()
-      box.width = box.client.width;
-      box.height = box.client.height;
-      box.top = box.client.top + window.scrollY;
-      box.left = box.client.left + window.scrollX
-    }
+    //if (box.visible) {
+    //  box.client = elements[i].getBoundingClientRect()
+    //  box.width = box.client.width;
+    //  box.height = box.client.height;
+    //  box.top = box.client.top - options.offsetTop + window.scrollY;
+    //  box.left = box.client.left - options.offsetLeft + window.scrollX
+    //}
 
 
     dimensions.push(box)

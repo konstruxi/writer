@@ -4,14 +4,14 @@
 
 
 
-[contenteditable] [itempath]:before{
-  content: attr(label);
+[contenteditable] > * > [itempath]:before{
+  content: attr(itemlabel);
   color: #999;
   display: inline-block;
   padding-left: 1rem;
   float: right;
 }
-[contenteditable] [itempath]:after {
+[contenteditable] > * > [itempath]:after {
   position: absolute;
   content: '';
   display: block;
@@ -23,55 +23,65 @@
   z-index: -1;
 }
 
-[contenteditable] [itempath*="[summary]"]:after {
+[contenteditable] > * > [itempath*="[summary]"]:after {
   background: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.015));
-
 }
 
-.content[contenteditable]  ul.meta {
+[contenteditable] > * > [itempath][error]:after {
+  background: rgba(150,0,0,0.1);
+}
+
+.content[contenteditable] > * > ul.meta {
   display: flex;
   justify-content: stretch;
 }
-.content[contenteditable]  ul.meta li {
+.content[contenteditable] > * >  ul.meta li {
   position: relative;
   flex: 1 1 33%;
 }
 
-.content[contenteditable]  ul.meta li + li{
+.content[contenteditable] > * >  ul.meta li + li{
   margin-left: 2.14rem;
 }
-.content[contenteditable]  ul.meta li[itempath] {
+.content[contenteditable] > * >  ul.meta li[itempath] {
   margin-top: 0;
 }
-.content[contenteditable]  ul.meta li[itempath]:after {
+.content[contenteditable] > * >  ul.meta li[itempath]:after {
   top: -0.96rem;
 }
 
 
-.content.content[contenteditable]  [itempath] {
+.content.content[contenteditable] > * >  [itempath] {
   min-height: 2.5rem;
   padding-top: 0.25rem;
 }
-.content.content picture[itempath] {
+.content.content[contenteditable] > * > picture[itempath] {
   padding-top: 0.25rem;
 }
-.content.content h1[itempath] {
+.content.content[contenteditable] > * > h1[itempath] {
   padding-top: 0rem;
   min-height: 3rem;
 }
-.content[contenteditable]  picture[itempath] {
+.content[contenteditable] > * >  picture[itempath] {
   overflow: visible;
 }
-.content[contenteditable]  [itempath] {
+.content[contenteditable] > * >  [itempath] {
   margin-top: 14px;
   bottom: 0rem;
 }
-ul.meta + [itempath]:after,
-[itempath] + [itempath]:after {
+[contenteditable] > * > ul.meta + [itempath]:after,
+[contenteditable] > * > [itempath] + [itempath]:after {
   top: -0.77rem;
   bottom: 0rem;
 }
 
+.content [kx-text]:before {
+  content: attr(kx-text);
+}
+
+.content[contenteditable]> * >  ul.meta {
+  margin-bottom: 0;
+} 
 
 
 
@@ -92,8 +102,7 @@ ul.meta + [itempath]:after,
   right: 3.15rem;
 }
 
-
-
+/*
 
 form article.content {
   display: none;
@@ -107,19 +116,13 @@ form article.content.cke_editable + textarea {
   display: none;
 }
 
+*/
 
 
 
 
 
 
-
-
-.content + .content{
-  padding: 4rem 0 2rem 0;
-  box-sizing: border-box;
-  border-top: 1px solid #ccc;
-}
 
 .content [unselectable="on"] {
   -webkit-user-select: none; 
@@ -256,9 +259,6 @@ form article.content.cke_editable + textarea {
 
 }
 
-.content section {
-  background: #f1f1f1;
-}
 
 
 .content * {
@@ -290,7 +290,7 @@ form article.content.cke_editable + textarea {
   margin-top: 14px;
 }
 
-.content .kx + * {
+.content.content .kx + * {
   margin-top: 0;
 }
 .content h1 + * {
@@ -603,8 +603,12 @@ body.dragging .content section.below-the-fold > .toolbar {
   z-index: 2;
 }
 
-.content {
-  background: #f1f1f1;
+article.content {
+  background: rgba(100,100,100,0.1);
+}
+article.content + article.content {
+  border-top: 1px solid transparent;
+  background-clip: content-box;
 }
 
 .content > section > *:not(a):not(picture):not(.toolbar) {

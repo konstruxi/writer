@@ -803,7 +803,6 @@
 								return lookback;
 							} );
 					}
-
 					editor.setData( data, null, 1 );
 				}, this );
 

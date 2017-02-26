@@ -1,15 +1,23 @@
 Editor.Container = function(editor) {
-  window.addEventListener('scroll', function() {
+  editor.onWindowScroll = function() {
     Editor.Container.onScroll(editor)
-  })
-  window.addEventListener('resize', function() {
+  };
+  editor.onWindowResize =  function() {
     Editor.Container.onResize(editor)
-  })
+  };
+
+  window.addEventListener('scroll', editor.onWindowScroll)
+  window.addEventListener('resize', editor.onWindowResize)
   editor.on('contentDom', function() {
     Editor.Container.measure(editor);
   })
   Editor.Container.onResize(editor, true)
   Editor.Container.onScroll(editor)
+}
+
+Editor.Container.detach = function(editor) {
+  window.removeEventListener('scroll', editor.onWindowScroll)
+  window.removeEventListener('resize', editor.onWindowResize)
 }
 
 Editor.Container.onResize = function(editor, soft) {
@@ -39,6 +47,10 @@ Editor.Container.measure = function(editor, scroll) {
     editor.offsetWidth  = editor.element.$.offsetWidth;
     editor.offsetTop    = editor.element.$.offsetTop;
     editor.offsetLeft   = editor.element.$.offsetLeft;
+    for (var offsetParent = editor.element.$; offsetParent = offsetParent.offsetParent;) {
+      editor.offsetTop += offsetParent.offsetTop;
+      editor.offsetLeft += offsetParent.offsetLeft;
+    }
     editor.innerWidth   = window.innerWidth;
     editor.innerHeight  = window.innerHeight;
   }

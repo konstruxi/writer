@@ -1,6 +1,6 @@
 
 
-article[contenteditable] {
+.content.content {
 
   display: -ms-flexbox;
   display: -webkit-flex;
@@ -23,7 +23,7 @@ article[contenteditable] {
   max-width: 100%;
 }
 
-article > section {
+.content > section {
   margin: 0rem;
   -webkit-box-flex: 1;
       -ms-flex: 0 1 100%;
@@ -51,7 +51,7 @@ article > section {
   -ms-flex-align: end;
   align-items: flex-end;
 }
-article > section > *:not(.kx){
+.content > section > *:not(.kx){
   -webkit-order: 0;
   -ms-flex-order: 0;
   order: 0;
@@ -84,7 +84,7 @@ article > section > *:not(.kx){
 }
   
 
-article > section.large {
+.content > section.large {
   flex-basis: 100%;
   flex-grow: 0;
   -webkit-flex-basis: 100%;
@@ -92,7 +92,7 @@ article > section.large {
 }
 
 
-article > section.small {
+.content > section.small {
   justify-content: center;
   -webkit-justify-content: center;
 }

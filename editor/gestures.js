@@ -17,15 +17,6 @@ Editor.Pointer = function(editor, content) {
   //editor.gestures.add(new Hammer.Rotate({ threshold: 0 })).recognizeWith(editor.gestures.get('pan'));
   //editor.gestures.add(new Hammer.Pinch({ threshold: 0 })).recognizeWith([editor.gestures.get('pan'), editor.gestures.get('rotate')]);
 
-  // dont change focus/selection on button click
-  document.body.addEventListener('mousedown', function(e) {
-    if (!e.target.nodeType || e.target.tagName == 'svg' || e.target.tagName == 'use' || (e.target.classList && e.target.classList.contains('toolbar'))) {
-      //if (editor.focusManager.hasFocus) {
-        e.preventDefault()
-      //}
-    }
-  }, true)
-
   editor.gestures.current = null;
 
   editor.gestures.on('panstart', function(e) {
@@ -369,6 +360,11 @@ Editor.Pointer = function(editor, content) {
     var target = e.srcEvent.target.correspondingUseElement || 
                  e.srcEvent.target.correspondingElement || 
                  e.srcEvent.target;
+
+    for (var p = target; p; p = p.parentNode) 
+      if (p == editor.element.$) break;
+    if (p != editor.element.$) return;
+    
     for (var p = target; p; p = p.parentNode) {
       if (p.classList && p.classList.contains('preview') && p.classList.contains('content')) {
         Editor.Picker.choose(editor, p)
@@ -412,22 +408,4 @@ Editor.Pointer = function(editor, content) {
     }
   })
 
-  editor.on('drop', function(e) {
-    // disallow pasting block content into paragraphs and headers
-    var html = e.data.dataTransfer.getData('text/html')
-    console.log('drop', html)
-    
-    var newRange = Editor.Selection.moveToNewParagraphAfterPicture(editor, e.data.dropRange);
-    if (!newRange) {
-      if (html && html.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
-        newRange = Editor.Selection.moveToAfterParagraph(editor, e.data.dropRange);
-      }
-    }
-
-    if (newRange) {
-      e.data.dropRange = newRange
-      e.data.target = newRange.startContainer;
-    }
-    Editor.Selection.onChange(editor, true)
-  })
 }

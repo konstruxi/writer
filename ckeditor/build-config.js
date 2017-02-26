@@ -25,7 +25,7 @@
  */
 
 var CKBUILDER_CONFIG = {
-	skin: 'moono-dark',
+	skin: 'none',
 	preset: 'basic',
 	ignore: [
 		'.bender',
@@ -51,18 +51,22 @@ var CKBUILDER_CONFIG = {
 	],
 	plugins : {
 		'SimpleLink' : 1,
-		'autolink' : 1,
+		'sharedspace': 1,
+		'floatingspace': 1,
+		'dialogui' : 1,
+		'blockquote' : 1,
+		'dialog' : 1,
 		'basicstyles' : 1,
 		'clipboard' : 1,
 		'divarea' : 1,
 		'enterkey' : 1,
 		'entities' : 1,
+		'indent' : 1,
 		'indentlist' : 1,
 		'list' : 1,
-		'magicline' : 1,
-		'onchange' : 1,
 		'toolbar' : 1,
-		'undo' : 1
+		'undo' : 1,
+		'button' : 1
 	},
 	languages : {
 		'en' : 1

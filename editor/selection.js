@@ -4,6 +4,24 @@ Editor.Selection = function(editor, content) {
   CKEDITOR.dom.selection.prototype.scrollIntoView = function(){}
 
 
+  editor.on('drop', function(e) {
+    // disallow pasting block content into paragraphs and headers
+    var html = e.data.dataTransfer.getData('text/html')
+    console.log('drop', html)
+    
+    var newRange = Editor.Selection.moveToNewParagraphAfterPicture(editor, e.data.dropRange);
+    if (!newRange) {
+      if (html && html.match(/<(?:li|h1|h2|h3|p|ul|li|blockquote|picture|img)/i)) {
+        newRange = Editor.Selection.moveToAfterParagraph(editor, e.data.dropRange);
+      }
+    }
+
+    if (newRange) {
+      e.data.dropRange = newRange
+      e.data.target = newRange.startContainer;
+    }
+    Editor.Selection.onChange(editor, true)
+  })
 
   editor.on('key', function(e) {
     if (e.data.keyCode >= 37 && e.data.keyCode <= 40) {
@@ -13,16 +31,6 @@ Editor.Selection = function(editor, content) {
     }
   }, null, null, -10);
 
-  document.addEventListener('selectionchange', function(e) {
-    if (editor.justcleaned) return;
-    if (!editor.dragging) {
-      clearTimeout(editor.changingselection);
-      Editor.Selection.fix(editor)
-      editor.changingselection = setTimeout(function() {
-        Editor.Selection.onChange(editor)
-      }, 30);
-    }
-  })
   editor.on( 'selectionChange', function( evt ) {
     if (editor.justcleaned) return;
     if ( editor.readOnly )
@@ -196,7 +204,7 @@ Editor.Selection.moveToFollowingParagraph = function(editor, range) {
 // clean up empty content if it's not in currently focused section
 Editor.Selection.onChange = function(editor, force, blur) {
   editor.fire('customSelectionChange')
-  Editor.Content.cleanEmpty(editor)
+  Editor.Content.cleanEmpty(editor, blur, blur)
   Editor.Chrome.update(editor)
 
 }

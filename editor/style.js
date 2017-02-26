@@ -43,6 +43,7 @@ Editor.Style.get = function(editor, section, type, value) {
       return section.classList[i].substring(6 + type.length + 1)
     }
   }
+  section.classList.add('style-' + type + '-' + value)
   return value;
 };
 

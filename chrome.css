@@ -148,10 +148,11 @@ body.dragging .toolbar:not(.dragging) {
 }
 
 
-section > .toolbar svg:hover,
+.kx.toolbar svg:hover,
 .circle-menu svg:hover {
   background: #000;
   color: #f1f1f1;
+  z-index: 11;
 }
 
 .circle-menu.starred .star{
@@ -172,22 +173,22 @@ section > .toolbar svg:hover,
   border: 0.5rem solid transparent;
   margin: -0.3rem;
 }
-.circle-menu svg.settings {
+.circle-menu svg.right {
   top: -0.45rem;
   left: 2rem;
 }
-.circle-menu svg.palette {
+.circle-menu svg.left {
   top: -0.45rem;
   left: -2rem;
 }
 .circle-menu svg.top {
   top: -2.1rem;
 }
-.circle-menu svg.enlarge {
+.circle-menu svg.bottom-right {
   top: 1.65rem;
   left: 1.15rem;
 }
-.circle-menu svg.shrink {
+.circle-menu svg.bottom-left {
   top: 1.65rem;
   left: -1.15rem;
 }
@@ -232,7 +233,7 @@ section  svg {
   fill: currentColor;
 }
 
-.content > section > .toolbar {
+.kx.toolbar {
   z-index: 2;
   position: absolute;
   position: absolute;
@@ -250,7 +251,7 @@ section  svg {
 }
 
 
-section > .toolbar svg {
+.kx.toolbar svg {
   border-radius: 50%;
   cursor: move;
   height: 2.3rem;
@@ -258,7 +259,7 @@ section > .toolbar svg {
   border: 0.2rem solid transparent;
 }
 
-section > .toolbar svg[icon="#resize-section-icon"] {
+.kx.toolbar svg[icon="#resize-section-icon"] {
   cursor: row-resize;
 }
 

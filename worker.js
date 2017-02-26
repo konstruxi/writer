@@ -9,7 +9,7 @@ if (this.Editor) {
     var worker = editor.idleWorkers.pop()
     if (!worker) {
       if (editor.workers.length < Editor.Worker.max) {
-        var worker = new Worker('worker.images.js');
+        var worker = new Worker(window.KX_STATIC_PREFIX + 'worker.images.js');
         editor.workers.push(worker);
       } else {
         editor.workerQueue.push(data, callback)

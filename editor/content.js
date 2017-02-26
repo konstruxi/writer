@@ -22,19 +22,23 @@ Editor.Content = function(editor) {
 
 
 Editor.Content.cleanEmpty = function(editor, force, blur) {
+  if (!editor.element) return;
+  
   var selection = editor.getSelection();
-  if (editor.refocusing) {
-    var selected = editor.refocusing;
-  } else {
-    var selected = selection.getStartElement();
-    if (selected) selected = selected.$;
+  if (selection) {
+    if (editor.refocusing) {
+      var selected = editor.refocusing;
+    } else {
+      var selected = selection.getStartElement();
+      if (selected) selected = selected.$;
+    }
   }
   var children = editor.element.$.children;
   var snapshot = editor.stylesnapshot;
   editor.fire('lockSnapshot');
   var cleaned = [];
   for (var i = 0; i < children.length; i++) {
-    var inside = Editor.Content.isInside(selected, children[i]);
+    var inside = selected && Editor.Content.isInside(selected, children[i]);
     if (selected && inside) {
       if (editor.section != children[i]) {
         if (editor.section)
@@ -55,8 +59,9 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
               var before = children[i].previousElementSibling;
               var after = children[i].nextElementSibling;
             }
-          } else if (!bookmark && !editor.refocusing && !blur)
+          } else if (!bookmark && !editor.refocusing && !blur) {
             var bookmark = selection.createBookmarks();
+          }
 
         cleaned.push(children[i])
       } else if (!children[i].classList.contains('kx') && !children[i].classList.contains('kx-placeholder')) {
@@ -70,7 +75,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
           els.push.apply(els, grands);
         }
         for (var j = 0; j < els.length; j++) {
-          if (Editor.Content.isEmpty(els[j])) {
+          if (Editor.Content.isEmpty(els[j], blur)) {
             if (selected) 
               if (!before && !after && Editor.Content.isInside(selected, els[j])) {
                 var before = els[j].previousElementSibling;
@@ -89,8 +94,9 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
     }
   }
   for (var i = 0; i < cleaned.length; i++) {
-    if (cleaned[i].parentNode)
+    if (cleaned[i].parentNode) {
       cleaned[i].parentNode.removeChild(cleaned[i])
+    }
     //if (editor.snapshot)
     //  editor.snapshot.removeElement(cleaned[i])
   }
@@ -176,20 +182,26 @@ Editor.Content.isInside = function(element, another) {
 }
 
 Editor.Content.isEmpty = function(child, includePlaceholders) {
-  if (child.tagName == 'IMG' || child.tagName == 'HR' || (child.tagName == 'PICTURE' && child.getElementsByTagName('img')[0])
-  || child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && (child.classList.contains('kx') || (!includePlaceholders && child.classList.contains('kx-placeholder')))))
-    return false;
-  //if (child.tagName == 'P') {
+  if (child.nodeType == 3) {
+    var text = child.nodeValue
+  } else {
+    if (child.getAttribute('kx-text') != null)
+      return false;
+    if (child.tagName == 'IMG' || child.tagName == 'HR' || (child.tagName == 'PICTURE' && child.getElementsByTagName('img')[0])
+    || child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && (child.classList.contains('kx') || (!includePlaceholders && child.getAttribute('itempath')))))
+      return false;
     var text = child.textContent
-    for (var i = 0; i < text.length; i++)
-      switch (text.charAt(i)) {
-        case '&nbsp;': case ' ': case '\n': case '\r': case '\t': case "​": case " ": case " ":
-          break;
-        default:
-          return false;
-      }
-  //}
-  return child.nodeType != 1 || !child.querySelector('img, video, iframe, .kx-placeholder');
+  }
+  //if (child.tagName == 'P') {
+  for (var i = 0; i < text.length; i++)
+    switch (text.charAt(i)) {
+      case '&nbsp;': case ' ': case '\n': case '\r': case '\t': case "​": case " ": case " ":
+        break;
+      default:
+        return false;
+    }
+//}
+  return child.nodeType != 1 || !child.querySelector('img, video, iframe, .kx-placeholder, [kx-text]');
 }
 
 
@@ -296,6 +308,87 @@ Editor.Content.parseYoutubeURL = function(url) {
     return (match&&match[7].length==11)? match[7] : false;
 }
 
+
+Editor.Content.prepare = function(element) {
+  for (var i = element.childNodes.length; i--;) {
+    if (element.childNodes[i].nodeType == 3) {
+      var trim = element.childNodes[i].nodeValue.trim().replace(/\s+/, ' ');
+      if (trim == '') {
+        element.removeChild(element.childNodes[i]);
+      } else if (trim != element.childNodes[i].nodeValue) {
+        element.childNodes[i].nodeValue = trim;
+      }
+    } else {
+      Editor.Content.prepare(element.childNodes[i])
+    }
+  }
+}
+
+
+if (!Editor.Content.dummy)
+  Editor.Content.dummy = document.createElement('div');
+Editor.Content.export = function(editor, content) {
+  Editor.Content.cleanEmpty(editor)
+
+  for (var i = 0; i < content.children.length; i++) {
+    Editor.Section.clean(editor, content.children[i], i)
+  }
+  Array.prototype.forEach.call(content.querySelectorAll('.kx.toolbar, .list, article, header'), function(el) {
+    el.setAttribute('title', 'deleting')
+    for (var i = 0; i < el.children.length; i++)
+      el.children[i].setAttribute('title', 'deleting');
+  })
+
+  editor.doNotParseOnOutput = true;
+  Editor.Content.dummy.innerHTML = editor.getData()
+    .replace(/\s(?:style)="[^"]*?"/gi, '')
+    .replace(/\s(?:src)="data:[^"]*?"/gi, 'src="data:blob"');
+  editor.doNotParseOnOutput = null;
+  // FIXME: ckeditor unwraps list items, so i use attribute on original content
+  Array.prototype.forEach.call(Editor.Content.dummy.querySelectorAll('[title="deleting"]'), function(el) {
+    el.parentNode.removeChild(el);
+  })
+
+  Array.prototype.forEach.call(content.querySelectorAll('[title="deleting"]'), function(el) {
+    el.removeAttribute('title')
+  })
+  Array.prototype.forEach.call(content.querySelectorAll('picture'), function(el) {
+    el.classList.remove('added')
+  })
+  Array.prototype.forEach.call(Editor.Content.dummy.querySelectorAll('.meta.expanded'), function(el) {
+    if (Editor.Content.isEmpty(el, true))
+      el.parentNode.removeChild(el);
+    else
+      el.classList.remove('expanded')
+  })
+
+  Array.prototype.forEach.call(Editor.Content.dummy.children, function(el) {
+    if (el.tagName != 'SECTION') el.parentNode.removeChild(el);
+  });
+  Array.prototype.forEach.call(Editor.Content.dummy.querySelectorAll('[itempath]'), function(el) {
+    el.removeAttribute('error')
+    if (Editor.Content.isEmpty(el, true)) {
+      el.parentNode.removeChild(el);
+    } else {
+      el.classList.remove('kx-placeholder')
+      //el.removeAttribute('tabindex')
+    }
+  })
+  var value = Editor.Content.dummy.innerHTML
+    .replace(/\&nbsp;/gi, '&#160;')
+    .replace(/(<img[^>]*[^\/])>/gi, '$1/>')
+    .replace(/<(hr|br)\s*>/ig, '$1/>')
+    .replace(/((?:href|src)=")([^"]+)"/gi, function(m, m1, m2) {
+      if (m2.substring(0, 2) != './'
+      && m2.substring(0, 3) != '/./' 
+      && m2.indexOf('/') > -1)
+        return m;
+      return m1 + './' + m2.split('/').pop() + '"';
+    });
+
+  return value
+
+}
 
 Editor.Content.soundsLikeSemanticClass = {
   'maybe-avatar': 'maybe-avatar',

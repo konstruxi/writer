@@ -167,6 +167,7 @@ Editor.Selection.selectPicture = function(editor, picture, force) {
   if (editor.selectedPicture == picture && !force)
     return;
   var selection = editor.getSelection();
+  if (!selection) return;
   var range = selection.getRanges()[0] || editor.createRange();
 
 

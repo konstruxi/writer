@@ -32,8 +32,8 @@ function Editor(content, options) {
       //editor.undoManager.save()
     }
   })
+  Editor.Container(editor, content)
   editor.on('contentDom', function() {
-    Editor.Container(editor, content)
     var images = editor.element.$.getElementsByTagName('img');
     for (var i = 0, image; image = images[i++];) {
       Editor.Image(editor, image, Editor.Image.applyChanges)
@@ -57,7 +57,11 @@ function Editor(content, options) {
     if (!e.target.nodeType || e.target.tagName == 'svg' || e.target.tagName == 'use' || (e.target.classList && e.target.classList.contains('toolbar'))) {
       //if (editor.focusManager.hasFocus) {
         for (var p = e.target; p; p = p.parentNode) {
-          if (p == editor.element.$)
+          if (p.id == 'sectionizer')  {
+            return editor.onTap(e);
+          }
+
+          if (p == editor.element.$ || p.id == 'formatting' || p.id == 'sectionizer' || p.id == 'saver')
             e.preventDefault()
         }
       //}
@@ -73,7 +77,7 @@ function Editor(content, options) {
     document.addEventListener('selectionchange', editor.onGlobalSelectionChange)
 
     // dont change focus/selection on button click
-    document.addEventListener('mousedown', editor.onGlobalMouseDown, true)
+    document.addEventListener('mousedown', editor.onGlobalMouseDown)
 
   })
   editor.on('detachElement', function(e) {
@@ -88,6 +92,7 @@ function Editor(content, options) {
     document.removeEventListener('mousedown', editor.onGlobalMouseDown)
     editor.observer.disconnect()
     Editor.Container.detach(editor)
+    Editor.Chrome.Toolbar.close(editor)
     formatting.setAttribute('hidden', 'hidden')
     editor.destroy(true)
   })

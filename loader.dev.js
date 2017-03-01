@@ -6,7 +6,7 @@ if (script) {
 }
 
 
-if (window.LOAD_DEV_CKEDITOR || true) {
+if (window.LOAD_DEV_CKEDITOR) {
   var CKEDITOR_BASEPATH = prefix + 'ckeditor/';
   var CKEDITOR_FILE = 'ckeditor/ckeditor.js'
 } else {

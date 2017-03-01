@@ -124,6 +124,7 @@ Editor.Placeholder = function(editor, changedPlaceholders) {
     for (var i = 0; i < oldPlaceholders.length; i++)
       if (newPlaceholders.indexOf(oldPlaceholders[i]) == -1) {
         if (oldPlaceholders[i].getAttribute('itempath')) {
+          debugger
           oldPlaceholders[i].parentNode.removeChild(oldPlaceholders[i])
         }
       }
@@ -136,7 +137,6 @@ Editor.Placeholder.focus = function(editor, element) {
     var range = selection.getRanges()[0];
     range.moveToPosition( new CKEDITOR.dom.element(element), CKEDITOR.POSITION_BEFORE_END );
     range.select(true)
-    console.log(element, 555555555)
   }
 }
 

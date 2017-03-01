@@ -38,6 +38,9 @@ Editor.Snapshot.prototype.onTake = function(options, reset, focused) {
     return;
   var bookmark = options.editor.dragbookmark;
 
+  if (reset)
+    Editor.Container.measure(options.editor, this)
+  
   if (options.editor.refocusing) {
     var focused = options.editor.refocusing;
     options.editor.refocusing = undefined;

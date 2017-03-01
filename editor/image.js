@@ -2,6 +2,7 @@
 
 
 Editor.Image = function(editor, image, onImageProcessed, onImageLoaded, arg) {
+  if (!editor) return;
   if (!image.tagName) {
     var file = image;
     var image = new Image;

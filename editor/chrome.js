@@ -94,6 +94,7 @@ Editor.Chrome.Toolbar = function(editor, section, iconname) {
     //toolbar.setAttribute('contenteditable', 'false')
 
     var link = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+
     link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + (iconname || 'resize-section-icon'));
     icon.appendChild(link)
     toolbar.appendChild(icon)
@@ -101,7 +102,7 @@ Editor.Chrome.Toolbar = function(editor, section, iconname) {
   }
 }
 
-Editor.Chrome.Toolbar.open = function(editor, section, button) {
+Editor.Chrome.Toolbar.open = function(editor, section) {
 
   var indexF = editor.snapshot.elements.indexOf(section.getElementsByClassName('toolbar')[0]);
   if (indexF > -1) {
@@ -117,7 +118,7 @@ Editor.Chrome.Toolbar.open = function(editor, section, button) {
   }
   editor.currentToolbar = section;
   setUIColors(editor, section, 'menu');
-  setUIColors(editor, section, 'last');
+//  setUIColors(editor, section, 'last');
   sectionizer.style.top = offsetTop + 'px'
   sectionizer.style.left = offsetLeft + 'px';
   sectionizer.className = section.className + ' circle-menu'
@@ -262,7 +263,7 @@ Editor.Chrome.update = function(editor, force) {
   editor.currentButton = button;
   
   setUIColors(editor, startSection, 'toolbar');
-  setUIColors(editor, startSection, 'last');
+//  setUIColors(editor, startSection, 'last');
   
   // update formatting buttons
   var buttons = formatting.querySelectorAll('.cke_toolbar:nth-child(2) .cke_button');

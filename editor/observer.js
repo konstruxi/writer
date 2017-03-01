@@ -67,7 +67,7 @@ Editor.Observer = function(editor) {
             Editor.Placeholder.onChange(placeholders[i]);
         }
       if (placeholders.length) {
-        console.log(placeholders, 'placeholders changed')
+        //console.log(placeholders, 'placeholders changed')
       }
     }
   } );

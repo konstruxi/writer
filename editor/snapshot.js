@@ -5,8 +5,6 @@ Kex = function(element, options, elements, dimensions, selected, offsetHeight) {
   this.dimensions = dimensions || [];
   this.selected = selected || [];
   this.offsetHeight = offsetHeight;
-  if (element)
-    Kex.measureContainer(element, this.options);
 }
 
 
@@ -74,7 +72,7 @@ Kex.prototype.migrate = function(from, to) {
       }
     }
   }
-  console.log(f, t)
+  //console.log(f, t)
 
 }
 
@@ -135,10 +133,12 @@ Kex.prototype.removeElement = function(element) {
   
   
 }
-Kex.prototype.animate = function(section, callback) {
-  var snapshot = this.constructor.take(this.element, this.options, true);
+Kex.prototype.animate = function(callback) {
+  var snapshot = this.constructor.take(this.element, this.options, true, callback);
   if (callback)
     callback(snapshot)
+  console.timeStamp('animate');
+  console.time('animate 1st frame');
   this.processElements(snapshot);
   snapshot.animating = (this.animating || [])
   snapshot.manipulated = this.manipulated;
@@ -196,7 +196,7 @@ Kex.prototype.animate = function(section, callback) {
     } else {
       snapshot.finish()
       snapshot.timer = null;
-      console.log('animated in', time -  snapshot.startTime, snapshot.manipulated)
+      console.log('animated in', time -  snapshot.startTime)
     }
   }
   // call immediately for safari, the reason why we dont use precise RAF timestamp 
@@ -204,6 +204,7 @@ Kex.prototype.animate = function(section, callback) {
     var els = Array.prototype.slice.call(snapshot.element.getElementsByClassName('new'))
     for (var i = 0; i < els.length; i++)
       els[i].classList.remove('new')
+  console.timeEnd('animate 1st frame');
   return snapshot;
 };
 
@@ -433,8 +434,8 @@ Kex.take = function(element, options, reset, focused) {
   var elements = options.getElements(element, options);
   if (reset) {
     Kex.prototype.reset(elements)
+    Kex.measureContainer(element, options);
   }
-  var offsetHeight = element.offsetHeight;
   var dimensions = []
   //debugger
   if (options.onTake) {
@@ -505,7 +506,7 @@ Kex.take = function(element, options, reset, focused) {
       //}
     //})
   
-  return new Kex(element, options, elements, dimensions, selected, offsetHeight)
+  return new Kex(element, options, elements, dimensions, selected, options.offsetHeight)
 }
 
 Kex.prototype.saveIdentity = function() {
@@ -564,11 +565,12 @@ Kex.measureContainer = function(element, options, scroll) {
     options.innerHeight  = window.innerHeight;
   }
   options.scrollY      = window.scrollY;
+  options.scrollX      = window.scrollX;
   options.box = {
     width: options.offsetWidth,
     height: options.offsetHeight,
-    top: options.offsetTop - window.scrollY,
-    left: options.offsetLeft - window.scrollX
+    top: options.offsetTop - options.scrollY,
+    left: options.offsetLeft - options.scrollX
   }
   options.zoom = options.offsetWidth / options.box.width
 }
@@ -722,6 +724,9 @@ Kex.prototype.setStyle = function(element, property, value) {
   if (value != null) {
     this.manipulated = (this.manipulated || 0) + 1
     box.manipulated = true;
+  } else {
+    this.manipulated = Math.max(1, this.manipulated || 0) - 1
+    box.manipulated = false;
   }
   box.animated = true;
   box.static = false;

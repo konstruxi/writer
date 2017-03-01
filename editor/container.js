@@ -10,6 +10,7 @@ Editor.Container = function(editor) {
   window.addEventListener('resize', editor.onWindowResize)
   editor.on('contentDom', function() {
     Editor.Container.measure(editor);
+    Editor.Chrome.update(editor)
   })
   Editor.Container.onResize(editor, true)
   Editor.Container.onScroll(editor)
@@ -43,23 +44,41 @@ Editor.Container.onScroll = function(editor) {
 
 Editor.Container.measure = function(editor, scroll) {
   if (!scroll) {
-    editor.offsetHeight = editor.element.$.offsetHeight;
-    editor.offsetWidth  = editor.element.$.offsetWidth;
-    editor.offsetTop    = editor.element.$.offsetTop;
-    editor.offsetLeft   = editor.element.$.offsetLeft;
-    for (var offsetParent = editor.element.$; offsetParent = offsetParent.offsetParent;) {
-      editor.offsetTop += offsetParent.offsetTop;
-      editor.offsetLeft += offsetParent.offsetLeft;
+
+    if (window.snapshot) {
+      var box = window.snapshot.get(editor.element.$);
+      editor.offsetWidth  = box.width;
+      editor.offsetHeight = box.height;
+      editor.offsetLeft   = box.left;
+      editor.offsetTop    = box.top;
+      editor.innerWidth   = window.innerWidth;
+      editor.innerHeight  = window.innerHeight;
+    } else {
+      editor.offsetHeight = editor.element.$.offsetHeight;
+      editor.offsetWidth  = editor.element.$.offsetWidth;
+      editor.offsetTop    = editor.element.$.offsetTop;
+      editor.offsetLeft   = editor.element.$.offsetLeft;
+      for (var offsetParent = editor.element.$; offsetParent = offsetParent.offsetParent;) {
+        editor.offsetTop += offsetParent.offsetTop;
+        editor.offsetLeft += offsetParent.offsetLeft;
+      }
+      editor.innerWidth   = window.innerWidth;
+      editor.innerHeight  = window.innerHeight;
     }
-    editor.innerWidth   = window.innerWidth;
-    editor.innerHeight  = window.innerHeight;
+  } else {
+    if (window.snapshot) {
+      editor.scrollY      = window.snapshot.options.scrollY;
+      editor.scrollX      = window.snapshot.options.scrollX;
+    } else {
+      editor.scrollY      = window.scrollY;
+      editor.scrollX      = window.scrollX;
+    }
   }
-  editor.scrollY      = window.scrollY;
   editor.box = {
     width: editor.offsetWidth,
     height: editor.offsetHeight,
-    top: editor.offsetTop - window.scrollY,
-    left: editor.offsetLeft - window.scrollX
+    top: editor.offsetTop - editor.scrollY,
+    left: editor.offsetLeft - editor.scrollX
   }
   editor.zoom = editor.offsetWidth / editor.box.width
 }

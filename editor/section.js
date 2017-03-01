@@ -26,6 +26,7 @@ Editor.Section = function(editor, mutation, observer, changedPlaceholders) {
     return el.getAttribute('itempath')
   });
 
+  var startTime = new Date;
   if (!changedPlaceholders) changedPlaceholders = []
   var old = changedPlaceholders.length;
   Editor.Placeholder(editor, changedPlaceholders);
@@ -41,8 +42,7 @@ Editor.Section = function(editor, mutation, observer, changedPlaceholders) {
   }
   Editor.Section.group(content)
 
-  console.error('animate section')
-  editor.snapshot = snapshot.animate(section);
+  editor.snapshot = snapshot.animate();
   if (window.snapshot == snapshot)
     window.snapshot = editor.snapshot
   for (var i = 0; i < content.children.length; i++) 
@@ -221,7 +221,7 @@ Editor.Section.split = function(editor, root) {
   for (var i = 0; i < children.length; i++) {
     var child = children[i];
     if (child.tagName == 'DIV' && child.classList.contains('list')) {
-      Editor.Section.split(editor, child);
+      //Editor.Section.split(editor, child);
       continue;
     }
     if (child.tagName == 'ARTICLE' || child.tagName == 'HEADER')

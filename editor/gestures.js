@@ -357,13 +357,15 @@ Editor.Pointer = function(editor, content) {
   })
 
   editor.gestures.on('tap', function(e) {
-    var target = e.srcEvent.target.correspondingUseElement || 
-                 e.srcEvent.target.correspondingElement || 
-                 e.srcEvent.target;
+    return editor.onTap(e)
+  })
 
-    for (var p = target; p; p = p.parentNode) 
-      if (p == editor.element.$) break;
-    if (p != editor.element.$) return;
+  editor.onTap = function(e) {
+    var event = e.srcEvent || e;
+    var target = event.target.correspondingUseElement || 
+                 event.target.correspondingElement || 
+                 event.target;
+
     
     for (var p = target; p; p = p.parentNode) {
       if (p.classList && p.classList.contains('preview') && p.classList.contains('content')) {
@@ -389,6 +391,11 @@ Editor.Pointer = function(editor, content) {
           e.preventDefault()
           return
         } else if (p.classList.contains('menu')) {
+
+          for (var pp = p; pp; pp = pp.parentNode) 
+            if (pp == editor.element.$) break;
+          if (pp != editor.element.$) return;
+
           var section = Editor.Section.get(p);
           Editor.Chrome.Toolbar.open(editor, section, p);
           e.preventDefault()
@@ -406,6 +413,6 @@ Editor.Pointer = function(editor, content) {
         }
       }
     }
-  })
+  }
 
 }

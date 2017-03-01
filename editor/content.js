@@ -75,7 +75,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
           els.push.apply(els, grands);
         }
         for (var j = 0; j < els.length; j++) {
-          if (Editor.Content.isEmpty(els[j], blur)) {
+          if (Editor.Content.isEmpty(els[j])) {
             if (selected) 
               if (!before && !after && Editor.Content.isInside(selected, els[j])) {
                 var before = els[j].previousElementSibling;
@@ -188,7 +188,7 @@ Editor.Content.isEmpty = function(child, includePlaceholders) {
     if (child.getAttribute('kx-text') != null)
       return false;
     if (child.tagName == 'IMG' || child.tagName == 'HR' || (child.tagName == 'PICTURE' && child.getElementsByTagName('img')[0])
-    || child.tagName == 'BR' || child.tagName == 'svg' || (child.classList && (child.classList.contains('kx') || (!includePlaceholders && child.getAttribute('itempath')))))
+    || child.tagName == 'BR' || child.tagName == 'svg' || child.tagName == 'use' || (child.classList && (child.classList.contains('kx') || (!includePlaceholders && child.getAttribute('itempath')))))
       return false;
     var text = child.textContent
   }

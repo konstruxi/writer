@@ -11,7 +11,7 @@ if (window.LOAD_DEV_CKEDITOR) {
   var CKEDITOR_FILE = 'ckeditor/ckeditor.js'
 } else {
   var CKEDITOR_BASEPATH = prefix + 'ckeditor/release/';
-  var CKEDITOR_FILE = 'release/ckeditor.js'
+  var CKEDITOR_FILE = 'ckeditor/release/ckeditor.js'
 }
 
 window.KX_STATIC_PREFIX = prefix;

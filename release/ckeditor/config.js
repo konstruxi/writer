@@ -1,0 +1,7 @@
+﻿/*
+ Copyright (c) 2003-2016, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.md or http://ckeditor.com/license
+*/
+CKEDITOR.editorConfig=function(a){a.customConfig="";a.stylesSet=!1;a.defaultLanguage="en";a.language="en";a.toolbarGroups=[{name:"metas",groups:["meta"]},{name:"foormatting",groups:"basicstyles cleanup structural blocks list indent".split(" ")},{name:"objects",groups:["objects","links"]}];a.removeButtons="Cut,Copy,Paste,Undo,Redo,Anchor,Underline,Strike,Subscript,Superscript";a.pasteFilter="semantic-content";a.removeDialogTabs="link:advanced";a.allowedContent="x-div picture(loading,added)[uid]; hr h1 h2 h3 h4 h5 blockquote ul li ol; b i code pre abbr; iframe[src]; a[href,title,hidden,aria-hidden]; abbr[title]; img(*)[src,alt,title,uid,palette,width,height,class]; section(*)[*];";
+a.extraAllowedContent="header; style; svg[width,height,viewbox,unselectable]; use[*]; div svg span article section time[datetime]; * (*)[width,height,src,href,itempath,itemlabel,itemvalue,itemindex,itemtable,itemname,kx-html,kx-text,contenteditable,marked-to-delete]{background,background-color,width,height}";a.disallowedContent="section(focused);";a.shiftEnterMode=CKEDITOR.ENTER_P;a.sharedSpaces={top:"formatting"};a.undoStackSize=150;a.title=!1;a.startupShowBorders=!1;a.disableObjectResizing=!0;a.entities_processNumerical=
+!0};

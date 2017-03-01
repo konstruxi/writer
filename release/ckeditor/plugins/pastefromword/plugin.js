@@ -1,0 +1,9 @@
+﻿/*
+ Copyright (c) 2003-2016, CKSource - Frederico Knabben. All rights reserved.
+
+ For licensing, see LICENSE.md or http://ckeditor.com/license
+
+*/
+(function(){function l(a,b,f){var d=CKEDITOR.cleanWord;d?f():(a=CKEDITOR.getUrl(a.config.pasteFromWordCleanupFile||b+"filter/default.js"),CKEDITOR.scriptLoader.load(a,f,null,!0));return!d}function g(a){a.data.type="html"}CKEDITOR.plugins.add("pastefromword",{requires:"clipboard",lang:"en",icons:"pastefromword,pastefromword-rtl",hidpi:!0,init:function(a){var b=0,f=this.path;a.addCommand("pastefromword",{canUndo:!1,async:!0,exec:function(a){var c=this;b=1;a.once("beforePaste",g);a.getClipboardData({title:a.lang.pastefromword.title},
+function(b){b&&a.fire("paste",{type:"html",dataValue:b.dataValue,method:"paste",dataTransfer:CKEDITOR.plugins.clipboard.initPasteDataTransfer()});a.fire("afterCommandExec",{name:"pastefromword",command:c,returnValue:!!b})})}});a.ui.addButton&&a.ui.addButton("PasteFromWord",{label:a.lang.pastefromword.toolbar,command:"pastefromword",toolbar:"clipboard,50"});a.on("pasteState",function(b){a.getCommand("pastefromword").setState(b.data)});a.on("paste",function(d){var c=d.data,h=c.dataValue,g=/(class=\"?Mso|style=\"[^\"]*\bmso\-|w:WordDocument|<o:\w+>|<\/font>|\[if mso\])/,
+e={dataValue:h};if(h&&(b||g.test(h))&&(!1!==a.fire("pasteFromWord",e)||b)){c.dontFilter=!0;var k=l(a,f,function(){if(k)a.fire("paste",c);else if(!a.config.pasteFromWordPromptCleanup||b||confirm(a.lang.pastefromword.confirmCleanup))e.dataValue=CKEDITOR.cleanWord(e.dataValue,a),a.fire("afterPasteFromWord",e),c.dataValue=e.dataValue;b=0});k&&d.cancel()}},null,null,3)}})})();

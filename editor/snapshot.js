@@ -506,7 +506,9 @@ Kex.take = function(element, options, reset, focused) {
       //}
     //})
   
-  return new Kex(element, options, elements, dimensions, selected, options.offsetHeight)
+  var snapshot = new Kex(element, options, elements, dimensions, selected, options.offsetHeight)
+  snapshot.constructor = this;
+  return snapshot;
 }
 
 Kex.prototype.saveIdentity = function() {

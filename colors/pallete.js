@@ -459,6 +459,9 @@ CSS = function(prefix) {
   return (
 "body.toolbar-" + prefix.replace('.', '.toolbar-') + " #formatting," +
 "body.menu-"    + prefix.replace('.', '.menu-') + " #sectionizer svg," +
+"body.menu-"    + prefix.replace('.', '.menu-') + " #lister svg," +
+"body.menu-"    + prefix.replace('.', '.menu-') + " #manager svg," +
+"body.menu-"    + prefix.replace('.', '.menu-') + " #saver svg," +
 "body.toolbar-" + prefix.replace('.', '.toolbar-') + " #formatting .cke_button {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "  color: " + this.accent + ";\n" +
@@ -473,40 +476,47 @@ CSS = function(prefix) {
 "  color: " + this.foreground + ";\n" +
 "  background-color: " + this.accent + ";\n" +
 "}\n" +
-"body.last-"    + prefix.replace('.', '.last-') + " article," +
-"body.last-"    + prefix.replace('.', '.last-') + " section," +
+//"body.last-"    + prefix.replace('.', '.last-') + " article," +
+//"body.last-"    + prefix.replace('.', '.last-') + " section," +
 "body.toolbar-"    + prefix.replace('.', '.toolbar-') + " .foreground," +
 "body.menu-"    + prefix.replace('.', '.menu-') + " .picker," +
-".content section." + prefix + " {\n" +
+".content > ." + prefix + " {\n" +
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
 "}\n" +
-".content section." + prefix + " .toolbar  svg{\n" +
+".content > header." + prefix + " {\n" +
+"  background-color: " + this.background + ";\n" +
+"  color: " + this.backgroundAAA + ";\n" +
+"}\n" +
+".content > ." + prefix + " > .toolbar  svg{\n" +
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.accent + ";\n" +
 "}\n" +
-".content section." + prefix + " .toolbar svg:hover {\n" +
+".content > ." + prefix + " > .toolbar svg:hover {\n" +
 "  background-color: " + this.accent + ";\n" +
 "  color: " + this.background + ";\n" +
 "}\n" +
-".content section." + prefix + " h1,\n" +
-".content section." + prefix + " h2,\n" +
-".content section." + prefix + " h3 {\n" +
+".content > ." + prefix + " h1,\n" +
+".content > ." + prefix + " h2,\n" +
+".content > ." + prefix + " h3,\n" +
+".content > ." + prefix + " h1 a,\n" +
+".content > ." + prefix + " h2 a,\n" +
+".content > ." + prefix + " h3 a{\n" +
 "  color: " + this.foregroundAA + ";\n" +
 "}\n" +
-".content section." + prefix + " a {\n" +
+".content > ." + prefix + " a {\n" +
 "  color: " + this.accent + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
-".content section." + prefix + " > .foreground {\n" +
+".content > section." + prefix + " > .foreground {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "  border-color: " + this.accent + ";\n" +
 "}" +
 "body.menu-"    + prefix + " .picker > div:hover {\n" +
 "  border-color: " + this.accent + ";\n" +
 "}" + 
-".content section." + prefix + " *::selection {\n" +
+".content > section." + prefix + " *::selection {\n" +
 "  background-color: " + this.accent.toString().replace('rgb', 'rgba').replace(')', ',0.5)') + ";\n" +
 "  color: " + this.accentAAA + ";\n" +
 "}")

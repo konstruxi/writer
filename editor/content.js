@@ -365,6 +365,10 @@ Editor.Content.export = function(editor, content) {
   Array.prototype.forEach.call(Editor.Content.dummy.children, function(el) {
     if (el.tagName != 'SECTION') el.parentNode.removeChild(el);
   });
+
+  Array.prototype.forEach.call(Editor.Content.dummy.querySelectorAll('.focused'), function(el) {
+    el.classList.remove('focused')
+  })
   Array.prototype.forEach.call(Editor.Content.dummy.querySelectorAll('[itempath]'), function(el) {
     el.removeAttribute('error')
     if (Editor.Content.isEmpty(el, true)) {

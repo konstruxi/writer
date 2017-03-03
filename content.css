@@ -6,7 +6,7 @@
 
 [contenteditable="true"] > * > [itempath]:before{
   content: attr(itemlabel);
-  opacity: 0.35;
+  opacity: 0.45;
   display: inline-block;
   padding-left: 1rem;
   float: right;
@@ -317,8 +317,9 @@ section > a {
 section > a + * {
   margin-top: 14px;
 }
-.content section:not(:hover):not(.focused) > .kx.foreground {
-  border-color: transparent;
+.content[contenteditable="true"] > section.focused > .kx.foreground,
+.content[contenteditable="true"] > section:hover > .kx.foreground{
+  border-width: 1px;
 }
 
 section.clone {
@@ -428,7 +429,7 @@ section.clone {
   z-index: -1;
   position: absolute;
   width: 100vw;
-  border: 1px solid transparent;
+  border: 0px solid transparent;
   margin-top: -1px;
   margin-left: -1px;
 
@@ -602,7 +603,7 @@ body.dragging .content section.below-the-fold > .toolbar {
 .content section.growing {
   z-index: 2;
 }
-
+/*
 article.content {
   background: #f1f1f1;
 }
@@ -611,7 +612,7 @@ article.content article.content {
 }
 article.content article.content article.content {
   background: #e0e0e0;
-}
+}*/
 .list:not([layout="carousel"]):not([layout="stream"]) > article.content + article.content {
   border-top: 1px solid transparent;
   background-clip: content-box;

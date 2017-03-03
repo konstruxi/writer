@@ -37,7 +37,7 @@ CKEDITOR.editorConfig = function( config ) {
 	config.removeDialogTabs = 'link:advanced';
 
 	config.allowedContent = 'x-div picture(loading,added)[uid]; hr h1 h2 h3 h4 h5 blockquote ul li ol; b i code pre abbr; iframe[src]; a[href,title,hidden,aria-hidden]; abbr[title]; img(*)[src,alt,title,uid,palette,width,height,class]; section(*)[*];'
-	config.extraAllowedContent = 'header; style; svg[width,height,viewbox,unselectable]; use[*]; div svg span article section time[datetime]; * (*)[width,height,src,href,itempath,itemlabel,itemvalue,itemindex,itemtable,itemname,kx-html,kx-text,contenteditable,marked-to-delete]{background,background-color,width,height}';
+	config.extraAllowedContent = 'header; style; section[palette,schema]; svg[width,height,viewbox,unselectable]; use[*]; div svg span article section time[datetime]; * (*)[width,height,src,href,itempath,itemlabel,itemvalue,itemindex,itemtable,itemname,kx-html,kx-text,contenteditable,marked-to-delete]{background,background-color,width,height}';
 	config.disallowedContent = 'section(focused);'
 
 	config.shiftEnterMode = CKEDITOR.ENTER_P

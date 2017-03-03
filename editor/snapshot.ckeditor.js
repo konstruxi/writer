@@ -1,10 +1,18 @@
-Editor.Snapshot = function(element, options, elements, dimensions, selected, offsetHeigh) {
+Editor.Snapshot = function(element, options, elements, dimensions, selected, offsetHeight) {
   if (element == undefined)
     return this;
-  return new Kex(element, this, elements, dimensions, selected, offsetHeigh);
+  options.editor.snapshot = new Kex(element, this, elements, dimensions, selected, offsetHeight);
+  return options.editor.snapshot
 }
 Editor.Snapshot.prototype = new Kex;
-Editor.Snapshot.take = Kex.take;
+Editor.Snapshot.take = function(element, options, reset, focused) {
+  var snapshot = Kex.take.call(this, element, options, reset, focused);
+  if (options.editor) {
+    options.editor.snapshot = snapshot;
+  }
+  window.snapshot = snapshot;
+  return snapshot;
+};
 Editor.Snapshot.prototype.selector = 'section, div, ul, li, ol, h1, h2, h3, h4, h5, dl, dt, dd, p, nav, dl, header, footer, main, article, details, summary, aside, button, form, input, label, summary a, select, textarea, x-div, section > a, img, picture, blockquote'
 //Editor.Snapshot.prototype.getElements = function(element, options) {
 //  return Editor.Content(options.editor)

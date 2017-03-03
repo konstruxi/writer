@@ -8,24 +8,34 @@ Editor.Style = function(editor, section, type, value, wasStarred) {
 
 }
 
-Editor.Style.write = function(editor, section, styles) {
+Editor.Style.write = function(editor, section, selector, cssStyles) {
   var stylesheet = Editor.Style.getStylesheet(editor, section);
-  if (stylesheet.current) {
-    for (var property in stylesheet.current)
-      if (!styles[property])
-        styles[property] = stylesheet.current[property]
-    
-  }
-  stylesheet.current = styles;
   var text = ''
-  for (var property in styles)
-    text += styles[property] + '\n';
+
+  if (!stylesheet.current) 
+    stylesheet.current = {};
+
+  // already written
+  if (stylesheet.current[selector])
+    return;
+    
+  stylesheet.current[selector] = cssStyles();
+
+
+  for (var otherSelector in stylesheet.current)
+    if (document.querySelector(otherSelector)) {
+      text += stylesheet.current[otherSelector] + '\n'
+    } else {
+      delete stylesheet.current[otherSelector];
+    }
 
   stylesheet.textContent = text;
-  stylesheet.current = styles
+  console.log(text)
 }
 
 Editor.Style.getStylesheet = function(editor, section) {
+  if (window.Manager)
+    return Manager.stylesheet
   var stylesheet = section.getElementsByTagName('style')[0];
   if (!stylesheet) {
     stylesheet = document.createElement('style')
@@ -72,15 +82,17 @@ Editor.Style.set = function(editor, section, type, value, inherited, propagate) 
 }
 
 Editor.Style.propagate = function(editor, section, type, value) {
-  for (var p = section; p = p.previousElementSibling;) {
-    if (p.tagName != 'SECTION') continue;
+  var sections = document.querySelectorAll('section, header, .list');
+  var index = Array.prototype.indexOf.call(sections, section);
+  for (var i = index; i--;) {
+    var p = sections[i];
     var l = Editor.Style.inherit(editor, p, type);
     if (l === false)
       break;
     Editor.Style.set(editor, p, type, null, l);
   }
-  for (var n = section; n = n.nextElementSibling;) {
-    if (n.tagName != 'SECTION') continue;
+  for (var i = index; ++i < sections.length;) {
+    var n = sections[i];
     var r = Editor.Style.inherit(editor, n, type);
     if (r === false)
       break;
@@ -93,15 +105,17 @@ Editor.Style.inherit = function(editor, section, type, ignoreSelf) {
     return false;
   var left = 0, right = 0;
   var l, r;
-  for (var p = section; p = p.previousElementSibling;) {
-    if (p.tagName != 'SECTION') continue;
+  var sections = document.querySelectorAll('section, header, .list');
+  var index = Array.prototype.indexOf.call(sections, section);
+  for (var i = index; i--;) {
+    var p = sections[i];
     left++;
     if (!p.classList.contains('starred')) continue;
     if ((l = p.getAttribute(type)))
       break;
   }
-  for (var n = section; n = n.nextElementSibling;) {
-    if (n.tagName != 'SECTION') continue;
+  for (var i = index; ++i < sections.length;) {
+    var n = sections[i];
     right++
     if (!n.classList.contains('starred')) continue;
     if ((r = n.getAttribute(type)))
@@ -115,32 +129,50 @@ Editor.Style.inherit = function(editor, section, type, ignoreSelf) {
   }
 }
 
+Editor.Style.storage = {}
 Editor.Style.store = function(editor, type, value, reference) {
-  if (!editor.styles)
-    editor.styles = {}
-  if (!editor.styles[type])
-    editor.styles[type] = {}
-  editor.styles[type][value] = reference
+  if (!Editor.Style.storage[type])
+    Editor.Style.storage[type] = {}
+  return  Editor.Style.storage[type][value] = reference
 }
 Editor.Style.retrieve = function(editor, type, value) {
-  return editor.styles && editor.styles[type] && editor.styles[type][value]
+  return Editor.Style.storage[type] && Editor.Style.storage[type][value]
 } 
 
 Editor.Style.callbacks = {
   schema: function(editor, section, value) {
     var palette = Editor.Style.get(editor, section, 'palette');
     var generator = Editor.Style.retrieve(editor, 'palette', palette)
-    if (!generator) return;
+    if (!generator) {
+      var imgs = section.getElementsByTagName('img');
+      for (var i = 0; i < imgs.length; i++) {
+        if (imgs[i].getAttribute('palette') && imgs[i].getAttribute('uid') == palette) {
+          var generator = Editor.Style.store(editor, 'palette', palette, Palette(imgs[i]))
+        }
+      }
+      if (!generator) return;
+    }
     var schema = Editor.Style.get(editor, section, 'schema', 'DM_V')
     if (section.schema != schema || section.palette != palette) {
       section.palette = palette;
       section.schema = schema;
-      Editor.Style.write(editor, section, {
-        colors: generator(schema).toString('style-palette-' + palette + '.style-schema-' + schema)
-      })
+      Editor.Style.write(editor, section, 
+        '.style-palette-' + palette + '.style-schema-' + schema,
+        function() {
+          return generator(schema).toString('style-palette-' + palette + '.style-schema-' + schema)
+        }
+      )
     }
   },
   palette: function() {
     return Editor.Style.callbacks.schema.apply(this, arguments)
+  }
+}
+
+Editor.Style.recompute = function(root) {
+  var sections = root.querySelectorAll('section');
+  for (var i = 0; i < sections.length; i++) {
+    Editor.Style(null, sections[i], 'palette', Editor.Style.get(null, sections[i], 'palette'))
+    Editor.Style(null, sections[i], 'schema', Editor.Style.get(null, sections[i], 'schema') || 'DM_V')
   }
 }

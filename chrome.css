@@ -229,7 +229,8 @@ body.dragging .toolbar:not(.dragging) {
 }
 
 
-section  svg {
+section  svg,
+header  svg {
   fill: currentColor;
 }
 

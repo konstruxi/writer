@@ -110,6 +110,8 @@ Editor.Pointer = function(editor, content) {
       gesture.anchorShiftX = 0
       gesture.anchorShiftY = 0
     }
+    if (anchor && anchor.parentNode != gesture.section.parentNode)
+      anchor = anchor.parentNode;
     gesture.anchor = anchor
     if (gesture.anchor == gesture.section) 
       splitting = true;
@@ -348,6 +350,7 @@ Editor.Pointer = function(editor, content) {
 
     }
     editor.snapshot.manipulated = false;
+      debugger
     if (!editor.snapshot.timer) {
       editor.snapshot = editor.snapshot.animate()
     }

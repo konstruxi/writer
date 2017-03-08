@@ -53,7 +53,7 @@ Editor.Style.get = function(editor, section, type, value) {
       return section.classList[i].substring(6 + type.length + 1)
     }
   }
-  section.classList.add('style-' + type + '-' + value)
+  //section.classList.add('style-' + type + '-' + value)
   return value;
 };
 
@@ -61,7 +61,8 @@ Editor.Style.set = function(editor, section, type, value, inherited, propagate) 
   for (var i = section.classList.length; i--; ) {
     if (section.classList[i].indexOf('style-') == 0 
      && section.classList[i].indexOf(type) == 6) {
-      section.classList.remove(section.classList[i])
+      if (section.classList[i] != 'style-' + type + '-' + result)
+        section.classList.remove(section.classList[i])
     }
   }
   var result = (inherited || value);
@@ -82,8 +83,10 @@ Editor.Style.set = function(editor, section, type, value, inherited, propagate) 
 }
 
 Editor.Style.propagate = function(editor, section, type, value) {
-  var sections = document.querySelectorAll('section, header, .list');
+  var sections = document.querySelectorAll('section');
   var index = Array.prototype.indexOf.call(sections, section);
+  if (index == -1)
+    return;
   for (var i = index; i--;) {
     var p = sections[i];
     var l = Editor.Style.inherit(editor, p, type);
@@ -105,8 +108,10 @@ Editor.Style.inherit = function(editor, section, type, ignoreSelf) {
     return false;
   var left = 0, right = 0;
   var l, r;
-  var sections = document.querySelectorAll('section, header, .list');
+  var sections = document.querySelectorAll('section');
   var index = Array.prototype.indexOf.call(sections, section);
+  if (index == -1)
+    return;
   for (var i = index; i--;) {
     var p = sections[i];
     left++;
@@ -171,8 +176,25 @@ Editor.Style.callbacks = {
 
 Editor.Style.recompute = function(root) {
   var sections = root.querySelectorAll('section');
+
   for (var i = 0; i < sections.length; i++) {
-    Editor.Style(null, sections[i], 'palette', Editor.Style.get(null, sections[i], 'palette'))
-    Editor.Style(null, sections[i], 'schema', Editor.Style.get(null, sections[i], 'schema') || 'DM_V')
+    if (sections[i].classList.contains('starred')) {
+      Editor.Style(null, sections[i], 'palette', sections[i].getAttribute('palette'));
+      Editor.Style(null, sections[i], 'schema', sections[i].getAttribute('schema'));
+    }
+  }
+
+  var containers = root.querySelectorAll('#layout-root, article');
+  for (var i = 0; i < containers.length; i++) {
+    // articles and their list headers use first section's color scheme
+    var p = containers[i];
+    var first = p.getElementsByTagName('section')[0];
+    if (first) {
+      if (Editor.Style.get(null, first, 'palette'))
+        Editor.Style.set(null, containers[i], 'palette', null, Editor.Style.get(null, first, 'palette'));
+      if (Editor.Style.get(null, first, 'schema'))
+        Editor.Style.set(null, containers[i], 'schema', null, Editor.Style.get(null, first, 'schema'));
+      continue;
+    }
   }
 }

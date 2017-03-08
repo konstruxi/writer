@@ -478,15 +478,17 @@ CSS = function(prefix) {
 "}\n" +
 //"body.last-"    + prefix.replace('.', '.last-') + " article," +
 //"body.last-"    + prefix.replace('.', '.last-') + " section," +
-"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " .foreground," +
+//"body.toolbar-"    + prefix.replace('.', '.toolbar-') + " .foreground," +
 "body.menu-"    + prefix.replace('.', '.menu-') + " .picker," +
 ".content > ." + prefix + " {\n" +
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
 "}\n" +
-".content > header." + prefix + " {\n" +
+"." + prefix + "\n," +
+"." + prefix + " > .list{\n" +
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.backgroundAAA + ";\n" +
+"  border-color: " + this.foreground + ";\n" +
 "}\n" +
 ".content > ." + prefix + " > .toolbar  svg{\n" +
 "  background-color: " + this.background + ";\n" +
@@ -496,27 +498,45 @@ CSS = function(prefix) {
 "  background-color: " + this.accent + ";\n" +
 "  color: " + this.background + ";\n" +
 "}\n" +
-".content > ." + prefix + " h1,\n" +
-".content > ." + prefix + " h2,\n" +
-".content > ." + prefix + " h3,\n" +
-".content > ." + prefix + " h1 a,\n" +
-".content > ." + prefix + " h2 a,\n" +
-".content > ." + prefix + " h3 a{\n" +
+"." + prefix + " > .list > header  svg{\n" +
+"  background-color: " + this.background + ";\n" +
+"  color: " + this.backgroundAA + ";\n" +
+"}\n" +
+"." + prefix + " > .list > header svg:hover {\n" +
+"  background-color: " + this.backgroundAA + ";\n" +
+"  color: " + this.background + ";\n" +
+"}\n" +
+"." + prefix + " > h1,\n" +
+"." + prefix + " > h2,\n" +
+"." + prefix + " > h3,\n" +
+"." + prefix + " > h1 a,\n" +
+"." + prefix + " > h2 a,\n" +
+"." + prefix + " > h3 a{\n" +
 "  color: " + this.foregroundAA + ";\n" +
 "}\n" +
-".content > ." + prefix + " a {\n" +
+"section." + prefix + " > a," +
+"." + prefix + " > [itempath]:before {\n" +
 "  color: " + this.accent + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
-".content > section." + prefix + " > .foreground {\n" +
+"." + prefix + " > .list > header a \n," +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap a {\n" +
+"  color: " + this.backgroundAA + ";\n" +
+"  border-color: " + this.background + ";\n" +
+"  outline-color: " + this.foregroundAA + ";\n" +
+"}\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap .list {\n" +
+"  background-color: " + this.background + ";\n" +
+"}\n" +
+"section." + prefix + " > .foreground {\n" +
 "  background-color: " + this.foreground + ";\n" +
 "  border-color: " + this.accent + ";\n" +
 "}" +
 "body.menu-"    + prefix + " .picker > div:hover {\n" +
 "  border-color: " + this.accent + ";\n" +
 "}" + 
-".content > section." + prefix + " *::selection {\n" +
+"." + prefix + " *::selection {\n" +
 "  background-color: " + this.accent.toString().replace('rgb', 'rgba').replace(')', ',0.5)') + ";\n" +
 "  color: " + this.accentAAA + ";\n" +
 "}")

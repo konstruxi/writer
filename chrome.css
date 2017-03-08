@@ -8,6 +8,7 @@
   outline-style: solid;
   outline-color: transparent;
 }
+
 #formatting {
   opacity: 1;
   z-index: 2200;
@@ -91,7 +92,10 @@
   left: 0;
   border-radius: 50%;
 }
-
+#formatting .cke_button__indent,
+#formatting .cke_button__outdent {
+  display: none;
+}
 #formatting svg {
   cursor: pointer;
 }
@@ -99,7 +103,7 @@
 
 #formatting {
   top: 0;
-  left: 0;
+  left: -50px;
   height: 6.75rem;
   width: 2.25rem;
   position: absolute;
@@ -234,6 +238,9 @@ header  svg {
   fill: currentColor;
 }
 
+svg:hover {
+  cursor: pointer;
+}
 .kx.toolbar {
   z-index: 2;
   position: absolute;
@@ -247,14 +254,21 @@ header  svg {
   transition: opacity 0.3s;
 }
 
-.content section.starred > .toolbar svg{
-  box-shadow: 0px 0px 0px 1px currentColor;
+#sectionizer:not([hidden]) ~ #saver svg {
+  display: none;
 }
 
+/*
+.content section.starred > .toolbar svg{
+  box-shadow: 0px 0px 0px 1px currentColor;
+}*/
 
+
+[contenteditable="true"] > section > .kx.toolbar svg {
+  cursor: move;
+}
 .kx.toolbar svg {
   border-radius: 50%;
-  cursor: move;
   height: 2.3rem;
   width: 2.3rem;
   border: 0.2rem solid transparent;

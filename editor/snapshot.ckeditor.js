@@ -13,7 +13,7 @@ Editor.Snapshot.take = function(element, options, reset, focused) {
   window.snapshot = snapshot;
   return snapshot;
 };
-Editor.Snapshot.prototype.selector = 'section, div, ul, li, ol, h1, h2, h3, h4, h5, dl, dt, dd, p, nav, dl, header, footer, main, article, details, summary, aside, button, form, input, label, summary a, select, textarea, x-div, section > a, img, picture, blockquote'
+Editor.Snapshot.prototype.selector = 'section, div, ul, li, ol, h1, h2, h3, h4, h5, dl, dt, dd, p, nav, dl, header, footer, main, article, details, summary, aside, button, form, input, label, summary a, select, textarea, x-div, section > a, img, picture, blockquote, .kx'
 //Editor.Snapshot.prototype.getElements = function(element, options) {
 //  return Editor.Content(options.editor)
 //}

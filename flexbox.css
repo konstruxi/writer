@@ -68,17 +68,17 @@
 }
 
 @media (min-width: 800px) {
-  section[pattern="two-images"] {
+  section:not(.compacted)[pattern="two-images"] {
     flex-basis: 50%;
     -webkit-flex-basis: 50%;
     -webkit-align-self: stretch;
     -ms-flex-item-align: stretch;
     align-self: stretch;
   }
-  .content section[pattern="two-images"][index="0"] > :not(.toolbar) {
+  .content section:not(.compacted)[pattern="two-images"][index="0"] > :not(.toolbar) {
     margin-right: 0;
   }
-  .content section[pattern="two-images"][index="1"] > :not(.toolbar){
+  .content section:not(.compacted)[pattern="two-images"][index="1"] > :not(.toolbar){
     margin-left: 0;
   }
 }

@@ -74,11 +74,12 @@ Editor.Chrome.Toolbar = function(editor, section, iconname) {
 
     section.insertBefore(bg, section.firstChild)
   }
-  if (!section.getElementsByClassName('toolbar')[0]) {
-    if (typeof iconname == 'function') {
-      iconname = iconname(section)
-      if (!iconname) return;
-    }
+  var toolbar = section.getElementsByClassName('toolbar')[0];
+  if (typeof iconname == 'function') {
+    iconname = iconname(section)
+  }
+  if (!toolbar) {
+    if (iconname === false) return;
     var toolbar = document.createElement('x-div');
     toolbar.setAttribute('unselectable', 'on')
     toolbar.classList.add('kx')
@@ -99,7 +100,15 @@ Editor.Chrome.Toolbar = function(editor, section, iconname) {
     icon.appendChild(link)
     toolbar.appendChild(icon)
     section.insertBefore(toolbar, section.firstChild)
+  } else {
+    if (iconname === false) {
+      toolbar.parentNode.removeChild(toolbar);
+      return false;
+    }
+    var link = toolbar.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'use')[0];
+    link.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + (iconname || 'resize-section-icon'));
   }
+  return toolbar;
 }
 
 Editor.Chrome.Toolbar.open = function(editor, section) {
@@ -183,6 +192,8 @@ Editor.Chrome.update = function(editor, force) {
 
   if (!startSection) return;
 
+  if (Editor.Chrome.onUpdate)
+    Editor.Chrome.onUpdate(editor)
   var foreground = startSection.getElementsByClassName('foreground')[0]
   var index = editor.snapshot.elements.indexOf(start);
   var indexS = editor.snapshot.elements.indexOf(startSection);
@@ -248,7 +259,7 @@ Editor.Chrome.update = function(editor, force) {
   var top = Math.max( offsetTop,
                           Math.min( editor.scrollY + editor.innerHeight - 54,
                             Math.min( offsetTop + offsetHeight,
-                              Math.max(editor.scrollY + 54, offsetTop + offsetHeight / 2)))) + 'px';
+                              Math.max(editor.scrollY + 54, offsetTop + offsetHeight / 2)))) ;
 
   var width = startSection.classList.contains('small') ? 400 : 800;
   var diff = (offsetWidth - Math.min(editor.innerWidth, width));
@@ -257,7 +268,7 @@ Editor.Chrome.update = function(editor, force) {
   formatting.style.display = 'block';
   formatting.style.position  = 'absolute' 
   formatting.style.left = left + 'px'
-  formatting.style.top = top;
+  formatting.style.top = top + 'px';
 
   //if (force && button == editor.currentButton) return;
   editor.currentButton = button;
@@ -300,6 +311,8 @@ Editor.Chrome.togglePicker = function(editor, force) {
     formatting.removeAttribute('hidden')
   } else if (formatting.getAttribute('hidden') == null){
     window.unpicking = setTimeout(function() {
+      formatting.style.left = ''
+      formatting.style.top = '';
       formatting.setAttribute('hidden', 'hidden')
     }, 100)
   }
@@ -313,6 +326,9 @@ function rightNow(callback) {
 function setUIColors(editor, section, type) {
   var oldPalette, currentPalette;
   var oldSchema, currentSchema;
+
+  if (section.classList.contains('list'))
+    section = section.parentNode
   for (var i = 0; i < document.body.classList.length; i++) {
 
     if (document.body.classList[i].indexOf(type + '-style-palette') > -1)
@@ -339,4 +355,15 @@ function setUIColors(editor, section, type) {
       document.body.classList.add(currentSchema)
   }
 
+}
+
+
+
+
+
+
+
+Editor.Chrome.onUpdate = function() {
+  if (window.currentToolbar)
+    Saver.open(window, window.currentToolbar);
 }

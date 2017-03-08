@@ -51,7 +51,7 @@ Editor.Selection = function(editor, content) {
   editor.on( 'blur', function( evt ) {
     if (Editor.focused === editor)
       Editor.focused = null;
-    Editor.Selection.onChange(editor, true, true)
+    Editor.Selection.onChange(editor, true/*, true*/)
   } );
 
   // select image on tap on mobile
@@ -206,6 +206,7 @@ Editor.Selection.moveToFollowingParagraph = function(editor, range) {
 Editor.Selection.onChange = function(editor, force, blur) {
   editor.fire('customSelectionChange')
   Editor.Content.cleanEmpty(editor, blur, blur)
+  Editor.Chrome.closeMenu(editor)
   Editor.Chrome.update(editor)
 
 }

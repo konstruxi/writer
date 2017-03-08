@@ -60,6 +60,7 @@ Editor.Section = function(editor, mutation, observer, changedPlaceholders) {
   editor.fire( 'unlockSnapshot' );
 
   Editor.Chrome.update(editor)
+  Editor.Style.recompute(document.body)
 }
 
 Editor.Section.enlarge = function(editor, section) {
@@ -88,8 +89,8 @@ Editor.Section.star = function(editor, section) {
   else
     section.classList.add('starred')
 
-  Editor.Section.analyze(editor, section, true)
-
+  //Editor.Section.analyze(editor, section, true)
+  Editor.Style.recompute(document.body)
     Editor.Chrome.update(editor)
   editor.fire('saveSnapshot')
 }
@@ -368,8 +369,8 @@ Editor.Section.analyze = function(editor, node, wasStarred) {
   for (var i = 0; i < tags.length; i++)
     node.classList.add(tags[i])
 
-  Editor.Style(editor, node, 'palette', styles.palette, wasStarred)
-  Editor.Style(editor, node, 'schema', node.getAttribute('schema'), wasStarred)
+  //Editor.Style(editor, node, 'palette', styles.palette, wasStarred)
+  //Editor.Style(editor, node, 'schema', node.getAttribute('schema'), wasStarred)
 }
 
 var patterns = {

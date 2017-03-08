@@ -275,6 +275,7 @@ Kex.prototype.transition = function(element, from, to, time, startTime, fallback
       spring.inverted = !spring.inverted;
     }
   } else if (current != target) {
+    //console.log('transition', element, property, 'from', current, 'to', target)
     if (property == 'height') {
       if (element.classList.contains('added'))
         var spring = to[springName] = new Spring(30, 12);
@@ -558,11 +559,11 @@ Kex.isVisible = function(element, options, box) {
 
 Kex.measureContainer = function(element, options, scroll) {
   if (!scroll) {
-    var client = element.getBoundingClientRect();
-    options.offsetHeight = client.height//element.offsetHeight;
-    options.offsetWidth  = client.width//element.offsetWidth;
-    options.offsetTop    = client.top + window.scrollY//element.offsetTop;
-    options.offsetLeft   = client.left + window.scrollX//element.offsetLeft;
+    //var client = element.getBoundingClientRect();
+    options.offsetHeight = element.offsetHeight//client.height;
+    options.offsetWidth  = element.offsetWidth//client.width;
+    options.offsetTop    = element.offsetTop//client.top + window.scrollY;
+    options.offsetLeft   = element.offsetLeft//client.left + window.scrollX;
     options.innerWidth   = window.innerWidth;
     options.innerHeight  = window.innerHeight;
   }

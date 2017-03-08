@@ -4,14 +4,13 @@
 
 
 
-[contenteditable="true"] > * > [itempath]:before{
+[contenteditable="true"]:not(.loading) > * > [itempath]:before{
   content: attr(itemlabel);
-  opacity: 0.45;
   display: inline-block;
   padding-left: 1rem;
   float: right;
 }
-[contenteditable="true"] > * > [itempath]:after {
+[contenteditable="true"]:not(.loading) > * > [itempath]:after {
   position: absolute;
   content: '';
   display: block;
@@ -23,54 +22,54 @@
   z-index: -1;
 }
 
-[contenteditable="true"] > * > [itempath*="[summary]"]:after {
+[contenteditable="true"]:not(.loading) > * > [itempath*="[summary]"]:after {
   background: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.015));
 }
 
-[contenteditable="true"] > * > [itempath][error]:after {
+[contenteditable="true"]:not(.loading) > * > [itempath][error]:after {
   background: rgba(150,0,0,0.1);
 }
 
-.content[contenteditable="true"] > * > ul.meta {
+.content[contenteditable="true"]:not(.loading) > * > ul.meta {
   display: flex;
   justify-content: stretch;
 }
-.content[contenteditable="true"] > * >  ul.meta li {
+.content[contenteditable="true"]:not(.loading) > * >  ul.meta li {
   position: relative;
   flex: 1 1 33%;
 }
 
-.content[contenteditable="true"] > * >  ul.meta li + li{
+.content[contenteditable="true"]:not(.loading) > * >  ul.meta li + li{
   margin-left: 2.14rem;
 }
-.content[contenteditable="true"] > * >  ul.meta li[itempath] {
+.content[contenteditable="true"]:not(.loading) > * >  ul.meta li[itempath] {
   margin-top: 0;
 }
-.content[contenteditable="true"] > * >  ul.meta li[itempath]:after {
+.content[contenteditable="true"]:not(.loading) > * >  ul.meta li[itempath]:after {
   top: -0.96rem;
 }
 
 
-.content.content[contenteditable="true"] > * >  [itempath] {
+.content.content[contenteditable="true"]:not(.loading) > * >  [itempath] {
   min-height: 2.5rem;
   padding-top: 0.25rem;
 }
-.content.content[contenteditable="true"] > * > picture[itempath] {
+.content.content[contenteditable="true"]:not(.loading) > * > picture[itempath] {
   padding-top: 0.25rem;
 }
-.content.content[contenteditable="true"] > * > h1[itempath] {
+.content.content[contenteditable="true"]:not(.loading) > * > h1[itempath] {
   padding-top: 0rem;
   min-height: 3rem;
 }
-.content[contenteditable="true"] > * >  picture[itempath] {
+.content[contenteditable="true"]:not(.loading) > * >  picture[itempath] {
   overflow: visible;
 }
-.content[contenteditable="true"] > * >  [itempath] {
-  margin-top: 14px;
+.content[contenteditable="true"]:not(.loading) > * >  [itempath] {
+  /*margin-top: 14px;*/
   bottom: 0rem;
 }
-[contenteditable="true"] > * > ul.meta + [itempath]:after,
-[contenteditable="true"] > * > [itempath] + [itempath]:after {
+[contenteditable="true"]:not(.loading) > * > ul.meta + [itempath]:after,
+[contenteditable="true"]:not(.loading) > * > [itempath] + [itempath]:after {
   top: -0.77rem;
   bottom: 0rem;
 }
@@ -79,20 +78,20 @@
   content: attr(kx-text);
 }
 
-.content[contenteditable="true"]> * >  ul.meta {
+.content[contenteditable="true"]:not(.loading)> * >  ul.meta {
   margin-bottom: 0;
 } 
 
 
 
-.content.content[contenteditable="true"]  section:not(.small) picture[itempath],
-.content.content[contenteditable="true"]  section:not(.small) a[itempath],
-.content.content[contenteditable="true"]  section:not(.small) ul[itempath] {
+.content.content[contenteditable="true"]:not(.loading)  section:not(.small) picture[itempath],
+.content.content[contenteditable="true"]:not(.loading)  section:not(.small) a[itempath],
+.content.content[contenteditable="true"]:not(.loading)  section:not(.small) ul[itempath] {
   width: calc(50% - 4.2rem);
   margin-left: 3.15rem;
 }
 
-.content.content[contenteditable="true"]  section:not(.small) picture[itempath] + ul[itempath]{
+.content.content[contenteditable="true"]:not(.loading)  section:not(.small) picture[itempath] + ul[itempath]{
   position: absolute;
   margin-bottom: auto;
   margin-top: 0;
@@ -317,8 +316,8 @@ section > a {
 section > a + * {
   margin-top: 14px;
 }
-.content[contenteditable="true"] > section.focused > .kx.foreground,
-.content[contenteditable="true"] > section:hover > .kx.foreground{
+.content[contenteditable="true"]:not(.loading) > section.focused > .kx.foreground,
+.content[contenteditable="true"]:not(.loading) > section:hover > .kx.foreground{
   border-width: 1px;
 }
 
@@ -344,25 +343,27 @@ section.clone {
 
 .content {
   position: relative;
+  direction: ltr;
 }
 
 .content * {
   box-sizing: border-box;
   font-size: 1em;
 }
-.content section p,
-.content section li,
-.content section h1,
-.content section h2,
-.content section h3,
-.content section svg {
+.ready .content section p,
+.ready .content section li,
+.ready .content section h1,
+.ready .content section h2,
+.ready .content section h3,
+.ready .content section svg {
   transition: color .3s, background-color .3s; 
   -webkit-transition: color .3s , background-color .3s
 }
-.content section,
-.content section .foreground {
-  transition: background-color .3s, opacity .3s; 
-  -webkit-transition: background-color .3s, opacity .3s;
+.ready .content,
+.ready .content section,
+.ready .content section .foreground {
+  transition: background-color .3s, opacity .3s, outline .3s; 
+  -webkit-transition: background-color .3s, opacity .3s, outline .3s;
 
 }
 
@@ -499,25 +500,25 @@ section.clone {
     left: calc(50% - 200px);
   }
 
-  .content section[pattern*="two-"][index="0"] {
+  .content section:not(.compacted)[pattern*="two-"][index="0"] {
     padding-right: 2rem;
   }
-  .content section[pattern*="two-"][index="0"] > .kx.toolbar {
+  .content section:not(.compacted)[pattern*="two-"][index="0"] > .kx.toolbar {
     right: 200px;
     left: auto;
     margin-left: 0;
   }
-  .content section[pattern*="two-"][index="0"] > .kx.foreground {
+  .content section:not(.compacted)[pattern*="two-"][index="0"] > .kx.foreground {
     left: calc(100% - 400px - 1rem);
   }
-  .content section[pattern*="two-"][index="1"] {
+  .content section:not(.compacted)[pattern*="two-"][index="1"] {
     padding-left: 2rem;
   }
-  .content section[pattern*="two-"][index="1"] > .kx.toolbar {
+  .content section:not(.compacted)[pattern*="two-"][index="1"] > .kx.toolbar {
     left: 200px;
     margin-left: 0;
   }
-  .content section[pattern*="two-"][index="1"] > .kx.foreground {
+  .content section:not(.compacted)[pattern*="two-"][index="1"] > .kx.foreground {
     left: 1rem;
   }
 
@@ -526,20 +527,20 @@ section.clone {
 
 
 
-  .content section:not(.small):not(.compacted):not(.large).has-portrait-image.has-text {
+  .content section:not(.compacted):not(.small):not(.compacted):not(.large).has-portrait-image.has-text {
     min-height: calc(502px + 6rem);
     justify-content: center;
     -webkit-justify-content: center;
   }
 
-  .content section:not(.small):not(.compacted):not(.large).has-portrait-image.has-text picture{
+  .content section:not(.compacted):not(.small):not(.compacted):not(.large).has-portrait-image.has-text picture{
     height: calc(502px + 6rem);
     justify-content: center;
     -webkit-justify-content: center;
   }
 
-  .content section:not(.small):not(.compacted):not(.large).has-portrait-image.has-text > a,
-  .content section:not(.small):not(.compacted):not(.large).has-portrait-image.has-text > picture{
+  .content section:not(.compacted):not(.small):not(.compacted):not(.large).has-portrait-image.has-text > a,
+  .content section:not(.compacted):not(.small):not(.compacted):not(.large).has-portrait-image.has-text > picture{
     margin-right: 0;
     margin-top: 0;
     width: calc(400px - 1rem);
@@ -548,14 +549,14 @@ section.clone {
     top: 3rem;
     right: calc(50% - 400px); 
   }
-  .content section:not(.small):not(.compacted):not(.large).has-portrait-image.has-text picture img{
+  .content section:not(.compacted):not(.small):not(.compacted):not(.large).has-portrait-image.has-text picture img{
     max-height: 500px;
     width: auto;
     display: block;
     margin-right: 0;
   }
 
-  .content section:not(.small):not(.compacted):not(.large).has-portrait-image.has-text > *:not(a):not(picture):not(.kx){
+  .content section:not(.compacted):not(.small):not(.compacted):not(.large).has-portrait-image.has-text > *:not(a):not(picture):not(.kx){
     margin-right: calc(50% + 1rem); 
     width: calc(400px - 1rem);
   }
@@ -613,9 +614,9 @@ article.content article.content {
 article.content article.content article.content {
   background: #e0e0e0;
 }*/
-.list:not([layout="carousel"]):not([layout="stream"]) > article.content + article.content {
-  border-top: 1px solid transparent;
-  background-clip: content-box;
+.list[layout="stream"] header ~ * + *,
+.list:not([layout]) header ~ * + * {
+  margin-top: 1rem;
 }
 
 .content > section > *:not(a):not(picture):not(.toolbar) {

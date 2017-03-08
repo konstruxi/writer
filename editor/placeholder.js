@@ -22,7 +22,6 @@ Editor.Placeholder = function(editor, changedPlaceholders) {
         for (var p = range.startContainer.$; p; p = p.parentNode) {
           if (p.nodeType == 1 && p.getAttribute('itempath')) {
             var offset = e.shiftKey ? -1 : 1;
-            debugger
             var next = placeholders[Array.prototype.indexOf.call(placeholders, p) + offset];
             
           }
@@ -124,7 +123,6 @@ Editor.Placeholder = function(editor, changedPlaceholders) {
     for (var i = 0; i < oldPlaceholders.length; i++)
       if (newPlaceholders.indexOf(oldPlaceholders[i]) == -1) {
         if (oldPlaceholders[i].getAttribute('itempath')) {
-          debugger
           oldPlaceholders[i].parentNode.removeChild(oldPlaceholders[i])
         }
       }

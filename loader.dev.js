@@ -56,12 +56,12 @@ document.write('\
 </g>\
 \
 <g id="star-icon">\
-<path d="M22,32.54L34.36 40 31.08 25.94 42 16.48 27.62 15.26 22 2 16.38 15.26 2 16.48 12.92 25.94 9.64 40z"/>\
+<path fill-rule="evenodd" d="M24 34.54L36.36 42l-3.28-14.06L44 18.48l-14.38-1.22L24 4l-5.62 13.26L4 18.48l10.92 9.46L11.64 42"/>\
 </g>\
 \
 <g id="unstar-icon">\
 \
-    <path d="M42,16.48 L27.62,15.24 L22,2 L16.38,15.26 L2,16.48 L12.92,25.94 L9.64,40 L22,32.54 L34.36,40 L31.1,25.94 L42,16.48 Z M22,28.8 L14.48,33.34 L16.48,24.78 L9.84,19.02 L18.6,18.26 L22,10.2 L25.42,18.28 L34.18,19.04 L27.54,24.8 L29.54,33.36 L22,28.8 Z"></path>\
+    <path d="M44 18.48l-14.38-1.24L24 4l-5.62 13.26L4 18.48l10.92 9.46L11.64 42 24 34.54 36.36 42 33.1 27.94 44 18.48zM24 30.8l-7.52 4.54 2-8.56-6.64-5.76 8.76-.76L24 12.2l3.42 8.08 8.76.76-6.64 5.76 2 8.56L24 30.8z" fill-rule="evenodd"/>\
 </g>\
 \
 <g id="move-icon">\
@@ -78,8 +78,8 @@ document.write('\
 <div id="formatting" hidden></div>\
 \
 <div class="circle-menu" id="sectionizer" hidden>\
-  <svg viewBox="-2 0 48 48" class="unstar icon"><use xlink:href="#unstar-icon"></use></svg>\
-  <svg viewBox="-2 0 48 48" class="star icon"><use xlink:href="#star-icon"></use></svg>\
+  <svg viewBox="0 0 48 48" class="unstar icon"><use xlink:href="#unstar-icon"></use></svg>\
+  <svg viewBox="0 0 48 48" class="star icon"><use xlink:href="#star-icon"></use></svg>\
   <svg viewBox="-1 0 50 50" class="left pick palette icon"><use xlink:href="#palette-icon"></use></svg>\
   <svg viewBox="0 0 48 48" class="top split handler icon"><use xlink:href="#split-section-icon"></use></svg>\
   <svg viewBox="-1 0 50 50" class="right pick settings icon"><use xlink:href="#settings-icon"></use></svg>\

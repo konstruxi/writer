@@ -398,7 +398,6 @@ Editor.Pointer = function(editor, content) {
           for (var pp = p; pp; pp = pp.parentNode) 
             if (pp == editor.element.$) break;
           if (pp != editor.element.$) return;
-
           var section = Editor.Section.get(p);
           Editor.Chrome.Toolbar.open(editor, section, p);
           e.preventDefault()
@@ -416,6 +415,8 @@ Editor.Pointer = function(editor, content) {
         }
       }
     }
+    Editor.Chrome.closeMenu(editor)
+    Editor.Chrome.Toolbar.close(editor)
   }
 
 }

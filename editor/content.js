@@ -38,6 +38,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
   editor.fire('lockSnapshot');
   var cleaned = [];
   for (var i = 0; i < children.length; i++) {
+    if (children[i].tagName == 'HEADER') continue;
     var inside = selected && Editor.Content.isInside(selected, children[i]);
     if (selected && inside) {
       if (editor.section != children[i]) {
@@ -93,15 +94,17 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
       }
     }
   }
+  var removed = 0;
   for (var i = 0; i < cleaned.length; i++) {
-    if (cleaned[i].parentNode) {
+    if (cleaned[i].parentNode && cleaned[i].tagName != 'HEADER') {
       cleaned[i].parentNode.removeChild(cleaned[i])
+      removed++;
     }
     //if (editor.snapshot)
     //  editor.snapshot.removeElement(cleaned[i])
   }
-  if (cleaned.length) {
-    console.log('cleaned', cleaned)
+  if (removed) {
+    console.log('cleaned', removed)
   }
 
   if (!editor.refocusing && !blur) {

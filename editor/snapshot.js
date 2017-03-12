@@ -201,14 +201,14 @@ Kex.prototype.animate = function(callback) {
   }
   // call immediately for safari, the reason why we dont use precise RAF timestamp 
   onSingleFrame(true)
-    var els = Array.prototype.slice.call(snapshot.element.getElementsByClassName('new'))
-    for (var i = 0; i < els.length; i++)
-      els[i].classList.remove('new')
   console.timeEnd('animate 1st frame');
   return snapshot;
 };
 
 Kex.prototype.finish = function() {
+    var els = Array.prototype.slice.call(snapshot.element.getElementsByClassName('new'))
+    for (var i = 0; i < els.length; i++)
+      els[i].classList.remove('new')
   if (this.options.onFinish) this.options.onFinish.call(this)
   this.reset(null, true)
   this.unfreezeContainer();
@@ -364,7 +364,10 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
         break // ?????
       }
     } else {
-      to.currentOpacity = to.opacity
+      if (from && from.opacity != to.opacity) {
+        to.currentOpacity   = this.transition(element, from, to, time, startTime, 'currentOpacity', 'opacity', 'opacitySpring');
+      } else
+        to.currentOpacity = to.opacity
       to.currentFontSize = to.fontSize
       to.currentLineHeight = to.lineHeight
       to.currentWidth  = to.targetWidth != null ? to.targetWidth : to.width
@@ -377,7 +380,7 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
 
 
     var css = '';
-    if (to.visible && (!to.static || to.wasHidden)) {
+    if (to.visible && (!to.static || to.wasHidden || to.currentOpacity != to.opacity)) {
       if (to.wasHidden && from && !from.wasHidden)
         css += 'display: block; '
       if (to.currentOpacity != to.opacity) 
@@ -412,7 +415,7 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
         css = 'z-index: -1; visibility: hidden';
       }
     }
-    if (!to.static || to.wasHidden)
+    if (css)
       element.style.cssText = css;
 
     //if (!to.topSpring && !to.leftSpring && !to.heightSpring && !to.widthSpring && !to.fontSizeSpring)

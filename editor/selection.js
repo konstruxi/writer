@@ -112,12 +112,19 @@ Editor.Selection.fix = function(editor) {
   //editor.previouslySelectedRange = range;
 
   if (!range) return
-  for (var p = range.startContainer.$; p; p = p.parentNode) {
+  //if (range.startContainer.$.nodeType == 3 && range.startContainer.$.parentNode.tagName == 'SECTION') {
+  //  if (editor.lastFocusedSection)
+  //    return Editor.Selection.selectSection(editor, editor.lastFocusedSection, range)
+  //}
+  loop: for (var p = range.startContainer.$; p; p = p.parentNode) {
     switch (p.tagName) {
       case 'PICTURE':
         return Editor.Selection.selectPicture(editor, p)
       case 'X-DIV': case 'svg': case 'use':
         return Editor.Selection.moveToFollowingParagraph(editor, range);    
+      case 'SECTION':
+        editor.lastFocusedSection = p;
+        break loop;
     }
   }
 
@@ -199,6 +206,14 @@ Editor.Selection.moveToFollowingParagraph = function(editor, range) {
       range.select()
     }
   }
+}
+Editor.Selection.selectSection = function(editor, section, range) {
+  if (!range) range = editor.getSelection().getRanges()[0]
+  if (!range) return;
+  var first = Editor.Section.getFirstChild(section);
+  var range = editor.createRange()
+  range.moveToPosition( new CKEDITOR.dom.element(first), CKEDITOR.POSITION_BEFORE_END );
+  range.select()
 }
 
 

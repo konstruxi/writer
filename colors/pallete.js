@@ -526,8 +526,21 @@ CSS = function(prefix) {
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
-"[id=\"layout-root\"]." + prefix + "  > .sitemap .list {\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap .list,\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap details {\n" +
 "  background-color: " + this.background + ";\n" +
+"  color: " + this.backgroundAAA + ";\n" +
+"}\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap details.open summary {\n" +
+"  background-color: " + this.backgroundAA + ";\n" +
+"  color: " + this.background + ";\n" +
+"}\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap details.open summary a{\n" +
+"  color: " + this.background + ";\n" +
+"}\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap details.current.open > summary{\n" +
+"  background-color: " + this.foreground + ";\n" +
+"  color: " + this.foregroundAAA + ";\n" +
 "}\n" +
 "section." + prefix + " > .foreground {\n" +
 "  background-color: " + this.foreground + ";\n" +

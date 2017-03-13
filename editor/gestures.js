@@ -408,7 +408,10 @@ Editor.Pointer = function(editor, content) {
           e.preventDefault()
           return
         } else if (p.classList.contains('palette')) {
+          setTimeout(function() {
+
           Editor.Picker(editor, editor.currentToolbar, 'schema', Editor.Picker.Schema);
+        }, 200)
           Editor.Chrome.Toolbar.close(editor)
           e.preventDefault()
           return

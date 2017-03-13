@@ -253,7 +253,6 @@ svg:hover {
   border-radius: 50%;
   transition: opacity 0.3s;
 }
-
 #sectionizer:not([hidden]) ~ #saver svg {
   display: none;
 }

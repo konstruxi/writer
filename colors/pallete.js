@@ -514,6 +514,20 @@ CSS = function(prefix) {
 "." + prefix + " > h3 a{\n" +
 "  color: " + this.foregroundAA + ";\n" +
 "}\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h1,\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h2,\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h3,\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h1 a,\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h2 a,\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h3 a {\n" +
+"  color: " + this.backgroundAA + ";\n" +
+"}\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section {\n" +
+"  background-color: " + this.background + ";\n" +
+"  color: " + this.backgroundAAA + ";\n" +
+"  border-color: " + this.accent + ";\n" +
+"}\n" +
+
 "section." + prefix + " > a," +
 "." + prefix + " > [itempath]:before {\n" +
 "  color: " + this.accent + ";\n" +
@@ -521,7 +535,8 @@ CSS = function(prefix) {
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
 "." + prefix + " > .list > header a \n," +
-"[id=\"layout-root\"]." + prefix + "  > .sitemap a {\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap nav a,\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap nav svg {\n" +
 "  color: " + this.backgroundAA + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
@@ -534,6 +549,9 @@ CSS = function(prefix) {
 "[id=\"layout-root\"]." + prefix + "  > .sitemap details.open summary {\n" +
 "  background-color: " + this.backgroundAA + ";\n" +
 "  color: " + this.background + ";\n" +
+"}\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap details.open {\n" +
+"  box-shadow: 0 5px 5px " + this.backgroundAA + ";\n" +
 "}\n" +
 "[id=\"layout-root\"]." + prefix + "  > .sitemap details.open summary a{\n" +
 "  color: " + this.background + ";\n" +

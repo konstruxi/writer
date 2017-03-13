@@ -179,10 +179,15 @@ Editor.Style.recompute = function(root) {
 
   for (var i = 0; i < sections.length; i++) {
     if (sections[i].classList.contains('starred')) {
+      if (!schema)
+        var schema = sections[i].getAttribute('schema');
+      var starred = sections[i];
       Editor.Style(null, sections[i], 'palette', sections[i].getAttribute('palette'));
       Editor.Style(null, sections[i], 'schema', sections[i].getAttribute('schema'));
     }
   }
+  if (!schema && starred)
+    Editor.Style(null, starred, 'schema', 'DV_V');
 
   var containers = root.querySelectorAll('#layout-root, article');
   for (var i = 0; i < containers.length; i++) {

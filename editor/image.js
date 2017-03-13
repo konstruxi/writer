@@ -10,7 +10,7 @@ Editor.Image = function(editor, image, onImageProcessed, onImageLoaded, arg) {
   editor.fire('lockSnapshot');
 
   if (!image.getAttribute('uid')) {
-    image.setAttribute('uid', Math.floor(Math.random() * 100000000000));
+    image.setAttribute('uid', Math.floor(Math.random() * 100000000000000));
   } else if (image.parentNode.classList.contains('loading')
           || image.parentNode.classList.contains('processed')) {
     return image;
@@ -162,8 +162,15 @@ Editor.Image.applyChanges = function(data, image) {
   
   //console.error('crops', data)
 
+
+  var width = parseInt(image.getAttribute('width'));
+  var height = parseInt(image.getAttribute('height'));
+
   image.setAttribute('crop-x', data.square.x);
   image.setAttribute('crop-y', data.square.y);
+  //image.setAttribute('crop-width', data.square.width);
+  //image.setAttribute('crop-height', data.square.height);
+
   image.parentNode.classList.add('processed')
 
   var generator = Palette(image)
@@ -171,9 +178,6 @@ Editor.Image.applyChanges = function(data, image) {
   Editor.Style.store(this, 'palette', uid, generator)
   var schema = Editor.Style.get(this, section, 'schema', 'DV_V');
   var result = generator(schema)
-
-  var width = parseInt(image.getAttribute('width'));
-  var height = parseInt(image.getAttribute('height'));
 
   if (height >= width * 1.2) {
     image.parentNode.classList.add('portrait');
@@ -184,20 +188,10 @@ Editor.Image.applyChanges = function(data, image) {
   
   //image.style.width  = width + 'px';
   //image.style.maxHeight = height + 'px';
-  var ratio = width > height ? width / height : height / width;
-  var styles = {};
-
   section.setAttribute('palette', uid);
   //Editor.Style(this, section, 'palette', uid)
 
-  styles['picture[uid="' + uid + '"]'] = '.content section.small img[uid="' + uid + '"] {' + 
-    'left: -' + data.square.x / width * ratio * 100 + '%; ' +
-    'top: -' + data.square.y / height * ratio * 100 + '%; ' +
-    'width: ' + (height < width ? ratio : 1) * 100 + '%; ' +
-  '}\n picture[uid="' + uid + '"]:before {\n' +
-  'padding-top: ' + parseFloat(((height / width) * 100).toFixed(3)) + '%; }\n'
-
-  Editor.Style.write(this, section, styles);
+  Editor.Image.crop(image);
 
   var section = Editor.Section.get(image);
   if (section) {
@@ -205,6 +199,23 @@ Editor.Image.applyChanges = function(data, image) {
     this.snapshot = this.snapshot.animate()
   }
   this.fire('unlockSnapshot')
+}
+
+Editor.Image.crop = function(image) {
+  var cropX = parseInt(image.getAttribute('crop-x'));
+  var cropY = parseInt(image.getAttribute('crop-y'));
+  var width = parseInt(image.getAttribute('width'));
+  var height = parseInt(image.getAttribute('height'));
+  var uid = image.getAttribute('uid');
+  var ratio = width > height ? width / height : height / width;
+  Editor.Style.write(null, null, 'picture[uid="' + uid + '"]', function() {
+    return '.content section.small img[uid="' + uid + '"], .sitemap header:not(:target) section img[uid="' + uid + '"] {' + 
+      'left: -' + cropX / width * ratio * 100 + '%; ' +
+      'top: -' + cropY / height * ratio * 100 + '%; ' +
+      'width: ' + (height < width ? ratio : 1) * 100 + '%; ' +
+    '}\n picture[uid="' + uid + '"]:before {\n' +
+    'padding-top: ' + parseFloat(((height / width) * 100).toFixed(3)) + '%; }\n'
+  });
 }
 
 

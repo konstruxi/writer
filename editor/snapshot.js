@@ -380,10 +380,11 @@ Kex.prototype.morph = function(snapshot, time, startTime) {
 
 
     var css = '';
-    if (to.visible && (!to.static || to.wasHidden || to.currentOpacity != to.opacity)) {
+    var setOpacity = false//to.currentOpacity != to.opacity || from && from.opacity != to.opacity
+    if (to.visible && (!to.static || to.wasHidden || setOpacity)) {
       if (to.wasHidden && from && !from.wasHidden)
         css += 'display: block; '
-      if (to.currentOpacity != to.opacity) 
+      if (setOpacity) 
         css += 'opacity: ' + Math.max(0, Math.min(1, to.currentOpacity)) + '; '
     }
     if (!to.static) {

@@ -51,7 +51,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
       }
     }
     if ((!selected || force || !inside) && !editor.doNotBlur) {
-      if (Editor.Content.isEmpty(children[i])) {
+      if (Editor.Content.isEmpty(children[i], force)) {
         //if (!snapshot) 
         //  snapshot = editor.stylesnapshot = snapshotStyles(editor)
         if (selected) 
@@ -76,7 +76,7 @@ Editor.Content.cleanEmpty = function(editor, force, blur) {
           els.push.apply(els, grands);
         }
         for (var j = 0; j < els.length; j++) {
-          if (Editor.Content.isEmpty(els[j])) {
+          if (Editor.Content.isEmpty(els[j], force)) {
             if (selected) 
               if (!before && !after && Editor.Content.isInside(selected, els[j])) {
                 var before = els[j].previousElementSibling;
@@ -352,6 +352,9 @@ Editor.Content.export = function(editor, content) {
     el.parentNode.removeChild(el);
   })
 
+  Array.prototype.forEach.call(Editor.Content.dummy.querySelectorAll('section > a[href*="#"]'), function(el) {
+    el.parentNode.removeChild(el);
+  })
   Array.prototype.forEach.call(content.querySelectorAll('[title="deleting"]'), function(el) {
     el.removeAttribute('title')
   })

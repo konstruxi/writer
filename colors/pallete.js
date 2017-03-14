@@ -487,36 +487,6 @@ CSS = function(prefix) {
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.foregroundAAA + ";\n" +
 "}\n" +
-"." + prefix + "\n," +
-"." + prefix + " > .list{\n" +
-"  background-color: " + this.background + ";\n" +
-"  color: " + this.backgroundAAA + ";\n" +
-"  border-color: " + this.foreground + ";\n" +
-"}\n" +
-".content > ." + prefix + " > .toolbar  svg{\n" +
-"  background-color: " + this.background + ";\n" +
-"  color: " + this.accent + ";\n" +
-"}\n" +
-".content > ." + prefix + " > .toolbar svg:hover {\n" +
-"  background-color: " + this.accent + ";\n" +
-"  color: " + this.background + ";\n" +
-"}\n" +
-"." + prefix + " > .list > header  svg{\n" +
-"  background-color: " + this.background + ";\n" +
-"  color: " + this.backgroundAA + ";\n" +
-"}\n" +
-"." + prefix + " > .list > header svg:hover {\n" +
-"  background-color: " + this.backgroundAA + ";\n" +
-"  color: " + this.background + ";\n" +
-"}\n" +
-"." + prefix + " > h1,\n" +
-"." + prefix + " > h2,\n" +
-"." + prefix + " > h3,\n" +
-"." + prefix + " > h1 a,\n" +
-"." + prefix + " > h2 a,\n" +
-"." + prefix + " > h3 a{\n" +
-"  color: " + this.foregroundAA + ";\n" +
-"}\n" +
 "[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(.expanded) > section > h1,\n" +
 "[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(.expanded) > section > h2,\n" +
 "[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(.expanded) > section > h3,\n" +
@@ -538,13 +508,13 @@ CSS = function(prefix) {
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
 "." + prefix + " > .list > header a \n," +
-"[id=\"layout-root\"]." + prefix + " > * a {\n" +
+"[id=\"layout-root\"]." + prefix + " a {\n" +
 "  color: " + this.backgroundAA + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
 "." + prefix + " > .list > header a:hover \n," +
-"[id=\"layout-root\"]." + prefix + " > * a:hover {\n" +
+"[id=\"layout-root\"]." + prefix + " a:hover {\n" +
 "  color: " + this.foreground + ";\n" +
 "}\n" +
 "[id=\"layout-root\"]." + prefix + " svg {\n" +
@@ -582,6 +552,36 @@ CSS = function(prefix) {
 "body.menu-"    + prefix + " .picker > div:hover {\n" +
 "  border-color: " + this.accent + ";\n" +
 "}" + 
+"." + prefix + "\n," +
+"." + prefix + " > .list{\n" +
+"  background-color: " + this.background + ";\n" +
+"  color: " + this.backgroundAAA + ";\n" +
+"  border-color: " + this.foreground + ";\n" +
+"}\n" +
+".content > ." + prefix + " > .toolbar  svg{\n" +
+"  background-color: " + this.background + ";\n" +
+"  color: " + this.accent + ";\n" +
+"}\n" +
+".content > ." + prefix + " > .toolbar svg:hover {\n" +
+"  background-color: " + this.accent + ";\n" +
+"  color: " + this.background + ";\n" +
+"}\n" +
+"." + prefix + " > .list > header  svg{\n" +
+"  background-color: " + this.background + ";\n" +
+"  color: " + this.backgroundAA + ";\n" +
+"}\n" +
+"." + prefix + " > .list > header svg:hover {\n" +
+"  background-color: " + this.backgroundAA + ";\n" +
+"  color: " + this.background + ";\n" +
+"}\n" +
+":root ." + prefix + " > h1,\n" +
+":root ." + prefix + " > h2,\n" +
+":root ." + prefix + " > h3,\n" +
+":root ." + prefix + " > h1 a,\n" +
+":root ." + prefix + " > h2 a,\n" +
+":root ." + prefix + " > h3 a{\n" +
+"  color: " + this.foregroundAA + ";\n" +
+"}\n" +
 "." + prefix + " *::selection {\n" +
 "  background-color: " + this.accent.toString().replace('rgb', 'rgba').replace(')', ',0.5)') + ";\n" +
 "  color: " + this.accentAAA + ";\n" +

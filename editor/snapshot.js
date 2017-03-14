@@ -176,7 +176,7 @@ Kex.prototype.animate = function(callback) {
       //  snapshot.element.style.display = 'none';
       //}
 
-      snapshot.morph(from, (start + Math.floor((time - start) / (parseFloat((window.location.search.match(/slowdown=([\d.]+)/) || [0, 1])[1])))), start)
+      snapshot.morph(from, (start + Math.floor((time - start) / (window.slowdown || parseFloat((window.location.search.match(/slowdown=([\d.]+)/) || [0, 1])[1])))), start)
       //if (immediate === true)
       //  snapshot.element.style.display = 'block';
 
@@ -206,9 +206,9 @@ Kex.prototype.animate = function(callback) {
 };
 
 Kex.prototype.finish = function() {
-    var els = Array.prototype.slice.call(snapshot.element.getElementsByClassName('new'))
-    for (var i = 0; i < els.length; i++)
-      els[i].classList.remove('new')
+  var els = Array.prototype.slice.call(snapshot.element.getElementsByClassName('new'))
+  for (var i = 0; i < els.length; i++)
+    els[i].classList.remove('new')
   if (this.options.onFinish) this.options.onFinish.call(this)
   this.reset(null, true)
   this.unfreezeContainer();

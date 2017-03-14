@@ -389,8 +389,14 @@ Editor.Pointer = function(editor, content) {
           e.preventDefault()
           return
         } else if (p.classList.contains('split')) {
-          Editor.Section.insertBefore(editor, editor.currentToolbar);
-          Editor.Chrome.Toolbar.close(editor)
+          if (editor.currentToolbar.querySelector('[itempath]')) {
+            debugger
+            Editor.Section.insertBefore(editor, editor.currentToolbar.nextElementSibling, editor.element.$);
+            Editor.Chrome.Toolbar.close(editor)
+          } else {
+            Editor.Section.insertBefore(editor, editor.currentToolbar);
+            Editor.Chrome.Toolbar.close(editor)
+          }
           e.preventDefault()
           return
         } else if (p.classList.contains('menu')) {

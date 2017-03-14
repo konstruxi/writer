@@ -472,6 +472,9 @@ CSS = function(prefix) {
 "  outline-color: " + this.foreground + " !important;\n" +
 "}\n" +
 "body.menu-"    + prefix.replace('.', '.menu-') + " #sectionizer svg:hover," +
+"body.menu-"    + prefix.replace('.', '.menu-') + " #lister svg:hover," +
+"body.menu-"    + prefix.replace('.', '.menu-') + " #manager svg:hover," +
+"body.menu-"    + prefix.replace('.', '.menu-') + " #saver svg:hover," +
 "body.toolbar-" + prefix.replace('.', '.toolbar-') + " #formatting .cke_button:hover {\n" +
 "  color: " + this.foreground + ";\n" +
 "  background-color: " + this.accent + ";\n" +
@@ -541,7 +544,7 @@ CSS = function(prefix) {
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
-"[id=\"layout-root\"]." + prefix + "  > .sitemap .list,\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap > nav.main > ul > li,\n" +
 "[id=\"layout-root\"]." + prefix + "  > .sitemap details {\n" +
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.backgroundAAA + ";\n" +

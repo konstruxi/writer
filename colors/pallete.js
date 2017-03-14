@@ -517,15 +517,15 @@ CSS = function(prefix) {
 "." + prefix + " > h3 a{\n" +
 "  color: " + this.foregroundAA + ";\n" +
 "}\n" +
-"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h1,\n" +
-"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h2,\n" +
-"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h3,\n" +
-"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h1 a,\n" +
-"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h2 a,\n" +
-"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section > h3 a {\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(.expanded) > section > h1,\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(.expanded) > section > h2,\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(.expanded) > section > h3,\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(.expanded) > section > h1 a,\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(.expanded) > section > h2 a,\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(.expanded) > section > h3 a {\n" +
 "  color: " + this.backgroundAA + ";\n" +
 "}\n" +
-"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(:target) > section {\n" +
+"[id=\"layout-root\"]." + prefix + " .sitemap > header:not([contenteditable=\"true\"]):not(.expanded) > section {\n" +
 "  background-color: " + this.background + ";\n" +
 "  color: " + this.backgroundAAA + ";\n" +
 "  border-color: " + this.accent + ";\n" +
@@ -538,11 +538,22 @@ CSS = function(prefix) {
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
 "." + prefix + " > .list > header a \n," +
-"[id=\"layout-root\"]." + prefix + "  > .sitemap nav a,\n" +
-"[id=\"layout-root\"]." + prefix + "  > .sitemap nav svg {\n" +
+"[id=\"layout-root\"]." + prefix + " > * a {\n" +
 "  color: " + this.backgroundAA + ";\n" +
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
+"}\n" +
+"." + prefix + " > .list > header a:hover \n," +
+"[id=\"layout-root\"]." + prefix + " > * a:hover {\n" +
+"  color: " + this.foreground + ";\n" +
+"}\n" +
+"[id=\"layout-root\"]." + prefix + " svg {\n" +
+"  color: " + this.backgroundAA + ";\n" +
+"  background-color: " + this.background + ";\n" +
+"}\n" +
+"[id=\"layout-root\"]." + prefix + " svg:hover {\n" +
+"  background-color: " + this.backgroundAA + ";\n" +
+"  color: " + this.background + ";\n" +
 "}\n" +
 "[id=\"layout-root\"]." + prefix + "  > .sitemap > nav.main > ul > li,\n" +
 "[id=\"layout-root\"]." + prefix + "  > .sitemap details {\n" +
@@ -553,8 +564,9 @@ CSS = function(prefix) {
 "  background-color: " + this.backgroundAA + ";\n" +
 "  color: " + this.background + ";\n" +
 "}\n" +
+"[id=\"layout-root\"]." + prefix + "  > .sitemap nav > ul > li:hover > .list," +
 "[id=\"layout-root\"]." + prefix + "  > .sitemap details.open {\n" +
-"  box-shadow: 0 5px 5px " + this.backgroundAA + ";\n" +
+"  outline: 1px solid " + this.backgroundAAA + ";\n" +
 "}\n" +
 "[id=\"layout-root\"]." + prefix + "  > .sitemap details.open summary a{\n" +
 "  color: " + this.background + ";\n" +

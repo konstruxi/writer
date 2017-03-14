@@ -564,7 +564,7 @@ Kex.isVisible = function(element, options, box) {
 Kex.measureContainer = function(element, options, scroll) {
   if (!scroll) {
     //var client = element.getBoundingClientRect();
-    options.offsetHeight = element.offsetHeight//client.height;
+    options.offsetHeight = element.scrollHeight//client.height;
     options.offsetWidth  = element.offsetWidth//client.width;
     options.offsetTop    = element.offsetTop//client.top + window.scrollY;
     options.offsetLeft   = element.offsetLeft//client.left + window.scrollX;

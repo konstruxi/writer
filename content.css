@@ -382,7 +382,10 @@ section.clone {
 
 .content .unobserved {
   visibility: hidden;
+}
 
+.foreground svg {
+  display: none;
 }
 /*
 .content section.new {

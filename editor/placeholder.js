@@ -197,8 +197,10 @@ Editor.Placeholder.getFirstChild = function(content, itempath, tagNames, placeho
 Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, placeholders, newPlaceholders, changedPlaceholders) {
   var itempath = field.getAttribute('name');
 
+
   // When placeholder value was changed, do not match content tag.
   // (Otherwise splitting title would eat up 2nd line)
+  if (placeholders.length == 0)
   if (!field.value || !changedPlaceholders.filter(function(e) { return e.getAttribute('itempath') == field.name})[0]) 
     var first = Editor.Placeholder.getFirstChild(content, itempath, tagNames, placeholders, newPlaceholders);
   
@@ -233,8 +235,6 @@ Editor.Placeholder.resolve = function(content, field, tagNames, tagToBuild, plac
 
           placeholders[i].removeAttribute('itempath')
           placeholders[i].removeAttribute('itemlabel')
-          placeholders[i].classList.remove('kx-placeholder-shown');
-
         }
       }
     }
@@ -288,7 +288,8 @@ Editor.Placeholder.getForm = function(content) {
 
 Editor.Placeholder.getFields = function(form) {
   return Array.prototype.slice.call(form.querySelectorAll('[name]')).filter(function(el) {
-    return el.getAttribute('name').indexOf('][') == -1 // skip nested fields
+    return el.getAttribute('name').indexOf('][') == -1 // skip nested getFields
+        && !el.getAttribute('name').match(/thumbnail|_id/)
   });
 }
 

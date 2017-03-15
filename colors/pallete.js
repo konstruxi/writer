@@ -513,10 +513,6 @@ CSS = function(prefix) {
 "  border-color: " + this.background + ";\n" +
 "  outline-color: " + this.foregroundAA + ";\n" +
 "}\n" +
-"." + prefix + " > .list > header a:hover \n," +
-"[id=\"layout-root\"]." + prefix + " a:hover {\n" +
-"  color: " + this.foreground + ";\n" +
-"}\n" +
 "[id=\"layout-root\"]." + prefix + " svg {\n" +
 "  color: " + this.backgroundAA + ";\n" +
 "  background-color: " + this.background + ";\n" +

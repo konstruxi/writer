@@ -84,7 +84,7 @@
 }
   
 
-.content > section.large {
+.content > section.large:not(.compacted) {
   flex-basis: 100%;
   flex-grow: 0;
   -webkit-flex-basis: 100%;
